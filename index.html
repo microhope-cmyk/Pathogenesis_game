@@ -739,6 +739,7 @@ function continueAsGuestSolo(){
   document.getElementById('login-screen').hidden = true;
   document.getElementById('modeselect').hidden = true;
   document.getElementById('stage').hidden = false;
+  document.getElementById('leave-btn').hidden = false;
   newGame('solo');
 }
 function signOutUser(){
@@ -988,13 +989,14 @@ function subscribeToRoom(code, seat){
   });
 }
 
-function leaveOnlineGame(){
+function leaveGame(){
   if(onlineUnsub){ onlineUnsub(); onlineUnsub = null; }
   forgetLastRoom();
   document.getElementById('leave-btn').hidden = true;
   document.getElementById('stage').hidden = true;
   document.getElementById('gameover').hidden = true;
-  document.getElementById('modeselect').hidden = false;
+  if(currentUser){ document.getElementById('modeselect').hidden = false; }
+  else { document.getElementById('login-screen').hidden = false; }
   S = null;
 }
 
@@ -1509,8 +1511,8 @@ function aiChooseBlock(defWho, attacker, blockers){
 }
 
 function aiTakeTurn(){
-  if(S.over) return;
-  aiPlayPhase(function(){ aiAttackPhase(0, function(){ S.locked=false; render(); setTimeout(function(){ if(!S.over) advanceTurn(); }, 500); }); });
+  if(!S || S.over) return;
+  aiPlayPhase(function(){ aiAttackPhase(0, function(){ if(!S) return; S.locked=false; render(); setTimeout(function(){ if(S && !S.over) advanceTurn(); }, 500); }); });
 }
 
 function aiPlayPhase(done){
@@ -1991,6 +1993,7 @@ document.addEventListener('DOMContentLoaded', function(){
       }
       document.getElementById('modeselect').hidden = true;
       document.getElementById('stage').hidden = false;
+      document.getElementById('leave-btn').hidden = false;
       newGame(btn.dataset.mode);
     });
   });
@@ -2183,7 +2186,7 @@ document.addEventListener('DOMContentLoaded', function(){
     }
   });
   document.getElementById('online-lobby-back').addEventListener('click', backToModeSelect);
-  document.getElementById('leave-btn').addEventListener('click', leaveOnlineGame);
+  document.getElementById('leave-btn').addEventListener('click', leaveGame);
 
   document.getElementById('google-signin-btn').addEventListener('click', signInWithGoogle);
   document.getElementById('guest-solo-btn').addEventListener('click', continueAsGuestSolo);
