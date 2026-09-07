@@ -895,9 +895,7 @@ async function createOnlineGame(){
   if(notReady){ lobbyMessage(notReady); return; }
   lobbyMessage('Creating your game...');
   var code = generateRoomCode();
-  newGame('online');
-  S.mySeat = 'p1';
-  S.roomCode = code;
+  newGame('online', 'p1', code);
   try{
     await firestoreDb.collection('games').doc(code).set({
       status: 'waiting',
@@ -1006,13 +1004,13 @@ function freshPlayer(name){
 }
 function opponentOf(who){ return who==='p1' ? 'p2' : 'p1'; }
 
-function newGame(mode){
+function newGame(mode, seat, roomCode){
   var keepSeat = (mode==='online' && S) ? S.mySeat : null;
   var keepRoom = (mode==='online' && S) ? S.roomCode : null;
   S = { mode:mode, turn:null, first:null, over:false, winner:null, selection:null, pendingAttack:null,
     log:[], anim:{hits:{}, dying:{}}, locked:false, turnCount:0,
     players:{ p1: freshPlayer('Player 1'), p2: freshPlayer('Player 2') } };
-  if(mode==='online'){ S.mySeat = keepSeat; S.roomCode = keepRoom; }
+  if(mode==='online'){ S.mySeat = (seat!==undefined ? seat : keepSeat); S.roomCode = (roomCode!==undefined ? roomCode : keepRoom); }
   for(var i=0;i<5;i++){ drawCard('p1'); drawCard('p2'); }
   S.first = Math.random()<0.5 ? 'p1' : 'p2';
   pushLog((S.first==='p1'?S.players.p1.name:S.players.p2.name) + ' opens the game.');
