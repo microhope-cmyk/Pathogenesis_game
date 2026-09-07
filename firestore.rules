@@ -1,0 +1,29 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // ====================== EDIT ME ======================
+    // Keep this in sync with the ADMIN_UIDS list near the top of the game's script — same
+    // UIDs in both places. Find your UID after your first real sign-in: Firebase console →
+    // your project → Authentication → Users tab → the "User UID" column.
+    function isAdmin() {
+      return request.auth != null && request.auth.uid in ["7xg13MD9nygq3Rt2EqZyHyr2pir1"];
+    }
+    // ======================================================
+
+    // Anyone with a game's 5-character code can read or write that one game's document.
+    match /games/{code} {
+      allow read, write: if true;
+    }
+
+    // Anyone can submit an interest-signup email — nobody can read the list back except
+    // the admin account(s) above, so the game's "View Card Interest Signups" screen works
+    // for you but nobody else can see who signed up.
+    match /interest_signups/{id} {
+      allow create: if true;
+      allow read: if isAdmin();
+      allow update, delete: if false;
+    }
+
+    // Nothing else in the database is reachable at all — this is deliberately narrow.
+  }
+}

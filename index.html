@@ -1,0 +1,2234 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Pathogenesis</title>
+<meta name="description" content="A two-player card battler about infection and immunity — deploy pathogens on offense, immune cells on defense, and manage the chronic complications that come from letting an infection linger.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Sans+Condensed:wght@600;700&family=IBM+Plex+Mono:wght@500;600&display=swap" rel="stylesheet">
+<!-- Firebase (Online 2-Player's cross-device sync, and sign-in — see the FIREBASE_CONFIG block
+     in the main script below for the one-time setup this needs before either will work). -->
+<script src="https://www.gstatic.com/firebasejs/12.18.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/12.18.0/firebase-firestore-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/12.18.0/firebase-auth-compat.js"></script>
+<style>
+  :root{
+    --bg:#070a0d;
+    --bg-deep:#040608;
+    --surface:#10161c;
+    --surface-2:#161e26;
+    --surface-3:#202b35;
+    --ink:#eef4f2;
+    --ink-dim:#9db0ac;
+    --ink-faint:#647572;
+    --immune:#52e3b8;
+    --immune-strong:#82f4d4;
+    --immune-soft:rgba(82,227,184,0.16);
+    --pathogen:#ff6a52;
+    --pathogen-strong:#ff9682;
+    --pathogen-soft:rgba(255,106,82,0.17);
+    --effect:#f0b429;
+    --effect-strong:#ffd166;
+    --effect-soft:rgba(240,180,41,0.16);
+    --blue:#6a8dff;
+    --blue-strong:#9db4ff;
+    --blue-soft:rgba(106,141,255,0.16);
+    --rule:rgba(238,244,242,0.14);
+    --rule-soft:rgba(238,244,242,0.06);
+    --shadow-card:0 6px 16px rgba(0,0,0,0.55);
+    --shadow-pop:0 16px 44px rgba(0,0,0,0.6);
+    --r-card:9px;
+    --font-display:'IBM Plex Sans Condensed','Arial Narrow',sans-serif;
+    --font-body:'IBM Plex Sans','Segoe UI',sans-serif;
+    --font-mono:'IBM Plex Mono','SFMono-Regular',Consolas,monospace;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    background:
+      radial-gradient(ellipse 60% 40% at 20% 0%, rgba(82,227,184,0.05), transparent 60%),
+      radial-gradient(ellipse 60% 40% at 80% 100%, rgba(255,106,82,0.05), transparent 60%),
+      var(--bg);
+    color:var(--ink);
+    font-family:var(--font-body);
+    height:100dvh;
+    overflow:hidden;
+    -webkit-tap-highlight-color:transparent;
+  }
+  @media (prefers-reduced-motion:reduce){
+    *{animation-duration:0.01ms !important;animation-iteration-count:1 !important;transition-duration:0.01ms !important;}
+  }
+
+  .field{position:fixed;inset:0;pointer-events:none;z-index:0;overflow:hidden;}
+  .mote{position:absolute;bottom:-10px;border-radius:50%;opacity:0.5;animation:drift linear infinite;filter:blur(0.3px);}
+  @keyframes drift{
+    0%{transform:translateY(0) translateX(0);opacity:0;}
+    12%{opacity:0.55;}
+    88%{opacity:0.3;}
+    100%{transform:translateY(-108vh) translateX(var(--dx,16px));opacity:0;}
+  }
+
+  .stage{
+    position:relative;z-index:1;
+    height:100dvh;width:100%;
+    display:flex;flex-direction:column;
+    max-width:640px;margin:0 auto;
+    border-left:1px solid var(--rule-soft);
+    border-right:1px solid var(--rule-soft);
+  }
+
+  .hud{display:flex;align-items:center;justify-content:space-between;padding:7px 9px;gap:8px;flex:0 0 auto;}
+  .hud-top{border-bottom:1px solid var(--rule);padding-right:36px;}
+  .hud-bottom{border-top:1px solid var(--rule);}
+  .identity{display:flex;flex-direction:column;min-width:0;}
+  .identity .who{font-family:var(--font-display);font-size:15px;font-weight:700;text-transform:uppercase;letter-spacing:.02em;color:var(--ink);line-height:1.1;white-space:nowrap;}
+  .identity .role{font-family:var(--font-mono);font-size:8.5px;letter-spacing:.06em;text-transform:uppercase;color:var(--ink-faint);white-space:nowrap;}
+  .stats{display:flex;align-items:center;gap:5px;flex-wrap:wrap;justify-content:flex-end;}
+  .stat{display:flex;align-items:center;gap:3px;background:var(--surface);border:1px solid var(--rule);border-radius:999px;padding:3px 7px 3px 5px;font-family:var(--font-mono);font-size:10.5px;color:var(--ink);white-space:nowrap;}
+  .stat .dot{width:6px;height:6px;border-radius:50%;flex:0 0 auto;}
+  .stat .heart-icon,.stat .deck-icon{flex:0 0 auto;display:block;}
+  .stat .heart-icon{filter:drop-shadow(0 0 3px rgba(255,106,82,0.5));}
+  .stat.atp .dot{background:var(--blue);box-shadow:0 0 6px var(--blue);}
+  .stat .num{font-variant-numeric:tabular-nums;font-weight:600;}
+  .badge-auto{font-family:var(--font-mono);font-size:8.5px;letter-spacing:.05em;text-transform:uppercase;background:var(--effect-soft);color:var(--effect-strong);border:1px solid var(--effect);border-radius:999px;padding:2px 6px;white-space:nowrap;}
+
+  .board{flex:1 1 auto;min-height:0;display:flex;align-items:center;gap:7px;padding:5px 9px;overflow-x:auto;overflow-y:hidden;scrollbar-width:thin;}
+  .board-top{background:linear-gradient(to bottom, rgba(0,0,0,0.22), transparent);}
+  .board-bottom{background:linear-gradient(to top, rgba(0,0,0,0.22), transparent);}
+  .board-empty{font-family:var(--font-body);font-style:italic;font-size:11.5px;color:var(--ink-faint);padding:0 4px;}
+
+  .battleline{flex:0 0 auto;display:flex;align-items:center;gap:7px;padding:6px 9px;border-top:1px dashed var(--rule);border-bottom:1px dashed var(--rule);background:var(--bg-deep);min-height:40px;}
+  .turn-indicator{flex:0 0 auto;font-family:var(--font-display);font-size:11.5px;font-weight:700;text-transform:uppercase;letter-spacing:.02em;padding:3px 9px;border-radius:999px;background:var(--surface-2);white-space:nowrap;}
+  .turn-indicator.side-p1,.turn-indicator.side-p2{color:var(--immune-strong);box-shadow:inset 0 0 0 1px var(--immune-soft);}
+  .turn-indicator.attackmode{color:var(--pathogen-strong);box-shadow:inset 0 0 0 1px var(--pathogen-soft);animation:pulseline 1.1s ease-in-out infinite;}
+  .turn-indicator.waiting{color:var(--ink-faint);box-shadow:inset 0 0 0 1px var(--rule);animation:pulseline 1.6s ease-in-out infinite;}
+  .turn-indicator.choosemode{color:var(--effect-strong);box-shadow:inset 0 0 0 1px var(--effect-soft);animation:pulseline 1.1s ease-in-out infinite;}
+  @keyframes pulseline{0%,100%{filter:brightness(1);}50%{filter:brightness(1.3);}}
+  .log{flex:1 1 auto;min-width:0;display:flex;flex-direction:column;justify-content:center;font-size:10.5px;line-height:1.3;color:var(--ink-dim);overflow:hidden;}
+  .log div{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+  .log div:last-child{color:var(--ink);}
+  .actionbar{flex:0 0 auto;display:flex;gap:6px;align-items:center;}
+  .pill-btn{font-family:var(--font-mono);font-size:9.5px;letter-spacing:.04em;text-transform:uppercase;border:none;border-radius:999px;padding:5px 10px;cursor:pointer;font-weight:600;white-space:nowrap;}
+  .pill-cancel{background:var(--pathogen);color:#2a0d08;}
+  .pill-take{background:var(--effect);color:#2a1d02;}
+  .pill-end{font-family:var(--font-display);font-weight:700;font-size:12px;text-transform:uppercase;letter-spacing:.02em;background:var(--immune);color:#062017;border:none;border-radius:999px;padding:6px 13px;box-shadow:0 4px 14px rgba(82,227,184,0.3);cursor:pointer;}
+  .pill-end:disabled{background:var(--surface-3);color:var(--ink-faint);box-shadow:none;cursor:default;}
+  .pick-category{display:flex;gap:5px;}
+  .pick-category button{font-family:var(--font-mono);font-size:9.5px;text-transform:uppercase;letter-spacing:.03em;padding:5px 8px;border-radius:999px;border:1px solid var(--blue);background:var(--blue-soft);color:var(--blue-strong);cursor:pointer;font-weight:600;}
+
+  .hand-tray{flex:0 0 auto;display:flex;gap:7px;align-items:flex-end;padding:7px 9px 9px;overflow-x:auto;overflow-y:hidden;background:linear-gradient(to top, var(--bg-deep), transparent 140%);scrollbar-width:thin;}
+
+  .card{position:relative;flex:0 0 auto;width:76px;background:var(--surface-2);border-radius:var(--r-card);border:1px solid var(--rule);box-shadow:var(--shadow-card);overflow:hidden;padding:5px 5px 6px;display:flex;flex-direction:column;gap:2px;transition:transform .15s ease, box-shadow .15s ease, opacity .15s ease;animation:cardIn .2s ease both;}
+  @keyframes cardIn{from{transform:translateY(9px) scale(.94);opacity:0;}to{transform:none;opacity:1;}}
+  .card.bar-pathogen{border-left:3px solid var(--pathogen);}
+  .card.bar-immune{border-left:3px solid var(--immune);}
+  .card.bar-effect{border-left:3px solid var(--effect);}
+  .card-header{margin:-5px -5px 4px;padding:5px 5px 4px;border-radius:8px 8px 0 0;}
+  .card-header.hdr-pathogen{background:linear-gradient(var(--pathogen-soft), transparent);border-bottom:1px solid rgba(255,106,82,.35);}
+  .card-header.hdr-immune{background:linear-gradient(var(--immune-soft), transparent);border-bottom:1px solid rgba(82,227,184,.35);}
+  .card-header.hdr-effect{background:linear-gradient(var(--effect-soft), transparent);border-bottom:1px solid rgba(240,180,41,.35);}
+  .card .toprow{display:flex;justify-content:space-between;align-items:flex-start;gap:2px;}
+  .card .cost{width:17px;height:17px;border-radius:50%;background:var(--blue-soft);color:var(--blue-strong);display:flex;align-items:center;justify-content:center;font-family:var(--font-mono);font-weight:700;font-size:10px;box-shadow:0 0 0 1px rgba(106,141,255,0.35);flex:0 0 auto;}
+  .card .tag{font-family:var(--font-mono);font-size:7px;font-weight:700;letter-spacing:.03em;padding:1.5px 4px;border-radius:4px;white-space:nowrap;}
+  .card .tag.cat-Virus{background:var(--pathogen-soft);color:var(--pathogen-strong);}
+  .card .tag.cat-Bacterium{background:var(--pathogen-soft);color:var(--pathogen-strong);}
+  .card .tag.cat-Fungus{background:var(--pathogen-soft);color:var(--pathogen-strong);}
+  .card .tag.cat-Parasite{background:var(--pathogen-soft);color:var(--pathogen-strong);}
+  .card .tag.cat-Prion{background:var(--pathogen-soft);color:var(--pathogen-strong);}
+  .card .tag.cls-Innate{background:var(--surface-3);color:var(--ink-dim);}
+  .card .tag.cls-Adaptive{background:var(--surface-3);color:var(--ink-dim);}
+  .card .name{font-family:var(--font-body);font-weight:600;font-size:10.5px;line-height:1.14;color:var(--ink);text-wrap:balance;min-height:24px;}
+  .card .icon{align-self:center;width:34px;height:34px;display:flex;align-items:center;justify-content:center;background:radial-gradient(circle, var(--surface-3), transparent 75%);border-radius:50%;margin:1px 0;}
+  .card .icon svg{width:28px;height:28px;}
+  .card .statrow{display:flex;justify-content:space-between;align-items:center;font-family:var(--font-mono);font-size:10.5px;font-weight:700;}
+  .card .pot{color:var(--pathogen-strong);display:flex;align-items:center;gap:2px;}
+  .card .res{color:var(--immune-strong);display:flex;align-items:center;gap:2px;}
+  .card .micro{width:9px;height:9px;flex:0 0 auto;}
+  .card .text{font-size:8.3px;line-height:1.22;color:var(--ink-dim);min-height:20px;overflow:hidden;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;}
+  .card .specbadge{font-family:var(--font-mono);font-size:7px;letter-spacing:.03em;text-transform:uppercase;color:var(--immune-strong);background:var(--immune-soft);border-radius:4px;padding:1px 4px;align-self:flex-start;}
+  .card.dim{opacity:0.38;filter:saturate(.6);}
+  .card.playable:not(.dim){cursor:pointer;}
+  .card.playable:not(.dim):active{transform:translateY(-2px) scale(0.98);}
+  .card.selectable{cursor:pointer;box-shadow:0 0 0 2px var(--immune-strong), var(--shadow-card);animation:cardIn .2s ease both, glowPulse 1.15s ease-in-out infinite;}
+  .card.selectable.pathtarget{box-shadow:0 0 0 2px var(--pathogen-strong), var(--shadow-card);}
+  @keyframes glowPulse{0%,100%{filter:brightness(1);}50%{filter:brightness(1.2);}}
+  .card.chosen{box-shadow:0 0 0 2px var(--effect), var(--shadow-pop);transform:translateY(-4px);}
+  .card.attacking{box-shadow:0 0 0 2px var(--pathogen-strong), var(--shadow-pop);animation:attackPulse 0.9s ease-in-out infinite;}
+  @keyframes attackPulse{0%,100%{filter:brightness(1);transform:none;}50%{filter:brightness(1.35);transform:translateY(-2px);}}
+  .peek-badge{
+    position:absolute;bottom:3px;right:3px;z-index:3;
+    width:16px;height:16px;border-radius:50%;
+    background:rgba(4,6,8,0.6);border:1px solid var(--rule);color:var(--ink-dim);
+    display:flex;align-items:center;justify-content:center;
+    font-family:var(--font-mono);font-size:9px;font-weight:700;font-style:italic;
+    cursor:pointer;
+  }
+  .peek-badge:active{background:rgba(4,6,8,0.85);}
+  .card-preview-wrap{display:flex;flex-direction:column;align-items:center;gap:14px;}
+  .card.preview-size{width:210px !important;padding:14px 14px 16px;gap:6px;}
+  .card.preview-size .card-header{margin:-14px -14px 8px;padding:10px 14px 8px;}
+  .card.preview-size .name{font-size:17px;min-height:auto;}
+  .card.preview-size .icon{width:64px;height:64px;}
+  .card.preview-size .icon svg{width:50px;height:50px;}
+  .card.preview-size .statrow{font-size:15px;}
+  .card.preview-size .tag{font-size:9px;padding:2px 6px;}
+  .card.preview-size .text{font-size:12.5px;line-height:1.4;-webkit-line-clamp:unset;min-height:auto;color:var(--ink-dim);}
+  .card.preview-size .specbadge{font-size:9px;padding:2px 6px;}
+  .preview-chronic,.preview-state{
+    font-family:var(--font-mono);font-size:10.5px;color:var(--effect-strong);
+    background:var(--effect-soft);border-radius:6px;padding:5px 8px;margin-top:2px;
+  }
+  .preview-state{color:var(--ink-dim);background:var(--surface-3);}
+  .preview-close{padding:9px 22px;border-radius:999px;border:none;background:var(--immune);color:#062017;font-family:var(--font-display);font-weight:700;text-transform:uppercase;letter-spacing:.02em;font-size:13px;cursor:pointer;}
+  .history-panel{max-width:360px;width:100%;display:flex;flex-direction:column;max-height:78vh;}
+  .history-title{font-family:var(--font-display);font-size:20px;margin:0 0 10px;color:var(--immune-strong);text-transform:uppercase;letter-spacing:.02em;}
+  .history-list{flex:1 1 auto;overflow-y:auto;display:flex;flex-direction:column;gap:5px;padding-right:2px;margin-bottom:14px;}
+  .history-list div{font-size:12.5px;line-height:1.4;color:var(--ink-dim);padding:5px 8px;border-radius:6px;background:var(--surface-2);border-left:2px solid var(--rule);}
+  .history-list div:last-child{color:var(--ink);border-left-color:var(--immune);background:var(--immune-soft);}
+  .log{cursor:pointer;}
+
+  .card.on-board{width:70px;}
+  .card.dormant::after{content:'resting';position:absolute;inset:0;background:rgba(4,6,8,0.46);display:flex;align-items:center;justify-content:center;font-family:var(--font-mono);font-size:8.5px;letter-spacing:.05em;text-transform:uppercase;color:var(--ink-dim);}
+  .card.dormant.bar-pathogen::after{content:'incubating';}
+  .card.spent{opacity:0.55;}
+  .card.hit{animation:hitshake .32s ease;}
+  @keyframes hitshake{0%,100%{transform:translateX(0);}25%{transform:translateX(-3px);}75%{transform:translateX(3px);}}
+  .card.dying{animation:dieOut .38s ease forwards;}
+  @keyframes dieOut{to{transform:scale(.4) rotate(8deg);opacity:0;}}
+
+  [hidden]{display:none !important;}
+
+  .howto-btn{position:fixed;top:7px;right:7px;z-index:60;width:25px;height:25px;border-radius:50%;background:var(--surface-2);border:1px solid var(--rule);color:var(--ink-dim);font-family:var(--font-display);font-weight:700;font-size:13px;display:flex;align-items:center;justify-content:center;cursor:pointer;}
+  .panel-overlay{position:fixed;inset:0;z-index:65;background:rgba(4,6,8,0.76);display:flex;align-items:center;justify-content:center;padding:16px;}
+  .panel{max-width:440px;width:100%;max-height:85vh;overflow-y:auto;background:var(--surface);border:1px solid var(--rule);border-radius:14px;padding:20px 20px 18px;box-shadow:var(--shadow-pop);}
+  .panel h2{font-family:var(--font-display);font-size:24px;text-transform:uppercase;letter-spacing:.02em;margin:0 0 4px;color:var(--immune-strong);}
+  .panel .sub{font-size:11.5px;color:var(--ink-faint);margin:0 0 14px;font-style:italic;}
+  .panel h3{font-family:var(--font-display);font-size:13.5px;text-transform:uppercase;letter-spacing:.02em;margin:15px 0 4px;color:var(--ink);}
+  .panel p, .panel li{font-size:13px;line-height:1.55;color:var(--ink-dim);}
+  .panel ul{margin:4px 0;padding-left:18px;}
+  .panel strong{color:var(--ink);}
+  .panel strong.pth{color:var(--pathogen-strong);}
+  .panel strong.imm{color:var(--immune-strong);}
+  .panel strong.eff{color:var(--effect-strong);}
+  .panel .close-btn{margin-top:16px;width:100%;padding:9px;border-radius:999px;border:none;background:var(--immune);color:#062017;font-family:var(--font-display);font-weight:700;font-size:14px;text-transform:uppercase;letter-spacing:.02em;cursor:pointer;}
+  .guide-stats{display:flex;gap:6px;flex-wrap:wrap;background:var(--bg-deep);border:1px solid var(--rule);border-radius:10px;padding:9px 10px;margin-top:4px;}
+  .guide-card-row{display:flex;gap:12px;align-items:flex-start;background:var(--bg-deep);border:1px solid var(--rule);border-radius:10px;padding:10px;margin-top:4px;flex-wrap:wrap;}
+  .guide-card{flex:0 0 auto;}
+  .guide-legend{list-style:none;margin:8px 0 0;padding:0;display:flex;flex-direction:column;gap:5px;flex:1 1 180px;min-width:160px;}
+  .guide-legend li{display:flex;gap:7px;align-items:flex-start;font-size:11.5px;line-height:1.4;color:var(--ink-dim);}
+  .guide-legend .swatch{flex:0 0 auto;width:9px;height:9px;border-radius:3px;margin-top:3px;}
+  .guide-legend strong{color:var(--ink);font-weight:600;}
+
+  .modeselect{position:fixed;inset:0;z-index:50;background:var(--bg);display:flex;align-items:center;justify-content:center;padding:24px;}
+  .modeselect .inner{max-width:380px;width:100%;text-align:center;}
+  .modeselect h1{font-family:var(--font-display);font-size:40px;font-weight:700;text-transform:uppercase;letter-spacing:.03em;margin:0 0 2px;color:var(--ink);}
+  .modeselect h1 span{color:var(--pathogen);}
+  .modeselect .tag{font-family:var(--font-mono);font-size:11px;color:var(--ink-faint);margin:0 0 30px;letter-spacing:.02em;}
+  .mode-btn{display:block;width:100%;text-align:left;background:var(--surface);border:1px solid var(--rule);border-radius:12px;padding:14px 16px;margin-bottom:12px;cursor:pointer;color:var(--ink);}
+  .mode-btn .mt{font-family:var(--font-display);font-size:16px;font-weight:700;text-transform:uppercase;letter-spacing:.02em;}
+  .mode-btn .ms{font-family:var(--font-body);font-size:11.5px;color:var(--ink-faint);margin-top:2px;}
+  .mode-btn.solo{border-color:var(--immune);}
+  .mode-btn.twop{border-color:var(--blue);}
+  .mode-btn.online{border-color:var(--effect);}
+  .mode-btn:active{transform:translateY(1px);}
+  .online-code-input{width:100%;box-sizing:border-box;font-family:var(--font-mono);font-size:22px;letter-spacing:.15em;text-align:center;text-transform:uppercase;background:var(--surface);border:1px solid var(--rule);border-radius:10px;padding:12px;color:var(--ink);margin-bottom:12px;}
+  .online-code-display{font-family:var(--font-mono);font-size:36px;letter-spacing:.12em;color:var(--effect-strong);margin:14px 0;font-weight:700;}
+  .online-lobby-message{font-size:12.5px;color:var(--ink-dim);margin:10px 0;min-height:16px;}
+  .leave-btn{position:fixed;top:9px;left:9px;z-index:60;font-family:var(--font-mono);font-size:10px;color:var(--ink-dim);background:var(--surface-2);border:1px solid var(--rule);border-radius:14px;padding:5px 10px;cursor:pointer;}
+
+  .gameover{position:fixed;inset:0;z-index:40;background:rgba(4,6,8,0.88);display:flex;align-items:center;justify-content:center;flex-direction:column;gap:10px;text-align:center;padding:20px;}
+  .gameover h1{font-family:var(--font-display);font-size:34px;text-transform:uppercase;letter-spacing:.02em;margin:0;text-wrap:balance;}
+  .gameover h1.win{color:var(--immune-strong);}
+  .gameover h1.lose{color:var(--pathogen-strong);}
+  .gameover p{color:var(--ink-dim);font-size:13px;max-width:290px;}
+  .gameover button{margin-top:6px;padding:10px 22px;border-radius:999px;border:none;background:var(--immune);color:#062017;font-family:var(--font-display);font-weight:700;text-transform:uppercase;letter-spacing:.02em;font-size:15px;cursor:pointer;}
+
+  .mode-btn.google{border-color:#fff;background:#fff;color:#1a1a1a;}
+  .mode-btn.guest{border-color:var(--rule);}
+  .login-divider{text-align:center;font-family:var(--font-mono);font-size:10px;color:var(--ink-faint);letter-spacing:.08em;text-transform:uppercase;margin:14px 0;}
+  .footer-links{display:flex;justify-content:center;gap:16px;margin-top:22px;font-family:var(--font-mono);font-size:11px;}
+  .footer-links a, .footer-links span{color:var(--ink-faint);cursor:pointer;text-decoration:underline;}
+  .account-btn{position:fixed;top:38px;left:9px;z-index:60;font-family:var(--font-mono);font-size:10px;color:var(--ink-dim);background:var(--surface-2);border:1px solid var(--rule);border-radius:14px;padding:5px 10px;cursor:pointer;}
+  .interest-email-input{width:100%;box-sizing:border-box;font-family:var(--font-body);font-size:14px;background:var(--surface);border:1px solid var(--rule);border-radius:10px;padding:11px 12px;color:var(--ink);margin:12px 0;}
+  .survey-question{font-family:var(--font-body);font-weight:600;font-size:13.5px;color:var(--ink);margin:14px 0 8px;}
+  .survey-options{display:flex;flex-direction:column;gap:7px;margin-bottom:6px;}
+  .survey-options label{display:flex;align-items:center;gap:9px;font-size:13px;color:var(--ink-dim);background:var(--surface);border:1px solid var(--rule);border-radius:8px;padding:8px 10px;cursor:pointer;}
+  .survey-options input[type="checkbox"]{width:16px;height:16px;flex:0 0 auto;accent-color:var(--immune);}
+  .responses-table{width:100%;border-collapse:collapse;font-size:11.5px;margin-top:10px;}
+  .responses-table th, .responses-table td{border-bottom:1px solid var(--rule);padding:5px 6px;text-align:left;vertical-align:top;}
+  .responses-table th{color:var(--ink-faint);font-family:var(--font-mono);font-size:10px;text-transform:uppercase;}
+  .responses-tally{font-size:12.5px;color:var(--ink-dim);margin:8px 0 14px;line-height:1.6;}
+  .login-message{font-size:12.5px;color:var(--ink-dim);margin:10px 0;min-height:16px;text-align:center;}
+</style>
+</head>
+<body>
+
+<div class="field" id="field"></div>
+<div class="howto-btn" id="howto-btn" title="How to play">?</div>
+<div class="leave-btn" id="leave-btn" hidden>Leave Game</div>
+<div class="account-btn" id="account-btn" hidden>Sign out</div>
+
+<div class="modeselect" id="login-screen" hidden>
+  <div class="inner">
+    <h1>PATHOGEN<span>ESIS</span></h1>
+    <div class="tag">infection &amp; immunity, card by card</div>
+    <button class="mode-btn google" id="google-signin-btn">
+      <div class="mt">Sign in with Google</div>
+      <div class="ms">Keeps your games tied to your account.</div>
+    </button>
+    <div class="login-divider">or</div>
+    <button class="mode-btn guest" id="guest-solo-btn">
+      <div class="mt">Try Solo, no sign-up</div>
+      <div class="ms">Play against the computer right now — nothing is saved.</div>
+    </button>
+    <div class="login-message" id="login-message"></div>
+    <div class="footer-links">
+      <span data-action="openabout">About</span>
+      <span data-action="opensupport">Support</span>
+      <span data-action="openinterest">Want real cards?</span>
+    </div>
+  </div>
+</div>
+
+<div class="modeselect" id="modeselect" hidden>
+  <div class="inner">
+    <h1>PATHOGEN<span>ESIS</span></h1>
+    <div class="tag">infection &amp; immunity, card by card</div>
+    <button class="mode-btn solo" data-mode="solo">
+      <div class="mt">Solo</div>
+      <div class="ms">Play against the computer.</div>
+    </button>
+    <button class="mode-btn twop" data-mode="2p">
+      <div class="mt">Local 2-Player</div>
+      <div class="ms">Pass the device — shared screen, both hands open.</div>
+    </button>
+    <button class="mode-btn online" data-mode="online">
+      <div class="mt">Online 2-Player</div>
+      <div class="ms">Two separate devices — share a game code.</div>
+    </button>
+    <button class="mode-btn" id="view-responses-btn" hidden style="border-color:var(--rule);margin-top:18px;">
+      <div class="mt">View Card Interest Signups</div>
+    </button>
+    <div class="footer-links">
+      <span data-action="openabout">About</span>
+      <span data-action="opensupport">Support</span>
+      <span data-action="openinterest">Want real cards?</span>
+    </div>
+  </div>
+</div>
+
+<div class="panel-overlay" id="responses-panel" hidden>
+  <div class="panel">
+    <h2>Card Interest Signups</h2>
+    <div class="responses-tally" id="responses-tally">Loading…</div>
+    <div style="max-height:40vh;overflow-y:auto;">
+      <table class="responses-table" id="responses-table"></table>
+    </div>
+    <button class="close-btn" id="responses-close">Close</button>
+  </div>
+</div>
+
+<div class="modeselect" id="online-lobby" hidden>
+  <div class="inner">
+    <h1>PLAY <span>ONLINE</span></h1>
+
+    <div id="online-screen-choose">
+      <div class="tag">Two separate devices, one shared code.</div>
+      <button class="mode-btn twop" id="online-create-btn">
+        <div class="mt">Create a Game</div>
+        <div class="ms">Get a code to share with your opponent.</div>
+      </button>
+      <button class="mode-btn solo" id="online-show-join-btn">
+        <div class="mt">Join a Game</div>
+        <div class="ms">Enter the code your opponent shared.</div>
+      </button>
+      <button class="mode-btn online" id="online-rejoin-btn" hidden>
+        <div class="mt">Rejoin Game</div>
+        <div class="ms"></div>
+      </button>
+    </div>
+
+    <div id="online-screen-joinform" hidden>
+      <div class="tag">Enter the 5-character code.</div>
+      <input type="text" id="online-join-code" class="online-code-input" maxlength="5" placeholder="ABCDE" autocapitalize="characters" autocomplete="off">
+      <button class="mode-btn twop" id="online-join-submit-btn">
+        <div class="mt">Join</div>
+      </button>
+    </div>
+
+    <div id="online-screen-waiting" hidden style="text-align:center;">
+      <div class="tag">Share this with your opponent — they won't need an account:</div>
+      <div class="online-code-display" id="online-room-code">—</div>
+      <input type="text" class="interest-email-input" id="online-share-link" readonly style="text-align:center;font-family:var(--font-mono);font-size:12px;">
+      <button class="mode-btn twop" id="online-copy-link-btn">
+        <div class="mt">Copy Link</div>
+      </button>
+      <div class="tag">Waiting for them to join...</div>
+    </div>
+
+    <div class="online-lobby-message" id="online-lobby-message"></div>
+    <button class="mode-btn" id="online-lobby-back" style="border-color:var(--rule);">
+      <div class="mt">Back</div>
+    </button>
+  </div>
+</div>
+
+<div class="stage" id="stage" hidden>
+  <header class="hud hud-top">
+    <div class="identity"><span class="who" id="top-name">—</span><span class="role" id="top-role">—</span></div>
+    <div class="stats" id="hud-top-stats"></div>
+  </header>
+
+  <section class="board board-top" id="board-top"></section>
+
+  <section class="battleline">
+    <div class="turn-indicator" id="turn-indicator">—</div>
+    <div class="log" id="log" data-action="openhistory" title="Tap to see full history"></div>
+    <div class="actionbar" id="actionbar">
+      <div class="pick-category" id="pick-category" hidden></div>
+      <button class="pill-btn pill-take" id="take-hit-btn" hidden>Take the hit</button>
+      <button class="pill-btn pill-cancel" id="cancel-btn" hidden>Cancel</button>
+      <button class="pill-end" id="end-turn">End Turn</button>
+    </div>
+  </section>
+
+  <section class="board board-bottom" id="board-bottom"></section>
+
+  <footer class="hud hud-bottom">
+    <div class="identity"><span class="who" id="bottom-name">—</span><span class="role" id="bottom-role">—</span></div>
+    <div class="stats" id="hud-bottom-stats"></div>
+  </footer>
+
+  <section class="hand-tray" id="hand"></section>
+</div>
+
+<div class="panel-overlay" id="about-panel" hidden>
+  <div class="panel">
+    <h2>About</h2>
+    <p class="sub">The game developer is an Immunologist with a toddler and very little free time — but this game has been kicking around in her head for years with no way out. A recent Claude coding hobby has finally given it a means to escape. The goal is to make learning real immunology concepts fun without being too overwhelming.</p>
+    <!-- PLACEHOLDER — set DONATE_URL near the top of the script to a real link (PayPal, Ko-fi, etc.) and this line lights up on its own; until then it stays hidden. -->
+    <p id="about-donate-line" hidden>If you'd like to show your support for further game development and toddler snack purchases, <a id="about-donate-link" href="#" target="_blank" rel="noopener" style="color:var(--effect-strong);">follow this link</a>.</p>
+    <button class="close-btn" id="about-close">Close</button>
+  </div>
+</div>
+
+<div class="panel-overlay" id="support-panel" hidden>
+  <div class="panel">
+    <h2>Support</h2>
+    <p>This game is still in whatever comes before beta testing, so — if you have suggestions about gameplay, requests for additional features, or bugs to report, please email
+      <a href="mailto:joy.us.games@gmail.com" style="color:var(--effect-strong);">joy.us.games@gmail.com</a>,
+      but understand that the developer is not likely to resolve issues in a timely manner… especially if she's run out of Claude credits for the week.</p>
+    <p>Immunology is very complex. If you are a scientist with feedback about the science involved, please take a minute to think about the balance between accuracy and gameplay and how your suggestion impacts game mechanics.</p>
+    <button class="close-btn" id="support-close">Close</button>
+  </div>
+</div>
+
+<div class="panel-overlay" id="interest-panel" hidden>
+  <div class="panel">
+    <h2>Want Real Cards?</h2>
+    <p class="sub">And finally, if you're old school like me and would love to see this game printed on real cards, please register your interest here — if it ever makes it to pre-sale, we'll let you know! Please help us gauge the most realistic path forward for a physical game.</p>
+    <div class="survey-question" id="survey-question"></div>
+    <div class="survey-options" id="survey-options"></div>
+    <input type="email" class="interest-email-input" id="interest-email" placeholder="you@example.com" autocomplete="email">
+    <button class="mode-btn twop" id="interest-submit-btn">
+      <div class="mt">Notify Me</div>
+    </button>
+    <div class="login-message" id="interest-message"></div>
+    <button class="close-btn" id="interest-close">Close</button>
+  </div>
+</div>
+
+<div class="panel-overlay" id="howto-panel" hidden>
+  <div class="panel">
+    <h2>Pathogenesis</h2>
+    <p class="sub">Infection and immunity, fought one turn at a time.</p>
+    <h3>Reading the stat bar</h3>
+    <div class="guide-stats" id="guide-stats"></div>
+    <ul class="guide-legend" id="guide-stats-legend"></ul>
+    <h3>Reading a card</h3>
+    <div class="guide-card-row">
+      <div class="guide-card" id="guide-card"></div>
+      <ul class="guide-legend" id="guide-card-legend"></ul>
+    </div>
+    <h3>The idea</h3>
+    <p>Each side manages one host body. Play <strong class="pth">Pathogens</strong> to attack the opponent's Health; play <strong class="imm">Immune cells</strong> to defend your own. Bring the opponent's Health to zero to win.</p>
+    <h3>ATP, your resource</h3>
+    <p>Your ATP capacity rises by 1 each turn (up to 8) and refills. Every card costs ATP to play — the number in the blue circle. Once a card is on the board, using it also costs 1 ATP each time — attacking, engaging, or secreting all draw from the same pool as playing new cards, so a full board doesn't let you act for free forever. You draw 2 cards a turn, so there's usually something worth spending it on.</p>
+    <h3>Duration: quick vs. lasting</h3>
+    <p>Every card is one of two tempos. <strong class="pth">Pathogens</strong> are tagged <strong>Acute</strong> or <strong>Persistent</strong>; <strong class="imm">Immune cells</strong> are tagged <strong>Innate</strong> or <strong>Adaptive</strong> — same underlying rule, immunology's own names for it. The quick tempo (Acute / Innate) can act the instant it's played, but only once — after attacking, blocking, or engaging a single time, it's spent. The lasting tempo (Persistent / Adaptive) sits out its first turn — incubating, for a pathogen; resting, for a cell — then can act every turn, repeatedly, until destroyed.</p>
+    <h3>Attacking &amp; blocking</h3>
+    <p>Tap a ready <strong class="pth">Pathogen</strong> to send it at the opponent's Health — this costs 1 ATP, so it's grayed out if you're out. They may block with a ready <strong class="imm">Immune cell</strong> — both take damage from each other — or take the hit. Blocking is free.</p>
+    <h3>Engaging</h3>
+    <p>Tap a ready <strong class="imm">Immune cell</strong> to proactively attack an enemy Pathogen already on the board — no blocking involved. This costs 1 ATP too. This is the only way to actually clear a chronic infection; blocking just absorbs one turn's damage.</p>
+    <h3>Specialization</h3>
+    <p>A Naive Helper T-cell or Cytotoxic T-cell permanently upgrades the first time it fights a Pathogen, becoming Specialized against that category and choosing one of two paths: Effector (a strong one-time Potency boost, held in reserve until its next fight) or Memory (+2 Resilience, forever). A Naive B-cell instead becomes a Memory B-cell (+2/+2, forever) or a Plasma Cell (secretes Antibodies each turn). <strong class="eff">Vaccination</strong> can Specialize a cell early, before it ever meets the real thing — it grants a flat +1/+1 with no path choice. Afterward, a Specialized cell deals +1 Potency any time it fights a Pathogen of its own category.</p>
+    <h3>Chronic complications</h3>
+    <p>A few Pathogens (HPV, EBV, <em>H. pylori</em>, Hepatitis C, Group A Strep) cause lasting harm if left unremoved for several of your turns — extra Health loss, or worse. Destroying the Pathogen is usually the only way to stop it.</p>
+    <h3>Effects</h3>
+    <p>One-shot cards — Vaccination, mutation, targeted treatment, Fever Response, Cytokine Storm. Antibiotics, antivirals, and antifungals only work on their matching Pathogen category.</p>
+    <button class="close-btn" id="howto-close">Got it</button>
+  </div>
+</div>
+
+<div class="panel-overlay" id="history-overlay" hidden>
+  <div class="panel history-panel">
+    <h2 class="history-title">Turn History</h2>
+    <div class="history-list" id="history-list"></div>
+    <button class="close-btn" id="history-close">Close</button>
+  </div>
+</div>
+
+<div class="panel-overlay" id="card-preview-overlay" hidden>
+  <div class="card-preview-wrap">
+    <div id="card-preview-host"></div>
+    <button class="preview-close" id="card-preview-close">Close</button>
+  </div>
+</div>
+
+<div class="gameover" id="gameover" hidden></div>
+
+<script>
+(function(){
+"use strict";
+
+/* ================= icons ================= */
+function svg(inner, stroke){
+  return '<svg viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">'+inner+'</svg>';
+}
+function virusIcon(spikes, capsidColor, envelope, spikeColors){
+  spikeColors = spikeColors || [capsidColor];
+  var s = '';
+  if(envelope) s += '<circle cx="24" cy="24" r="17" fill="none" stroke="'+capsidColor+'" stroke-width="1.4" opacity=".5"/>';
+  s += '<circle cx="24" cy="24" r="12" fill="'+capsidColor+'" opacity=".9"/>';
+  s += '<circle cx="24" cy="24" r="5" fill="var(--blue)" opacity=".85"/>';
+  for(var i=0;i<spikes;i++){
+    var a = (i/spikes)*Math.PI*2;
+    var x1 = 24+Math.cos(a)*12, y1 = 24+Math.sin(a)*12;
+    var x2 = 24+Math.cos(a)*17, y2 = 24+Math.sin(a)*17;
+    var col = spikeColors[i % spikeColors.length];
+    s += '<line x1="'+x1.toFixed(1)+'" y1="'+y1.toFixed(1)+'" x2="'+x2.toFixed(1)+'" y2="'+y2.toFixed(1)+'" stroke="'+col+'" stroke-width="2" stroke-linecap="round"/>';
+  }
+  return svg(s);
+}
+var ICONS = {
+  virus_rhino: function(){ return virusIcon(8,'var(--pathogen)',false); },
+  virus_noro: function(){ return virusIcon(10,'var(--pathogen)',false); },
+  virus_flu: function(){ return virusIcon(6,'var(--pathogen-strong)',true,['var(--effect)','var(--blue-strong)']); },
+  virus_hiv: function(){ return svg('<circle cx="24" cy="24" r="17" fill="none" stroke="var(--pathogen-strong)" stroke-width="1.4" opacity=".5"/><path d="M24 10 34 20 30 34 18 34 14 20Z" fill="var(--pathogen)" opacity=".9"/><circle cx="21" cy="22" r="2" fill="var(--blue)"/><circle cx="27" cy="24" r="2" fill="var(--blue)"/><circle cx="23" cy="29" r="1.6" fill="var(--effect)"/>'); },
+  virus_hpv: function(){ return svg('<circle cx="24" cy="24" r="14" fill="var(--pathogen)" opacity=".88"/><circle cx="24" cy="24" r="6" fill="var(--blue)" opacity=".85"/><g stroke="var(--bg)" stroke-width="1" opacity=".6"><path d="M24 10v10M24 28v10M11 24h7M30 24h7M14 14l7 7M27 27l7 7M34 14l-7 7M21 27l-7 7"/></g>'); },
+  virus_ebv: function(){ return virusIcon(9,'var(--pathogen)',true); },
+  virus_hepc: function(){ return svg('<circle cx="24" cy="24" r="16" fill="none" stroke="var(--pathogen-strong)" stroke-width="1.6"/><circle cx="24" cy="24" r="10" fill="var(--pathogen)" opacity=".88"/><circle cx="24" cy="24" r="4" fill="var(--blue)" opacity=".85"/><circle cx="24" cy="8" r="1.6" fill="var(--effect)"/><circle cx="38" cy="28" r="1.6" fill="var(--effect)"/><circle cx="12" cy="30" r="1.6" fill="var(--effect)"/>'); },
+  bact_rod: function(){ return svg('<rect x="10" y="19" width="28" height="10" rx="5" fill="var(--pathogen)" opacity=".9"/><ellipse cx="24" cy="24" rx="8" ry="2.4" fill="var(--blue)" opacity=".8"/><path d="M8 24c-3-2-3 2-6 1M40 24c3-2 3 2 6 1M6 21c-3 0-4 3-2 5M42 27c3 0 4-3 2-5" stroke="var(--pathogen-strong)" stroke-width="1.5" stroke-linecap="round" fill="none"/>'); },
+  bact_cluster: function(){ return svg('<circle cx="17" cy="18" r="6" fill="var(--pathogen)" opacity=".88"/><circle cx="17" cy="18" r="1.6" fill="var(--blue)"/><circle cx="29" cy="16" r="6" fill="var(--pathogen)" opacity=".88"/><circle cx="29" cy="16" r="1.6" fill="var(--blue)"/><circle cx="22" cy="27" r="6" fill="var(--pathogen)" opacity=".88"/><circle cx="22" cy="27" r="1.6" fill="var(--blue)"/><circle cx="33" cy="28" r="6" fill="var(--pathogen)" opacity=".88"/><circle cx="33" cy="28" r="1.6" fill="var(--blue)"/><circle cx="16" cy="31" r="5" fill="var(--pathogen)" opacity=".88"/><circle cx="16" cy="31" r="1.4" fill="var(--blue)"/>'); },
+  bact_spiral: function(){ return svg('<path d="M8 30c4-14 8 6 12-6s8 12 12-2 8 4 8-6" stroke="var(--pathogen)" stroke-width="3.4" fill="none" stroke-linecap="round"/><circle cx="14" cy="23" r="1.3" fill="var(--blue)"/><circle cx="24" cy="21" r="1.3" fill="var(--blue)"/><circle cx="34" cy="20" r="1.3" fill="var(--blue)"/><path d="M40 22c3-1 5 1 6 4M40 22c2-3 5-3 7-1" stroke="var(--pathogen-strong)" stroke-width="1.5" stroke-linecap="round" fill="none"/>'); },
+  bact_chain: function(){ return svg('<circle cx="11" cy="24" r="5.5" fill="var(--pathogen)" opacity=".88"/><circle cx="11" cy="24" r="1.4" fill="var(--blue)"/><circle cx="21" cy="24" r="5.5" fill="var(--pathogen)" opacity=".88"/><circle cx="21" cy="24" r="1.4" fill="var(--blue)"/><circle cx="31" cy="24" r="5.5" fill="var(--pathogen)" opacity=".88"/><circle cx="31" cy="24" r="1.4" fill="var(--blue)"/><circle cx="41" cy="24" r="5.5" fill="var(--pathogen)" opacity=".88"/><circle cx="41" cy="24" r="1.4" fill="var(--blue)"/>'); },
+  fungus: function(){ return svg('<path d="M24 40V20" stroke="var(--pathogen)" stroke-width="3" stroke-linecap="round"/><path d="M24 24c-6-1-9-6-7-13 7-1 11 5 7 13Z" fill="var(--pathogen)" opacity=".85"/><circle cx="20" cy="16" r="1.5" fill="var(--blue)"/><path d="M24 28c6-1 10-6 8-13-7-1-12 5-8 13Z" fill="var(--pathogen)" opacity=".7"/><circle cx="28" cy="20" r="1.5" fill="var(--blue)"/><circle cx="24" cy="40" r="3.4" fill="var(--pathogen)" opacity=".7"/><circle cx="24" cy="40" r="1.3" fill="var(--blue)"/>'); },
+  parasite: function(){ return svg('<circle cx="24" cy="24" r="15" fill="none" stroke="var(--pathogen-soft)" stroke-width="2"/><path d="M24 12a12 12 0 0 1 0 24 8 8 0 0 0 0-24Z" fill="var(--pathogen)" opacity=".88"/><circle cx="19" cy="19" r="2.2" fill="var(--blue)"/>'); },
+  prion: function(){ return svg('<path d="M10 14 22 10 18 22 30 18 26 30 38 26 32 38 20 34 24 22 12 26Z" fill="var(--pathogen)" opacity=".88" stroke="var(--pathogen-strong)" stroke-width="1"/><path d="M18 22 26 30 24 22Z" fill="#8a2e1f" opacity=".9"/>'); },
+  neutrophil: function(){ return svg('<circle cx="24" cy="24" r="15" fill="var(--immune-soft)" stroke="var(--immune)" stroke-width="1.6"/><circle cx="18" cy="18" r="4" fill="var(--blue)"/><circle cx="30" cy="17" r="4" fill="var(--blue)"/><circle cx="18" cy="30" r="4" fill="var(--blue)"/><circle cx="30" cy="30" r="4" fill="var(--blue)"/><circle cx="24" cy="24" r="1.3" fill="var(--effect)"/><circle cx="20" cy="26" r="1.1" fill="var(--effect)"/><circle cx="28" cy="22" r="1.1" fill="var(--effect)"/>'); },
+  macrophage: function(){ return svg('<path d="M10 26c-2-10 6-18 16-16 8 2 14 8 12 16-2 9-11 12-18 10-6-2-9-4-10-10Z" fill="var(--immune)" opacity=".82"/><path d="M16 20c3-3 8-3 10 1s-1 7-5 6-7-4-5-7Z" fill="var(--blue)" opacity=".9"/><circle cx="30" cy="26" r="2" fill="var(--effect)"/><circle cx="26" cy="31" r="1.6" fill="var(--effect)"/><path d="M8 20c-3 1-4 4-2 6M40 16c3 0 5 3 3 6" stroke="var(--immune)" stroke-width="2" stroke-linecap="round" fill="none"/>'); },
+  nk: function(){ return svg('<circle cx="24" cy="24" r="15" fill="var(--immune-soft)" stroke="var(--immune)" stroke-width="1.6"/><circle cx="20" cy="20" r="6" fill="var(--blue)" opacity=".88"/><circle cx="30" cy="27" r="2" fill="var(--effect)"/><circle cx="26" cy="32" r="1.6" fill="var(--effect)"/><circle cx="32" cy="20" r="1.6" fill="var(--effect)"/>'); },
+  dendritic: function(){ return svg('<circle cx="24" cy="24" r="8" fill="var(--blue)" opacity=".88"/><g stroke="var(--immune)" stroke-width="2" stroke-linecap="round"><path d="M24 16V6M28 18l7-7M31 24h10M28 30l7 7M24 32v10M20 30l-7 7M17 24H7M20 18l-7-7"/></g>'); },
+  mast: function(){ return svg('<circle cx="24" cy="24" r="15" fill="var(--immune)" opacity=".5"/><circle cx="33" cy="32" r="3.2" fill="var(--blue)" opacity=".8"/><circle cx="17" cy="16" r="2.4" fill="var(--effect)"/><circle cx="27" cy="14" r="2.4" fill="var(--effect)"/><circle cx="14" cy="25" r="2.4" fill="var(--effect)"/><circle cx="21" cy="30" r="2.4" fill="var(--effect)"/><circle cx="30" cy="24" r="2.4" fill="var(--effect)"/><circle cx="24" cy="20" r="2.2" fill="var(--effect)"/>'); },
+  eosinophil: function(){ return svg('<circle cx="24" cy="24" r="15" fill="var(--immune-soft)" stroke="var(--immune)" stroke-width="1.6"/><ellipse cx="18" cy="21" rx="5" ry="6" fill="var(--blue)"/><ellipse cx="30" cy="27" rx="5" ry="6" fill="var(--blue)"/><circle cx="24" cy="16" r="1.8" fill="var(--effect)"/><circle cx="30" cy="18" r="1.8" fill="var(--effect)"/><circle cx="16" cy="30" r="1.8" fill="var(--effect)"/><circle cx="22" cy="33" r="1.8" fill="var(--effect)"/><circle cx="34" cy="22" r="1.6" fill="var(--effect)"/>'); },
+  helpert: function(){ return svg('<circle cx="24" cy="24" r="14" fill="var(--immune-soft)"/><circle cx="24" cy="24" r="10" fill="var(--blue)" opacity=".85"/><g stroke="var(--immune-strong)" stroke-width="1.6"><path d="M24 11v-3M32 16l2.5-2.5M36 24h3M32 32l2.5 2.5M24 37v3M16 32l-2.5 2.5M12 24H9M16 16l-2.5-2.5"/></g>'); },
+  cytotoxict: function(){ return svg('<circle cx="24" cy="24" r="14" fill="var(--immune-soft)"/><circle cx="24" cy="24" r="9" fill="var(--blue)" opacity=".85"/><circle cx="19" cy="20" r="1.8" fill="var(--effect)"/><circle cx="29" cy="19" r="1.8" fill="var(--effect)"/><circle cx="30" cy="29" r="1.8" fill="var(--effect)"/><circle cx="19" cy="29" r="1.8" fill="var(--effect)"/>'); },
+  bcell: function(){ return svg('<circle cx="24" cy="24" r="14" fill="var(--immune-soft)"/><circle cx="22" cy="27" r="10" fill="var(--blue)" opacity=".85"/><g stroke="var(--bg)" stroke-width=".8" opacity=".45"><line x1="22" y1="20" x2="22" y2="34"/><line x1="15" y1="27" x2="29" y2="27"/><line x1="17" y1="21" x2="27" y2="33"/><line x1="27" y1="21" x2="17" y2="33"/></g><g stroke="var(--immune-strong)" stroke-width="1.8" stroke-linecap="round"><path d="M24 12V6M24 6l-4-4M24 6l4-4"/></g>'); },
+  antibody: function(){ return svg('<g stroke="var(--immune-strong)" stroke-width="2.6" stroke-linecap="round" fill="none"><path d="M24 44V24M24 24 12 8M24 24l12-16"/></g><circle cx="12" cy="8" r="2.4" fill="var(--blue)"/><circle cx="36" cy="8" r="2.4" fill="var(--blue)"/>'); },
+  vaccine: function(){ return svg('<g stroke="var(--effect-strong)" stroke-width="2.4" stroke-linecap="round"><path d="M14 34 30 18M30 18l4-4 4 4-4 4M34 14l4 4M12 36l4 4M18 30l4 4"/></g><circle cx="12" cy="36" r="2.2" fill="var(--blue)" opacity=".85"/>'); },
+  driftmut: function(){ return svg('<path d="M14 30c6 4 14 4 20 0M14 18c6-4 14-4 20 0" stroke="var(--effect-strong)" stroke-width="2.2" fill="none" stroke-linecap="round"/><circle cx="16" cy="30" r="2" fill="var(--effect-strong)"/><circle cx="32" cy="18" r="2" fill="var(--effect-strong)"/><circle cx="24" cy="24" r="2.2" fill="var(--blue)"/>'); },
+  shiftmut: function(){ return svg('<path d="M10 30c8 5 20 5 28 0M10 18c8-5 20-5 28 0" stroke="var(--effect-strong)" stroke-width="2.6" fill="none" stroke-linecap="round"/><circle cx="12" cy="30" r="2.4" fill="var(--effect-strong)"/><circle cx="36" cy="18" r="2.4" fill="var(--effect-strong)"/><circle cx="24" cy="24" r="3" fill="var(--blue)"/><circle cx="18" cy="19" r="2" fill="var(--blue)" opacity=".8"/><circle cx="30" cy="29" r="2" fill="var(--blue)" opacity=".8"/>'); },
+  antibiotic: function(){ return svg('<path d="M9 24a7.5 7.5 0 0 1 7.5-7.5H24V31.5H16.5A7.5 7.5 0 0 1 9 24Z" fill="var(--effect)" transform="rotate(-20 24 24)"/><path d="M24 16.5h7.5A7.5 7.5 0 0 1 39 24 7.5 7.5 0 0 1 31.5 31.5H24Z" fill="var(--blue)" transform="rotate(-20 24 24)"/><line x1="24" y1="16.5" x2="24" y2="31.5" stroke="var(--bg)" stroke-width="1.2" transform="rotate(-20 24 24)"/>'); },
+  antiviral: function(){ return svg('<path d="M18 8h12v10l4 4v18a2 2 0 0 1-2 2H16a2 2 0 0 1-2-2V22l4-4Z" fill="none" stroke="var(--effect-strong)" stroke-width="1.6"/><rect x="18" y="8" width="12" height="4" fill="var(--effect-strong)"/><path d="M16 26h16v10a2 2 0 0 1-2 2H18a2 2 0 0 1-2-2Z" fill="var(--blue)" opacity=".82"/>'); },
+  antifungal: function(){ return svg('<path d="M18 8h12v10l4 4v18a2 2 0 0 1-2 2H16a2 2 0 0 1-2-2V22l4-4Z" fill="none" stroke="var(--effect-strong)" stroke-width="1.6"/><rect x="18" y="8" width="12" height="4" fill="var(--effect-strong)"/><path d="M16 26h16v10a2 2 0 0 1-2 2H18a2 2 0 0 1-2-2Z" fill="var(--immune)" opacity=".78"/><path d="M20 32l3-4 3 4 3-4" stroke="var(--bg)" stroke-width="1.6" fill="none" stroke-linecap="round"/>'); },
+  fever: function(){ return svg('<rect x="21" y="6" width="6" height="26" rx="3" fill="var(--effect-soft)" stroke="var(--effect)" stroke-width="1.4"/><circle cx="24" cy="36" r="7" fill="var(--effect)"/><rect x="22.5" y="14" width="3" height="18" fill="var(--effect)"/><g stroke="var(--blue)" stroke-width="1" opacity=".75"><line x1="27" y1="12" x2="30" y2="12"/><line x1="27" y1="18" x2="30" y2="18"/><line x1="27" y1="24" x2="30" y2="24"/></g>'); },
+  antiparasitic: function(){ return svg('<path d="M18 8h12v10l4 4v18a2 2 0 0 1-2 2H16a2 2 0 0 1-2-2V22l4-4Z" fill="none" stroke="var(--effect-strong)" stroke-width="1.6"/><rect x="18" y="8" width="12" height="4" fill="var(--effect-strong)"/><path d="M16 26h16v10a2 2 0 0 1-2 2H18a2 2 0 0 1-2-2Z" fill="var(--pathogen)" opacity=".78"/><circle cx="24" cy="31" r="3.2" fill="var(--bg)"/><circle cx="24" cy="31" r="3.2" fill="none" stroke="var(--effect-strong)" stroke-width="1"/>'); },
+  immuneboost: function(){ return svg('<path d="M12 16a14 14 0 0 1 22-3" stroke="var(--effect-strong)" stroke-width="2.4" fill="none" stroke-linecap="round"/><path d="M34 8v7h-7" stroke="var(--effect-strong)" stroke-width="2.4" fill="none" stroke-linecap="round" stroke-linejoin="round"/><path d="M36 32a14 14 0 0 1-22 3" stroke="var(--effect-strong)" stroke-width="2.4" fill="none" stroke-linecap="round"/><path d="M14 40v-7h7" stroke="var(--effect-strong)" stroke-width="2.4" fill="none" stroke-linecap="round" stroke-linejoin="round"/><circle cx="24" cy="24" r="5" fill="var(--immune)"/><circle cx="24" cy="24" r="2" fill="var(--blue)"/>'); },
+  goodsleep: function(){ return svg('<path d="M30 8a14 14 0 1 0 10 22 12 12 0 0 1-10-22Z" fill="var(--effect)" opacity=".85"/><path d="M35 12l2 4 4 2-4 2-2 4-2-4-4-2 4-2Z" fill="var(--blue)"/><circle cx="14" cy="14" r="1.4" fill="var(--effect-strong)"/><circle cx="10" cy="24" r="1" fill="var(--effect-strong)"/>'); },
+  incinerate: function(){ return svg('<path d="M24 6c6 8 10 13 10 19a10 10 0 0 1-20 0c0-3 1-6 3-9 1 3 3 4 4 3-1-5 0-9 3-13Z" fill="var(--effect)" opacity=".9"/><path d="M24 20c3 4 4 7 4 9a4 4 0 0 1-8 0c0-1 0-3 1-5 1 2 2 2 2 1-1-2-1-4 1-5Z" fill="var(--pathogen)"/>'); },
+  storm: function(){ return svg('<g stroke-width="2.2" stroke-linecap="round"><line x1="24" y1="6" x2="24" y2="16" stroke="var(--effect-strong)"/><line x1="24" y1="32" x2="24" y2="42" stroke="var(--pathogen)"/><line x1="6" y1="24" x2="16" y2="24" stroke="var(--immune)"/><line x1="32" y1="24" x2="42" y2="24" stroke="var(--effect-strong)"/><line x1="12" y1="12" x2="19" y2="19" stroke="var(--pathogen)"/><line x1="29" y1="29" x2="36" y2="36" stroke="var(--immune)"/><line x1="36" y1="12" x2="29" y2="19" stroke="var(--effect-strong)"/><line x1="19" y1="29" x2="12" y2="36" stroke="var(--pathogen)"/></g><circle cx="24" cy="24" r="6" fill="var(--effect)"/>'); }
+};
+
+/* ================= card definitions ================= */
+var DEFS = {
+  rhino:   {name:'Rhinovirus', group:'pathogen', category:'Virus', duration:'acute', cost:1, pot:1, res:null, text:'The common cold — mild and brief.', icon:'virus_rhino', count:2},
+  noro:    {name:'Norovirus', group:'pathogen', category:'Virus', duration:'acute', cost:1, pot:2, res:null, text:'Fast and miserable, over in a day.', icon:'virus_noro', count:2},
+  flu:     {name:'Influenza', group:'pathogen', category:'Virus', duration:'acute', cost:2, pot:2, res:null, ability:'replicate', text:'Replicate: if this hits Health, put a copy in your hand.', icon:'virus_flu', count:2},
+  salm:    {name:'Salmonella', group:'pathogen', category:'Bacterium', duration:'acute', cost:2, pot:2, res:null, ability:'toxin1', text:'Toxin: if this hits Health, deals 1 more damage on top of its normal attack.', icon:'bact_rod', count:2},
+  staph:   {name:'Staphylococcus aureus', group:'pathogen', category:'Bacterium', duration:'persistent', cost:2, pot:3, res:2, text:'A solid, unspecialized threat.', icon:'bact_cluster', count:2},
+  candida: {name:'Candida albicans', group:'pathogen', category:'Fungus', duration:'persistent', cost:3, pot:1, res:5, text:'Low attack, very hard to fully clear.', icon:'fungus', count:2},
+  plasmo:  {name:'Plasmodium falciparum', group:'pathogen', category:'Parasite', duration:'persistent', cost:3, pot:2, res:3, ability:'drain', text:'Drain: hitting Health also gives its controller 1 ATP.', icon:'parasite', count:2},
+  hiv:     {name:'HIV', group:'pathogen', category:'Virus', duration:'persistent', cost:4, pot:1, res:3, ability:'onplayHelperT', text:'On Play: deal 1 damage directly to an enemy Helper T-cell, ignoring blockers.', icon:'virus_hiv', count:1},
+  prion:   {name:'Prion', group:'pathogen', category:'Prion', duration:'persistent', cost:5, pot:1, res:4, ability:'unkillable', text:'Cannot be destroyed by engaging or blocking — only Incineration works.', icon:'prion', count:1},
+  hpv:     {name:'HPV', group:'pathogen', category:'Virus', duration:'persistent', cost:2, pot:1, res:2, icon:'virus_hpv', count:1,
+            chronic:{key:'dysplasia', threshold:3}, text:'Chronic — Dysplasia: unremoved 3 turns → host takes +1 dmg/turn until destroyed.'},
+  ebv:     {name:'Epstein-Barr Virus', group:'pathogen', category:'Virus', duration:'persistent', cost:2, pot:1, res:3, icon:'virus_ebv', count:1,
+            chronic:{key:'lupus', rollAt:2}, text:'Chronic — Molecular Mimicry: end of host\'s 2nd turn, roll d6; 5+ triggers lupus.'},
+  hpylori: {name:'Helicobacter pylori', group:'pathogen', category:'Bacterium', duration:'persistent', cost:2, pot:1, res:3, icon:'bact_spiral', count:1,
+            chronic:{key:'gastritis', threshold:4}, text:'Chronic — Gastritis: unremoved 4 turns → host takes +1 dmg/turn until destroyed.'},
+  hepc:    {name:'Hepatitis C', group:'pathogen', category:'Virus', duration:'persistent', cost:3, pot:2, res:3, icon:'virus_hepc', count:1,
+            chronic:{key:'cirrhosis', threshold1:3, threshold2:6}, text:'Chronic — Cirrhosis→HCC: 3 turns → +1 dmg/turn; 6 turns → +2/turn.'},
+  strep:   {name:'Group A Streptococcus', group:'pathogen', category:'Bacterium', duration:'persistent', cost:2, pot:2, res:2, icon:'bact_chain', count:1,
+            chronic:{key:'rheumatic', rollAt:3}, text:'Chronic — Rheumatic Fever: 3 turns, roll d6; 5+ = permanent -2 max Health.'},
+
+  neutrophil: {name:'Neutrophil', group:'immune', class:'Innate', duration:'acute', cost:1, pot:1, res:1, text:'First responder. No special ability.', icon:'neutrophil', count:3},
+  macrophage: {name:'Macrophage', group:'immune', class:'Innate', duration:'acute', cost:2, pot:2, res:2, ability:'phagocytose', text:'Phagocytose — On Play: destroy an enemy Acute Pathogen.', icon:'macrophage', count:2},
+  nk:         {name:'Natural Killer Cell', group:'immune', class:'Innate', duration:'acute', cost:2, pot:2, res:1, text:'Acts without needing priming.', icon:'nk', count:2},
+  dendritic:  {name:'Dendritic Cell', group:'immune', class:'Innate', duration:'acute', cost:2, pot:0, res:2, ability:'prime', text:'On Play: choose a category. The next Naive adaptive cell you play while this is still on the board enters already Specialized against it (one time only).', icon:'dendritic', count:2},
+  mast:       {name:'Mast Cell', group:'immune', class:'Innate', duration:'acute', cost:1, pot:1, res:2, ability:'histamine', text:'On Play: deal 1 damage to an enemy Pathogen; your Neutrophils get +1 Potency this turn.', icon:'mast', count:2},
+  eosinophil: {name:'Eosinophil', group:'immune', class:'Innate', duration:'acute', cost:2, pot:2, res:1, ability:'antiparasite', text:'Deals double damage against Parasite-category Pathogens.', icon:'eosinophil', count:2},
+  helpert:    {name:'Naive Helper T-cell', group:'immune', class:'Adaptive', duration:'persistent', cost:2, pot:1, res:3, specializes:true, ability:'supportcell', text:'Your other Persistent Immune cells get +0/+1. (HIV\'s specific target.)', icon:'helpert', count:2},
+  cytotoxict: {name:'Naive Cytotoxic T-cell', group:'immune', class:'Adaptive', duration:'persistent', cost:3, pot:3, res:2, specializes:true, ability:'primed', text:'+1 Potency while you control a Helper T-cell or Dendritic Cell.', icon:'cytotoxict', count:2},
+  bcell:      {name:'Naive B-cell', group:'immune', class:'Adaptive', duration:'persistent', cost:2, pot:1, res:2, specializes:true, ability:'makesantibody', text:'On destroyed: create an Antibody token in hand.', icon:'bcell', count:2},
+  antibody:   {name:'Antibody', group:'immune', class:'Adaptive', duration:'acute', cost:0, pot:null, res:1, text:'May block any attack, fully neutralizing it, then is spent.', icon:'antibody', count:0},
+
+  vaccinate: {name:'Vaccination', group:'effect', cost:3, ability:'vaccinate', text:'Choose a category; a Naive adaptive cell you control becomes Specialized against it immediately.', icon:'vaccine', count:1},
+  drift:     {name:'Antigenic Drift', group:'effect', cost:1, ability:'drift', text:'Target your Pathogen: +1 Potency this turn; can\'t be blocked by Acute cells this turn.', icon:'driftmut', count:2},
+  shift:     {name:'Antigenic Shift', group:'effect', cost:4, ability:'shift', text:'Target your Pathogen: permanent +2/+2, and change its category to one of your choice.', icon:'shiftmut', count:1},
+  antibiotic:{name:'Antibiotic', group:'effect', cost:2, ability:'treat', treatCat:'Bacterium', dmg:3, text:'Deal 3 damage to a target Bacterium.', icon:'antibiotic', count:2},
+  antiviral: {name:'Antiviral', group:'effect', cost:2, ability:'treat', treatCat:'Virus', dmg:2, text:'Deal 2 damage to a target Virus.', icon:'antiviral', count:2},
+  antifungal:{name:'Antifungal', group:'effect', cost:3, ability:'treat', treatCat:'Fungus', dmg:2, text:'Deal 2 damage to a target Fungus. Costs more — harder to treat.', icon:'antifungal', count:1},
+  antiparasitic:{name:'Antiparasitic', group:'effect', cost:3, ability:'treat', treatCat:'Parasite', dmg:2, text:'Deal 2 damage to a target Parasite. Costs more — these drugs cross into human cells too easily.', icon:'antiparasitic', count:1},
+  immuneboost:{name:'Immune Boost', group:'effect', cost:2, ability:'immuneboost', text:'Return a random Immune cell from your discard pile to your hand.', icon:'immuneboost', count:1},
+  sleep:     {name:"A Good Night's Sleep", group:'effect', cost:2, ability:'sleep', text:'Draw 2 cards.', icon:'goodsleep', count:1},
+  fever:     {name:'Fever Response', group:'effect', cost:1, ability:'fever', text:'Your Pathogens and Immune cells get +1 Potency until end of turn; you take 1 Health damage.', icon:'fever', count:2},
+  storm:     {name:'Cytokine Storm', group:'effect', cost:5, ability:'storm', text:'Deal 2 damage to every Pathogen and Immune cell in play, both sides; you take 2 Health damage.', icon:'storm', count:1},
+  incinerate:{name:'Incineration', group:'effect', cost:5, ability:'incinerate', text:'Destroy a target enemy Pathogen outright, even a Prion. Extreme heat spares nothing.', icon:'incinerate', count:1}
+};
+
+function buildDeck(){
+  var deck = [];
+  Object.keys(DEFS).forEach(function(id){ for(var i=0;i<DEFS[id].count;i++) deck.push(id); });
+  return deck;
+}
+function shuffle(arr){
+  for(var i=arr.length-1;i>0;i--){ var j=Math.floor(Math.random()*(i+1)); var t=arr[i]; arr[i]=arr[j]; arr[j]=t; }
+  return arr;
+}
+
+/* ================= state ================= */
+var uidCounter = 1;
+function nextUid(){ return 'u'+(uidCounter++); }
+var S = null;
+
+/* ================= online multiplayer (Firebase) ================= */
+// Two devices share one game by both reading/writing the same document at games/<code> in
+// your Firebase project's Firestore database. Only the player whose decision it currently is
+// (see currentDecisionOwner/canActNow above the render code) ever writes — last-writer-wins
+// is fine as long as the two sides don't both think it's their move at once.
+//
+// ====================== ONE-TIME SETUP — REQUIRED ======================
+// Replace every "PASTE_..." value below with your own Firebase project's config, which you
+// get from: Firebase console → your project → the gear icon → Project settings → scroll to
+// "Your apps" → the web app's "SDK setup and configuration" → "Config". These values are not
+// secret — they just tell this page which Firebase project to talk to — so it's fine that
+// they're sitting in plain sight in this file.
+var FIREBASE_CONFIG = {
+  apiKey: "AIzaSyAMzRY-MaCk-_A2cIV4BygAnfs2s2xn4PA",
+  authDomain: "pathogenesis-game.firebaseapp.com",
+  projectId: "pathogenesis-game",
+  storageBucket: "pathogenesis-game.firebasestorage.app",
+  messagingSenderId: "1040938811280",
+  appId: "1:1040938811280:web:40f01cbc3ddee327217d15"
+};
+// =========================================================================
+
+// ====================== EDIT ME — site content ======================
+// The single survey question shown on the "Want Real Cards?" panel, and its checkboxes.
+// Change these two lines whenever you like — the panel rebuilds itself from them.
+var SURVEY_QUESTION = "I would love to purchase this game as a deck of cards and tokens with actual illustrations — check all that apply:";
+var SURVEY_OPTIONS = [
+  "If it costs less than $15",
+  "If I don't have to pay for shipping",
+  "If it becomes available to purchase from a major retailer (I don't know you)",
+  "And I would buy extra copies as gifts (if it looks high quality)",
+  "But not if the art is AI-generated (support the arts!)",
+  "And AI art is fine if it keeps the cost under $20",
+  "But I am not comfortable with a pre-pay model"
+];
+
+// A donation link (PayPal, Ko-fi, etc.). Leave blank to keep the donate line hidden on the
+// About panel; fill it in and that line appears automatically.
+var DONATE_URL = "";
+
+// Firebase Auth UIDs allowed to see the "View Card Interest Signups" screen. Find your own UID
+// after your first real sign-in: Firebase console → your project → Authentication → Users tab
+// → the "User UID" column. Leave the placeholder in place until you've replaced it — it will
+// never match a real UID, so the admin view just stays hidden.
+var ADMIN_UIDS = ["7xg13MD9nygq3Rt2EqZyHyr2pir1"];
+// ======================================================================
+
+var onlineUnsub = null;
+var applyingRemoteSnapshot = false;
+var syncDebounceTimer = null;
+var onlineClientId = getClientId();
+var firestoreDb = null;
+var firebaseAuth = null;
+var currentUser = null;
+
+function isFirebaseConfigured(){
+  return Object.keys(FIREBASE_CONFIG).every(function(k){
+    return FIREBASE_CONFIG[k] && String(FIREBASE_CONFIG[k]).indexOf('PASTE_')!==0;
+  });
+}
+(function initFirebase(){
+  if(!isFirebaseConfigured() || typeof firebase==='undefined'){ onAuthReady(); return; }
+  try{
+    firebase.initializeApp(FIREBASE_CONFIG);
+    firestoreDb = firebase.firestore();
+    firebaseAuth = firebase.auth();
+    firebaseAuth.onAuthStateChanged(function(user){
+      currentUser = user;
+      onAuthReady();
+    });
+  }catch(e){
+    firestoreDb = null;
+    firebaseAuth = null;
+    onAuthReady();
+  }
+})();
+
+/* ================= login / accounts ================= */
+// A link to a shared game (games created from the "waiting for opponent" screen show one)
+// carries "?code=XXXXX" — anyone who opens that link skips the login screen entirely and
+// drops straight into joining that game, no account needed. That's how a friend joins without
+// ever having to sign in or even see this app's front door.
+function getDeepLinkCode(){
+  try{
+    var params = new URLSearchParams(window.location.search);
+    var code = params.get('code');
+    return code ? code.trim().toUpperCase() : null;
+  }catch(e){ return null; }
+}
+var deepLinkHandled = false;
+function onAuthReady(){
+  var deepLinkCode = getDeepLinkCode();
+  if(deepLinkCode && !deepLinkHandled){
+    deepLinkHandled = true;
+    document.getElementById('login-screen').hidden = true;
+    document.getElementById('modeselect').hidden = true;
+    openOnlineLobby();
+    joinOnlineGame(deepLinkCode);
+    return;
+  }
+  if(deepLinkHandled) return;
+  if(currentUser){
+    document.getElementById('account-btn').hidden = false;
+    document.getElementById('login-screen').hidden = true;
+    document.getElementById('modeselect').hidden = false;
+  } else {
+    document.getElementById('account-btn').hidden = true;
+    document.getElementById('login-screen').hidden = false;
+    document.getElementById('modeselect').hidden = true;
+  }
+  document.getElementById('view-responses-btn').hidden = !isAdminUser();
+}
+function loginMessage(msg){
+  document.getElementById('login-message').textContent = msg || '';
+}
+function signInWithGoogle(){
+  if(!firebaseAuth){ loginMessage("Sign-in isn't set up yet — check the Firebase setup notes in this file."); return; }
+  var provider = new firebase.auth.GoogleAuthProvider();
+  firebaseAuth.signInWithPopup(provider).catch(function(e){ loginMessage('Sign-in failed: '+e.message); });
+}
+function continueAsGuestSolo(){
+  document.getElementById('login-screen').hidden = true;
+  document.getElementById('modeselect').hidden = true;
+  document.getElementById('stage').hidden = false;
+  newGame('solo');
+}
+function signOutUser(){
+  if(onlineUnsub){ onlineUnsub(); onlineUnsub = null; }
+  document.getElementById('stage').hidden = true;
+  document.getElementById('gameover').hidden = true;
+  document.getElementById('leave-btn').hidden = true;
+  S = null;
+  if(firebaseAuth){ firebaseAuth.signOut(); }
+  else { onAuthReady(); }
+}
+function interestMessage(msg){
+  document.getElementById('interest-message').textContent = msg || '';
+}
+function renderSurveyQuestion(){
+  document.getElementById('survey-question').textContent = SURVEY_QUESTION;
+  document.getElementById('survey-options').innerHTML = SURVEY_OPTIONS.map(function(opt, i){
+    return '<label><input type="checkbox" data-survey-option="'+i+'"> '+escapeHTML(opt)+'</label>';
+  }).join('');
+}
+function submitInterestSignup(){
+  var email = document.getElementById('interest-email').value.trim();
+  if(!email || email.indexOf('@')===-1){ interestMessage('Enter a valid email address.'); return; }
+  if(!firestoreDb){ interestMessage("This isn't connected yet — try again once Firebase is set up."); return; }
+  var checked = Array.prototype.slice.call(document.querySelectorAll('#survey-options input[type="checkbox"]:checked'))
+    .map(function(el){ return SURVEY_OPTIONS[Number(el.dataset.surveyOption)]; });
+  firestoreDb.collection('interest_signups').add({ email: email, surveyAnswers: checked, createdAt: new Date().toISOString() })
+    .then(function(){
+      interestMessage("Thanks! We'll be in touch.");
+      document.getElementById('interest-email').value = '';
+      document.querySelectorAll('#survey-options input[type="checkbox"]').forEach(function(el){ el.checked = false; });
+    })
+    .catch(function(e){ interestMessage('Something went wrong — try again.'); });
+}
+
+function isAdminUser(){
+  return !!(currentUser && ADMIN_UIDS.indexOf(currentUser.uid)>-1);
+}
+function loadResponses(){
+  var tallyEl = document.getElementById('responses-tally');
+  var tableEl = document.getElementById('responses-table');
+  tallyEl.textContent = 'Loading…';
+  tableEl.innerHTML = '';
+  if(!firestoreDb){ tallyEl.textContent = "Firebase isn't set up yet."; return; }
+  firestoreDb.collection('interest_signups').orderBy('createdAt', 'desc').get().then(function(snap){
+    var tally = {};
+    SURVEY_OPTIONS.forEach(function(opt){ tally[opt] = 0; });
+    var rows = [];
+    snap.forEach(function(doc){
+      var d = doc.data();
+      (d.surveyAnswers||[]).forEach(function(a){ tally[a] = (tally[a]||0)+1; });
+      rows.push(d);
+    });
+    tallyEl.innerHTML = '<strong>'+rows.length+'</strong> signup'+(rows.length===1?'':'s')+' total<br>'+
+      Object.keys(tally).map(function(k){ return escapeHTML(k)+': <strong>'+tally[k]+'</strong>'; }).join('<br>');
+    tableEl.innerHTML = '<tr><th>Email</th><th>Answers</th><th>When</th></tr>'+
+      rows.map(function(d){
+        return '<tr><td>'+escapeHTML(d.email||'')+'</td><td>'+escapeHTML((d.surveyAnswers||[]).join(', '))+'</td><td>'+escapeHTML((d.createdAt||'').slice(0,10))+'</td></tr>';
+      }).join('');
+  }).catch(function(e){
+    tallyEl.textContent = "Couldn't load signups — check that your Firebase UID is in ADMIN_UIDS and matches the Firestore rules.";
+  });
+}
+
+function getClientId(){
+  try{
+    var id = localStorage.getItem('pathogenesis_client_id');
+    if(!id){ id = 'c'+Math.random().toString(36).slice(2)+Date.now().toString(36); localStorage.setItem('pathogenesis_client_id', id); }
+    return id;
+  }catch(e){ return 'c'+Math.random().toString(36).slice(2); }
+}
+function rememberLastRoom(code, seat){
+  try{ localStorage.setItem('pathogenesis_last_room', JSON.stringify({code:code, seat:seat})); }catch(e){}
+}
+function forgetLastRoom(){
+  try{ localStorage.removeItem('pathogenesis_last_room'); }catch(e){}
+}
+function getLastRoom(){
+  try{ var raw = localStorage.getItem('pathogenesis_last_room'); return raw ? JSON.parse(raw) : null; }catch(e){ return null; }
+}
+function generateRoomCode(){
+  var chars = 'ABCDEFGHJKMNPQRSTUVWXYZ23456789';
+  var code = '';
+  for(var i=0;i<5;i++){ code += chars[Math.floor(Math.random()*chars.length)]; }
+  return code;
+}
+
+// Everything in S except the three device-local fields (mode/mySeat/roomCode) is shared.
+function stateForSync(){
+  var copy = {};
+  for(var k in S){
+    if(k==='mode' || k==='mySeat' || k==='roomCode') continue;
+    copy[k] = S[k];
+  }
+  return copy;
+}
+function applyIncomingState(remoteState){
+  if(!remoteState) return;
+  applyingRemoteSnapshot = true;
+  for(var k in remoteState){ S[k] = remoteState[k]; }
+  applyingRemoteSnapshot = false;
+}
+function syncOnlineState(){
+  if(!S || S.mode!=='online' || !firestoreDb || !S.roomCode || applyingRemoteSnapshot) return;
+  clearTimeout(syncDebounceTimer);
+  syncDebounceTimer = setTimeout(function(){
+    firestoreDb.collection('games').doc(S.roomCode).update({ state: stateForSync(), updatedAt: new Date().toISOString() })
+      .catch(function(){ /* transient — the next successful sync will catch the doc up */ });
+  }, 200);
+}
+
+function openOnlineLobby(){
+  document.getElementById('online-lobby').hidden = false;
+  showLobbyScreen('choose');
+  if(!isFirebaseConfigured()){
+    lobbyMessage("Online play needs a one-time Firebase setup first — see the setup notes near the top of this file's code.");
+  } else if(!firestoreDb){
+    lobbyMessage("Couldn't connect to Firebase — double check the config values and that Firestore is turned on for your project.");
+  } else {
+    lobbyMessage('');
+  }
+  var last = getLastRoom();
+  var rejoinBtn = document.getElementById('online-rejoin-btn');
+  if(last && last.code){
+    rejoinBtn.hidden = false;
+    rejoinBtn.querySelector('.ms').textContent = 'Rejoin game '+last.code+'.';
+  } else {
+    rejoinBtn.hidden = true;
+  }
+}
+function showLobbyScreen(which){
+  ['choose','joinform','waiting'].forEach(function(name){
+    document.getElementById('online-screen-'+name).hidden = (name!==which);
+  });
+}
+function backToModeSelect(){
+  if(onlineUnsub){ onlineUnsub(); onlineUnsub = null; }
+  document.getElementById('online-lobby').hidden = true;
+  document.getElementById('modeselect').hidden = false;
+}
+function lobbyMessage(msg){
+  document.getElementById('online-lobby-message').textContent = msg || '';
+}
+
+function onlineNotReadyMessage(){
+  if(!isFirebaseConfigured()) return "Online play needs a one-time Firebase setup first — see the setup notes near the top of this file's code.";
+  if(!firestoreDb) return "Couldn't connect to Firebase — double check the config values and that Firestore is turned on for your project.";
+  return null;
+}
+
+async function createOnlineGame(){
+  var notReady = onlineNotReadyMessage();
+  if(notReady){ lobbyMessage(notReady); return; }
+  lobbyMessage('Creating your game...');
+  var code = generateRoomCode();
+  newGame('online');
+  S.mySeat = 'p1';
+  S.roomCode = code;
+  try{
+    await firestoreDb.collection('games').doc(code).set({
+      status: 'waiting',
+      seats: { p1:true, p2:false },
+      seatTokens: { p1:onlineClientId, p2:null },
+      state: stateForSync(),
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString()
+    });
+  }catch(e){
+    lobbyMessage('Could not create a game right now — try again. ('+e.message+')');
+    return;
+  }
+  rememberLastRoom(code, 'p1');
+  subscribeToRoom(code, 'p1');
+}
+
+async function joinOnlineGame(rawCode){
+  var notReady = onlineNotReadyMessage();
+  if(notReady){ lobbyMessage(notReady); return; }
+  var code = (rawCode||'').trim().toUpperCase();
+  if(!code){ lobbyMessage('Enter a code first.'); return; }
+  lobbyMessage('Connecting...');
+  var ref = firestoreDb.collection('games').doc(code);
+  var snap;
+  try{ snap = await ref.get(); }catch(e){ lobbyMessage('Could not reach that game — try again.'); return; }
+  if(!snap.exists){ lobbyMessage('No game found with that code.'); return; }
+  var data = snap.data();
+  var mySeatHere = null;
+  if(data.seatTokens && data.seatTokens.p1===onlineClientId){ mySeatHere = 'p1'; }
+  else if(data.seatTokens && data.seatTokens.p2===onlineClientId){ mySeatHere = 'p2'; }
+  else if(!data.seats || !data.seats.p2){ mySeatHere = 'p2'; }
+  else { lobbyMessage('That game already has two players.'); return; }
+  if(mySeatHere==='p2' && !(data.seatTokens && data.seatTokens.p2===onlineClientId)){
+    try{
+      await ref.update({ seats:{p1:true,p2:true}, seatTokens:{p2:onlineClientId}, updatedAt:new Date().toISOString() });
+    }catch(e){
+      lobbyMessage('Could not join that game — try again.');
+      return;
+    }
+  }
+  rememberLastRoom(code, mySeatHere);
+  subscribeToRoom(code, mySeatHere);
+}
+
+async function rejoinLastGame(){
+  var notReady = onlineNotReadyMessage();
+  if(notReady){ lobbyMessage(notReady); return; }
+  var last = getLastRoom();
+  if(!last || !last.code) return;
+  lobbyMessage('Reconnecting...');
+  subscribeToRoom(last.code, last.seat);
+}
+
+function subscribeToRoom(code, seat){
+  if(onlineUnsub){ onlineUnsub(); onlineUnsub = null; }
+  var ref = firestoreDb.collection('games').doc(code);
+  var enteredStage = false;
+  onlineUnsub = ref.onSnapshot(function(snap){
+    if(!snap.exists){ lobbyMessage('This game no longer exists.'); return; }
+    var data = snap.data();
+    if(!data) return;
+    var bothSeated = !!(data.seats && data.seats.p1 && data.seats.p2);
+    if(!bothSeated){
+      showLobbyScreen('waiting');
+      document.getElementById('online-room-code').textContent = code;
+      var shareUrl = window.location.origin + window.location.pathname + '?code=' + code;
+      document.getElementById('online-share-link').value = shareUrl;
+      return;
+    }
+    if(!enteredStage){
+      enteredStage = true;
+      if(!S || S.roomCode!==code){ S = {}; }
+      applyIncomingState(data.state);
+      S.mode = 'online';
+      S.mySeat = seat;
+      S.roomCode = code;
+      document.getElementById('online-lobby').hidden = true;
+      document.getElementById('modeselect').hidden = true;
+      document.getElementById('stage').hidden = false;
+      document.getElementById('leave-btn').hidden = false;
+      render();
+    } else {
+      applyIncomingState(data.state);
+      render();
+    }
+  }, function(err){
+    lobbyMessage('Connection error: '+err.message);
+  });
+}
+
+function leaveOnlineGame(){
+  if(onlineUnsub){ onlineUnsub(); onlineUnsub = null; }
+  forgetLastRoom();
+  document.getElementById('leave-btn').hidden = true;
+  document.getElementById('stage').hidden = true;
+  document.getElementById('gameover').hidden = true;
+  document.getElementById('modeselect').hidden = false;
+  S = null;
+}
+
+function freshPlayer(name){
+  return { name:name, health:20, maxHealth:20, atp:0, atpMax:0, autoreactive:false, everStarted:false,
+    deck:shuffle(buildDeck()), hand:[], board:[], discard:[], primeCategory:null };
+}
+function opponentOf(who){ return who==='p1' ? 'p2' : 'p1'; }
+
+function newGame(mode){
+  var keepSeat = (mode==='online' && S) ? S.mySeat : null;
+  var keepRoom = (mode==='online' && S) ? S.roomCode : null;
+  S = { mode:mode, turn:null, first:null, over:false, winner:null, selection:null, pendingAttack:null,
+    log:[], anim:{hits:{}, dying:{}}, locked:false, turnCount:0,
+    players:{ p1: freshPlayer('Player 1'), p2: freshPlayer('Player 2') } };
+  if(mode==='online'){ S.mySeat = keepSeat; S.roomCode = keepRoom; }
+  for(var i=0;i<5;i++){ drawCard('p1'); drawCard('p2'); }
+  S.first = Math.random()<0.5 ? 'p1' : 'p2';
+  pushLog((S.first==='p1'?S.players.p1.name:S.players.p2.name) + ' opens the game.');
+  startTurn(S.first);
+  render();
+}
+
+function pushLog(msg){ S.log.push(msg); if(S.log.length>50) S.log.shift(); }
+function label(who){ return S.players[who].name; }
+
+function drawCard(who){
+  var p = S.players[who];
+  if(p.deck.length===0){
+    p.fatigueCount = (p.fatigueCount||0)+1;
+    p.health -= p.fatigueCount;
+    pushLog(label(who)+' draws from an empty deck — takes '+p.fatigueCount+' damage.');
+    return;
+  }
+  var id = p.deck.shift();
+  if(p.hand.length>=10){ pushLog(DEFS[id].name+' rots away — '+label(who)+"'s hand is full."); return; }
+  p.hand.push({uid:nextUid(), defId:id});
+}
+
+function tickChronicForHost(hostWho){
+  var attackerSide = opponentOf(hostWho);
+  var host = S.players[hostWho];
+  S.players[attackerSide].board.forEach(function(p){
+    if(p.group!=='pathogen' || !p.chronicDef) return;
+    p.hostTurns = (p.hostTurns||0) + 1;
+    var c = p.chronicDef;
+    if(c.key==='dysplasia'){
+      if(p.hostTurns>=c.threshold){ host.health -= 1; pushLog('Dysplasia progresses — '+label(hostWho)+' takes 1 damage from unremoved HPV.'); }
+    } else if(c.key==='gastritis'){
+      if(p.hostTurns>=c.threshold){ host.health -= 1; pushLog('Gastritis worsens — '+label(hostWho)+' takes 1 damage from unremoved H. pylori.'); }
+    } else if(c.key==='cirrhosis'){
+      if(p.hostTurns>=c.threshold2){ host.health -= 2; pushLog('Hepatocellular changes — '+label(hostWho)+' takes 2 damage from chronic Hepatitis C.'); }
+      else if(p.hostTurns>=c.threshold1){ host.health -= 1; pushLog('Cirrhosis progresses — '+label(hostWho)+' takes 1 damage from chronic Hepatitis C.'); }
+    } else if(c.key==='lupus'){
+      if(p.hostTurns===c.rollAt && !p.rolled){
+        p.rolled = true;
+        var roll = 1+Math.floor(Math.random()*6);
+        pushLog(label(hostWho)+' rolls a '+roll+' for molecular mimicry (EBV).');
+        if(roll>=5){ host.autoreactive = true; pushLog('Lupus onset — '+label(hostWho)+"'s B-cells and Antibodies now misfire against their own Health."); }
+      }
+    } else if(c.key==='rheumatic'){
+      if(p.hostTurns===c.rollAt && !p.rolled){
+        p.rolled = true;
+        var roll2 = 1+Math.floor(Math.random()*6);
+        pushLog(label(hostWho)+' rolls a '+roll2+' for rheumatic fever risk (Strep).');
+        if(roll2>=5){ host.maxHealth -= 2; host.health = Math.min(host.health, host.maxHealth); pushLog('Rheumatic fever — '+label(hostWho)+' permanently loses 2 max Health.'); }
+      }
+    }
+  });
+  checkGameOver();
+}
+
+function clearTempBuffs(who){
+  S.players[who].board.forEach(function(c){ c.tempPot = 0; c.noBlockAcute = false; });
+}
+
+function startTurn(who){
+  if(S.over) return;
+  S.turn = who;
+  S.selection = null;
+  var p = S.players[who];
+  p.board.forEach(function(c){ c.dormant = false; c.acted = false; });
+  clearTempBuffs(who);
+  if(!p.everStarted){ p.atpMax = 2; p.everStarted = true; } else { p.atpMax = Math.min(8, p.atpMax+1); }
+  p.atp = p.atpMax;
+  tickChronicForHost(who);
+  if(S.over) return;
+  if(S.turnCount>0){ drawCard(who); drawCard(who); }
+  S.turnCount += 1;
+  pushLog('— '+label(who)+"'s turn —");
+  if(S.mode==='solo' && who==='p2'){
+    S.locked = true;
+    setTimeout(function(){ aiTakeTurn(); }, 550);
+  }
+}
+
+function advanceTurn(){
+  startTurn(opponentOf(S.turn));
+  render();
+}
+function endTurn(){
+  // Human-facing "End Turn" button only — the computer's own turn ends via advanceTurn() directly,
+  // so this guard can safely assume any call here is a human trying to act out of turn.
+  if(S.over || S.selection || S.pendingAttack) return;
+  if(S.mode==='solo' && S.turn!=='p1') return;
+  if(S.mode==='online' && S.turn!==S.mySeat) return;
+  advanceTurn();
+}
+
+function checkGameOver(){
+  var a = S.players.p1.health<=0, b = S.players.p2.health<=0;
+  if(a||b){ S.over = true; S.winner = (a&&b) ? 'draw' : (a ? 'p2' : 'p1'); }
+  return S.over;
+}
+
+function removeCreature(who, uid){
+  var p = S.players[who];
+  var idx = p.board.findIndex(function(c){return c.uid===uid;});
+  if(idx===-1) return;
+  p.board.splice(idx,1);
+}
+function findCreature(who, uid){ return S.players[who].board.find(function(c){return c.uid===uid;}); }
+function findCreatureAnywhere(uid){ return findCreature('p1',uid) || findCreature('p2',uid); }
+function ownerOf(uid){ if(findCreature('p1',uid)) return 'p1'; if(findCreature('p2',uid)) return 'p2'; return null; }
+
+function killCreature(who, uid){
+  var p = S.players[who];
+  var c = p.board.find(function(x){return x.uid===uid;});
+  if(!c) return;
+  S.anim.dying[uid] = true;
+  if(c.defId){ p.discard.push(c.defId); }
+  if(c.ability==='makesantibody'){
+    if(p.hand.length<10){ p.hand.push({uid:nextUid(), defId:'antibody'}); pushLog(c.name+' leaves behind an Antibody.'); }
+  }
+  recalcHelperAura(who);
+  setTimeout(function(){ removeCreature(who, uid); delete S.anim.dying[uid]; render(); }, 340);
+}
+
+// Helper T-cell aura ("Your other Persistent Immune cells get +0/+1"): a live, non-stacking
+// +1 Resilience applied to every OTHER Persistent immune cell the same owner controls while at
+// least one of their Helper T-cells is alive. Recomputed (not just granted once) whenever a
+// Helper T-cell or another Persistent immune cell enters or leaves that owner's board, so the
+// bonus tracks the aura source rather than becoming a permanent stat once granted.
+function recalcHelperAura(who){
+  var p = S.players[who];
+  var helperCount = p.board.filter(function(c){ return c.defId==='helpert' && !S.anim.dying[c.uid]; }).length;
+  p.board.forEach(function(c){
+    if(S.anim.dying[c.uid] || c.group!=='immune' || c.duration!=='persistent') return;
+    var qualifies = helperCount>0 && (c.defId!=='helpert' || helperCount>=2);
+    if(qualifies && !c.auraBuffed){
+      c.res += 1; c.maxRes += 1; c.auraBuffed = true;
+    } else if(!qualifies && c.auraBuffed){
+      c.res -= 1; c.maxRes -= 1; c.auraBuffed = false;
+      if(c.res<=0){ killCreature(who, c.uid); }
+    }
+  });
+}
+
+function damageCreature(target, owner, amt){
+  if(!target) return;
+  if(target.ability==='unkillable') return;
+  target.res -= amt;
+  S.anim.hits[target.uid] = true;
+  if(target.res<=0) killCreature(owner, target.uid);
+}
+
+/* ================= playing cards ================= */
+function affordable(who, def){ return S.players[who].atp >= def.cost; }
+
+function effectivePot(c){
+  var p = c.pot + (c.tempPot||0) + (c.effectorCharge||0);
+  if(c.ability==='primed'){
+    var owner = ownerOf(c.uid);
+    if(owner && S.players[owner].board.some(function(x){ return (x.defId==='helpert' || x.defId==='dendritic') && !S.anim.dying[x.uid]; })){
+      p += 1;
+    }
+  }
+  return p;
+}
+
+function makeCreatureInstance(def, defId, specCat){
+  var name = def.name;
+  if(defId==='antibody' && specCat){ name = specCat+'-Specific Antibody'; }
+  return {
+    uid:nextUid(), defId:defId, name:name, baseName:def.name.replace(/^Naive /,''), group:def.group, category:def.category, class:def.class,
+    duration:def.duration, cost:def.cost, pot:def.pot, res:def.res, maxRes:def.res,
+    ability:def.ability, text:def.text, icon:def.icon, specializes:!!def.specializes, specialized:null, specialTag:null,
+    specificCategory: specCat||null, plasma:false,
+    dormant: def.duration==='persistent', acted:false, tempPot:0, noBlockAcute:false, effectorCharge:0, auraBuffed:false, primeCategory:null,
+    chronicDef: def.chronic ? Object.assign({}, def.chronic) : null, hostTurns:0, rolled:false
+  };
+}
+
+function playCreature(who, handUid, defId, def, specCat){
+  var creature = makeCreatureInstance(def, defId, specCat);
+  var p = S.players[who];
+  if(creature.specializes){
+    // A Dendritic Cell's priming lives on that specific cell (not the player) — it can only be
+    // spent once, and only while that Dendritic Cell is still on the board to offer it.
+    var primer = p.board.find(function(x){ return x.defId==='dendritic' && x.primeCategory && !S.anim.dying[x.uid]; });
+    if(primer){
+      creature.specialized = primer.primeCategory;
+      creature.pot += 1; creature.res += 1; creature.maxRes += 1;
+      pushLog(creature.name+' enters already Specialized against '+primer.primeCategory+' (primed by Dendritic Cell).');
+      primer.primeCategory = null;
+    }
+  }
+  p.board.push(creature);
+  pushLog(label(who)+' deploys '+def.name+'.');
+  recalcHelperAura(who);
+
+  if(def.ability==='onplayHelperT'){
+    var opp = opponentOf(who);
+    var targets = S.players[opp].board.filter(function(c){ return c.defId==='helpert'; });
+    if(targets.length){
+      var t = targets[0];
+      damageCreature(t, opp, 1);
+      pushLog('HIV strikes '+t.name+' for 1, ignoring blockers.');
+    }
+  } else if(def.ability==='phagocytose'){
+    var opp2 = opponentOf(who);
+    var pool = S.players[opp2].board.filter(function(c){ return c.group==='pathogen' && c.duration==='acute' && c.res<=2; });
+    if(pool.length){
+      pool.sort(function(a,b){return a.res-b.res;});
+      pushLog('Macrophage phagocytoses '+pool[0].name+'.');
+      killCreature(opp2, pool[0].uid);
+    }
+  } else if(def.ability==='histamine'){
+    var opp3 = opponentOf(who);
+    if(S.players[opp3].board.some(function(c){return c.group==='pathogen';})){
+      var pool3 = S.players[opp3].board.filter(function(c){return c.group==='pathogen';}).sort(function(a,b){return a.res-b.res;});
+      damageCreature(pool3[0], opp3, 1);
+      pushLog('Mast Cell hits '+pool3[0].name+' for 1.');
+    }
+    p.board.forEach(function(c){ if(c.defId==='neutrophil') c.tempPot += 1; });
+  }
+  return creature;
+}
+
+function needsManualTarget(def){
+  return def.ability==='drift' || def.ability==='shift' || def.ability==='treat' || def.ability==='incinerate';
+}
+function validTargetsFor(who, def){
+  var opp = opponentOf(who);
+  if(def.ability==='drift' || def.ability==='shift') return S.players[who].board.filter(function(c){return c.group==='pathogen';}).map(function(c){return c.uid;});
+  if(def.ability==='treat') return S.players[opp].board.filter(function(c){return c.group==='pathogen' && c.category===def.treatCat;}).map(function(c){return c.uid;});
+  if(def.ability==='incinerate') return S.players[opp].board.filter(function(c){return c.group==='pathogen';}).map(function(c){return c.uid;});
+  return [];
+}
+
+function applyEffect(who, def, targetUid, chosenCategory){
+  var opp = opponentOf(who);
+  pushLog(label(who)+' uses '+def.name+'.');
+  if(def.ability==='drift'){
+    var t = findCreature(who, targetUid);
+    if(t){ t.tempPot += 1; t.noBlockAcute = true; }
+  } else if(def.ability==='shift'){
+    var t2 = findCreature(who, targetUid);
+    if(t2 && chosenCategory){ t2.pot+=2; t2.res+=2; t2.maxRes+=2; t2.category = chosenCategory; pushLog(t2.name+' mutates — now category '+chosenCategory+'.'); }
+  } else if(def.ability==='treat'){
+    var t3 = findCreature(opp, targetUid);
+    if(t3) damageCreature(t3, opp, def.dmg);
+  } else if(def.ability==='fever'){
+    S.players[who].board.forEach(function(c){ c.tempPot += 1; });
+    S.players[who].health -= 1;
+  } else if(def.ability==='storm'){
+    S.players.p1.board.slice().forEach(function(c){ damageCreature(c, 'p1', 2); });
+    S.players.p2.board.slice().forEach(function(c){ damageCreature(c, 'p2', 2); });
+    S.players[who].health -= 2;
+  } else if(def.ability==='sleep'){
+    drawCard(who); drawCard(who);
+  } else if(def.ability==='immuneboost'){
+    var pool = S.players[who].discard.filter(function(id){ return id!=='antibody' && DEFS[id] && DEFS[id].group==='immune'; });
+    if(pool.length){
+      var pick = pool[Math.floor(Math.random()*pool.length)];
+      S.players[who].discard.splice(S.players[who].discard.indexOf(pick),1);
+      if(S.players[who].hand.length<10){
+        S.players[who].hand.push({uid:nextUid(), defId:pick});
+        pushLog('Immune Boost recalls '+DEFS[pick].name+' from the discard pile.');
+      } else {
+        pushLog(DEFS[pick].name+' crumbles on the way back — '+label(who)+"'s hand is full.");
+      }
+    } else {
+      pushLog('No immune cells in the discard pile to recall.');
+    }
+  } else if(def.ability==='incinerate'){
+    var t5 = findCreature(opp, targetUid);
+    if(t5){ pushLog(t5.name+' is incinerated outright — no resistance helps.'); killCreature(opp, t5.uid); }
+  }
+  checkGameOver();
+}
+function immuneBoostPoolFor(who){
+  return S.players[who].discard.filter(function(id){ return id!=='antibody' && DEFS[id] && DEFS[id].group==='immune'; });
+}
+
+function applyVaccinate(who, category, targetUid){
+  var t = findCreature(who, targetUid);
+  if(t && t.specializes && !t.specialized){
+    t.specialized = category; t.pot += 1; t.res += 1; t.maxRes += 1;
+    pushLog(t.name+' is vaccinated — Specialized against '+category+'.');
+  }
+}
+
+/* ================= combat ================= */
+function eligibleBlockers(defWho, attacker){
+  return S.players[defWho].board.filter(function(c){
+    if(c.group!=='immune' || c.dormant) return false;
+    // Persistent cells act every turn and stay available to block even after engaging/secreting
+    // this cycle — only Acute cells are limited to one action total (attack, block, or engage).
+    if(c.duration==='acute' && c.acted) return false;
+    if(attacker.noBlockAcute && c.duration==='acute') return false;
+    return true;
+  });
+}
+
+function resolveUnblocked(pathogen, pathOwner, hostWho){
+  var dmg = effectivePot(pathogen);
+  S.players[hostWho].health -= dmg;
+  pushLog(pathogen.name+' hits '+label(hostWho)+"'s Health for "+dmg+'.');
+  if(pathogen.ability==='toxin1'){
+    S.players[hostWho].health -= 1;
+    pushLog(pathogen.name+"'s toxin deals 1 more damage directly.");
+  }
+  if(pathogen.ability==='drain'){
+    S.players[pathOwner].atp = Math.min(8, S.players[pathOwner].atp+1);
+    pushLog(pathogen.name+' drains 1 ATP for '+label(pathOwner)+'.');
+  }
+  if(pathogen.ability==='replicate'){
+    if(S.players[pathOwner].hand.length<10){ S.players[pathOwner].hand.push({uid:nextUid(), defId:pathogen.defId}); pushLog(pathogen.name+' replicates into '+label(pathOwner)+"'s hand."); }
+  }
+  checkGameOver();
+}
+
+function applySpecializePath(creature, category, path){
+  creature.specialized = category;
+  if(path==='effector'){
+    creature.effectorCharge = 3;
+    creature.name = 'Effector '+creature.baseName;
+    creature.specialTag = 'Effector';
+    pushLog(creature.name+' becomes an Effector cell — +3 Potency until it next fights.');
+  } else if(path==='memory'){
+    creature.res += 2; creature.maxRes += 2;
+    creature.name = 'Memory '+creature.baseName;
+    creature.specialTag = 'Memory';
+    pushLog(creature.name+' becomes a Memory cell — permanent +2 Resilience.');
+  } else if(path==='memoryb'){
+    creature.pot += 2; creature.res += 2; creature.maxRes += 2;
+    creature.name = 'Memory B-cell';
+    creature.specialTag = 'Memory';
+    creature.ability = null;
+    creature.text = 'A tougher, faster combatant now — no longer leaves an Antibody on death.';
+    pushLog('Memory B-cell — permanent +2/+2, no longer leaves an Antibody on death.');
+  } else if(path==='plasma'){
+    creature.plasma = true;
+    creature.ability = 'plasmasecrete';
+    creature.name = 'Plasma Cell';
+    creature.specialTag = 'Plasma';
+    creature.text = 'Tap to secrete a '+category+'-specific Antibody into your hand for 1 ATP (once per turn). No longer engages directly, and no longer leaves an Antibody on death.';
+    pushLog('Plasma Cell — can secrete a '+category+'-specific Antibody each turn for 1 ATP.');
+  }
+}
+function aiResolveSpecialize(creature, category, owner){
+  var path;
+  if(creature.defId==='bcell'){
+    path = (S.players[owner].board.filter(function(c){return c.group==='immune';}).length>=3) ? 'plasma' : 'memoryb';
+  } else {
+    var opp = S.players[opponentOf(owner)];
+    path = (opp.health<=8) ? 'effector' : 'memory';
+  }
+  applySpecializePath(creature, category, path);
+}
+
+function resolveCombat(pathogen, pathOwner, immune, immOwner, onDone){
+  onDone = onDone || function(){};
+  if(immune.defId==='antibody'){
+    if(S.players[immOwner].autoreactive){
+      S.players[immOwner].health -= 1;
+      pushLog("Autoreactive antibody misfires on "+label(immOwner)+" — the attack gets through anyway.");
+      resolveUnblocked(pathogen, pathOwner, immOwner);
+    } else {
+      pushLog((immune.specificCategory?immune.specificCategory+'-specific antibody':'Antibody')+' neutralizes the attack completely.');
+      if(immune.specificCategory && immune.specificCategory===pathogen.category && findCreature(pathOwner, pathogen.uid)){
+        damageCreature(pathogen, pathOwner, 1);
+        pushLog('Its specificity lands an extra hit on '+pathogen.name+'.');
+      }
+    }
+    removeCreature(immOwner, immune.uid);
+    checkGameOver();
+    onDone();
+    return;
+  }
+  var eos = (immune.defId==='eosinophil' && pathogen.category==='Parasite');
+  var specMatch = !!(immune.specialized && immune.specialized===pathogen.category);
+  var immPot = effectivePot(immune) * (eos?2:1) + (specMatch?1:0);
+  var eligibleToSpecialize = false;
+  if(S.players[immOwner].autoreactive && immune.defId==='bcell'){
+    S.players[immOwner].health -= immPot;
+    pushLog(immune.name+' misfires on its own controller — autoimmune damage.');
+  } else {
+    damageCreature(pathogen, pathOwner, immPot);
+    if(specMatch){ pushLog(immune.name+"'s "+immune.specialized+' specialization adds +1 force against '+pathogen.name+'.'); }
+    eligibleToSpecialize = immune.specializes && !immune.specialized;
+  }
+  if(immune.effectorCharge){
+    immune.effectorCharge = 0;
+    pushLog(immune.name+"'s Effector boost is spent.");
+  }
+  damageCreature(immune, immOwner, effectivePot(pathogen));
+  var immuneSurvived = !S.anim.dying[immune.uid];
+  if(immune.duration==='acute' && immuneSurvived){ removeCreature(immOwner, immune.uid); }
+  checkGameOver();
+  var willSpecialize = eligibleToSpecialize && immuneSurvived;
+  if(willSpecialize && !S.over){
+    var isHumanControlled = (immOwner==='p1') || (S.mode==='2p');
+    if(isHumanControlled){
+      var kind = immune.defId==='bcell' ? 'bcell' : 'tcell';
+      S.selection = {mode:'specializeChoice', uid:immune.uid, owner:immOwner, category:pathogen.category, kind:kind, onDoneAfter:onDone};
+      render();
+      return;
+    } else {
+      aiResolveSpecialize(immune, pathogen.category, immOwner);
+    }
+  }
+  onDone();
+}
+
+function declarePathogenAttack(who, sourceUid, onDone){
+  var attacker = findCreature(who, sourceUid);
+  if(!attacker || attacker.dormant || attacker.acted){ if(onDone) onDone(); return; }
+  if(S.players[who].atp<1){ if(onDone) onDone(); return; }
+  S.players[who].atp -= 1;
+  attacker.acted = true;
+  var defWho = opponentOf(who);
+  var blockers = eligibleBlockers(defWho, attacker);
+  var finish = function(){
+    if(attacker.duration==='acute' && !S.anim.dying[sourceUid] && findCreature(who, sourceUid)){ removeCreature(who, sourceUid); }
+    if(onDone) onDone();
+  };
+  if(blockers.length===0){
+    resolveUnblocked(attacker, who, defWho);
+    render();
+    finish();
+    return;
+  }
+  var isDefenderHuman = (S.mode==='2p') || (S.mode==='solo' && defWho==='p1');
+  if(!isDefenderHuman){
+    setTimeout(function(){
+      var choice = aiChooseBlock(defWho, attacker, blockers);
+      if(choice){
+        pushLog(label(defWho)+' blocks with '+choice.name+'.');
+        resolveCombat(attacker, who, choice, defWho, function(){ render(); finish(); });
+      } else {
+        resolveUnblocked(attacker, who, defWho);
+        render();
+        finish();
+      }
+    }, 500);
+  } else {
+    S.pendingAttack = { attackerUid: sourceUid, attackerWho: who, defWho: defWho, blockerUids: blockers.map(function(b){return b.uid;}), onDone: finish };
+    render();
+  }
+}
+
+function resolveBlockChoice(blockerUidOrNull){
+  var pa = S.pendingAttack;
+  if(!pa) return;
+  if(S.mode==='online' && pa.defWho!==S.mySeat) return;
+  var attacker = findCreature(pa.attackerWho, pa.attackerUid);
+  S.pendingAttack = null;
+  if(!attacker){ render(); return; }
+  if(blockerUidOrNull){
+    var blocker = findCreature(pa.defWho, blockerUidOrNull);
+    if(blocker){
+      pushLog(label(pa.defWho)+' blocks with '+blocker.name+'.');
+      resolveCombat(attacker, pa.attackerWho, blocker, pa.defWho, function(){ render(); if(pa.onDone) pa.onDone(); });
+      return;
+    }
+  }
+  resolveUnblocked(attacker, pa.attackerWho, pa.defWho);
+  render();
+  if(pa.onDone) pa.onDone();
+}
+
+function declareEngage(who, sourceUid, targetUid, onDone){
+  onDone = onDone || function(){};
+  var engager = findCreature(who, sourceUid);
+  var target = findCreature(opponentOf(who), targetUid);
+  if(!engager || !target || engager.dormant || engager.acted){ onDone(); return; }
+  if(S.players[who].atp<1){ onDone(); return; }
+  S.players[who].atp -= 1;
+  engager.acted = true;
+  pushLog(engager.name+' engages '+target.name+'.');
+  resolveCombat(target, opponentOf(who), engager, who, function(){
+    if(engager.duration==='acute' && !S.anim.dying[sourceUid] && findCreature(who, sourceUid)){ removeCreature(who, sourceUid); }
+    onDone();
+  });
+}
+
+/* ================= AI ================= */
+function aiChooseBlock(defWho, attacker, blockers){
+  var def = S.players[defWho];
+  var lethal = effectivePot(attacker) >= def.health;
+  var survivorKiller = blockers.find(function(c){ return effectivePot(c)>=attacker.res && effectivePot(attacker)<c.res; });
+  if(survivorKiller) return survivorKiller;
+  if(lethal || def.health - effectivePot(attacker) < 6){
+    blockers = blockers.slice().sort(function(a,b){ return (effectivePot(b)>=attacker.res)-(effectivePot(a)>=attacker.res) || b.res-a.res; });
+    return blockers[0];
+  }
+  var trader = blockers.find(function(c){ return effectivePot(c)>=attacker.res; });
+  if(trader) return trader;
+  return null;
+}
+
+function aiTakeTurn(){
+  if(S.over) return;
+  aiPlayPhase(function(){ aiAttackPhase(0, function(){ S.locked=false; render(); setTimeout(function(){ if(!S.over) advanceTurn(); }, 500); }); });
+}
+
+function aiPlayPhase(done){
+  var ai = S.players.p2, human = S.players.p1;
+  function step(){
+    if(S.over) return done();
+    var hand = ai.hand.slice();
+    var options = hand.filter(function(h){ return affordable('p2', DEFS[h.defId]); });
+    if(options.length===0) return done();
+
+    var wantsImmune = ai.health < 14;
+    var wantsPathogen = human.health < 14;
+    function score(h){
+      var d = DEFS[h.defId]; var s = d.cost;
+      if(d.group==='immune' && wantsImmune) s += 3;
+      if(d.group==='pathogen' && wantsPathogen) s += 2;
+      if(d.ability==='treat'){
+        var pool = human.board.filter(function(c){return c.group==='pathogen' && c.category===d.treatCat && c.res<=d.dmg;});
+        if(pool.length) s += 6;
+      }
+      if(d.ability==='vaccinate'){
+        var hasNaive = ai.board.some(function(c){return c.specializes && !c.specialized;});
+        var hasThreat = human.board.some(function(c){return c.group==='pathogen';});
+        if(!(hasNaive && hasThreat)) s -= 99;
+      }
+      if(d.ability==='storm'){
+        if(!(human.board.length - ai.board.length >= 2)) s -= 99;
+      }
+      if(d.ability==='incinerate'){
+        var hasPrion = human.board.some(function(c){return c.category==='Prion';});
+        var hasBigTarget = human.board.some(function(c){return c.group==='pathogen' && c.cost>=4;});
+        if(!(hasPrion || hasBigTarget)) s -= 99; else s += 5;
+      }
+      if(d.ability==='immuneboost'){
+        if(immuneBoostPoolFor('p2').length===0) s -= 99;
+      }
+      if(d.ability==='sleep'){ s += 1; }
+      return s;
+    }
+    options.sort(function(a,b){ return score(b)-score(a); });
+    var chosen = options[0];
+    var def = DEFS[chosen.defId];
+    if(score(chosen) <= -50){ return done(); }
+
+    var idx = ai.hand.findIndex(function(h){return h.uid===chosen.uid;});
+    if(idx===-1) return done();
+    ai.hand.splice(idx,1);
+    ai.atp -= def.cost;
+
+    if(def.group==='effect'){
+      if(def.ability==='vaccinate'){
+        var naive = ai.board.filter(function(c){return c.specializes && !c.specialized;});
+        var threatCats = human.board.filter(function(c){return c.group==='pathogen';}).map(function(c){return c.category;});
+        var cat = threatCats[0] || 'Virus';
+        if(naive.length) applyVaccinate('p2', cat, naive[0].uid);
+      } else if(def.ability==='treat'){
+        var pool2 = human.board.filter(function(c){return c.group==='pathogen' && c.category===def.treatCat;}).sort(function(a,b){return a.res-b.res;});
+        if(pool2.length) applyEffect('p2', def, pool2[0].uid);
+      } else if(def.ability==='drift' || def.ability==='shift'){
+        var mine = ai.board.filter(function(c){return c.group==='pathogen';}).sort(function(a,b){return b.pot-a.pot;});
+        if(mine.length) applyEffect('p2', def, mine[0].uid, def.ability==='shift' ? 'Virus' : null);
+      } else if(def.ability==='incinerate'){
+        var pool3 = human.board.filter(function(c){return c.group==='pathogen';}).sort(function(a,b){
+          var ap = a.category==='Prion'?1:0, bp = b.category==='Prion'?1:0;
+          return bp-ap || b.cost-a.cost;
+        });
+        if(pool3.length) applyEffect('p2', def, pool3[0].uid);
+      } else {
+        applyEffect('p2', def, null, null);
+      }
+    } else {
+      var newCreature = playCreature('p2', chosen.uid, chosen.defId, def, chosen.specCat);
+      if(def.ability==='prime' && newCreature){
+        var threatCats2 = human.board.filter(function(c){return c.group==='pathogen';}).map(function(c){return c.category;});
+        newCreature.primeCategory = threatCats2[0] || 'Virus';
+        pushLog(newCreature.name+' primes the next Naive adaptive cell against '+newCreature.primeCategory+'.');
+      }
+    }
+    render();
+    setTimeout(step, 620);
+  }
+  step();
+}
+
+function aiAttackPhase(i, done){
+  if(S.over) return done();
+  var ai = S.players.p2;
+  var ready = ai.board.filter(function(c){ return !c.dormant && !c.acted; });
+  if(i>=ready.length) return done();
+  var c = ready[i];
+  if(!findCreature('p2', c.uid) || c.acted){ return setTimeout(function(){ aiAttackPhase(i+1, done); }, 10); }
+  if(c.group==='pathogen'){
+    declarePathogenAttack('p2', c.uid, function(){ setTimeout(function(){ aiAttackPhase(i+1, done); }, 600); });
+  } else if(c.ability==='plasmasecrete'){
+    if(S.players.p2.atp>=1 && S.players.p2.hand.length<10){
+      S.players.p2.atp -= 1;
+      c.acted = true;
+      S.players.p2.hand.push({uid:nextUid(), defId:'antibody', specCat:c.specialized});
+      pushLog(c.name+' secretes a '+c.specialized+'-specific antibody.');
+      render();
+    }
+    setTimeout(function(){ aiAttackPhase(i+1, done); }, 60);
+  } else {
+    var human = S.players.p1;
+    var targets = human.board.filter(function(p){ return p.group==='pathogen'; });
+    var pick = targets.filter(function(t){ return effectivePot(c)>=t.res; })
+      .sort(function(a,b){
+        var aw = (a.chronicDef && a.hostTurns>= (a.chronicDef.threshold||a.chronicDef.threshold1||a.chronicDef.rollAt||99)-1) ? 1 : 0;
+        var bw = (b.chronicDef && b.hostTurns>= (b.chronicDef.threshold||b.chronicDef.threshold1||b.chronicDef.rollAt||99)-1) ? 1 : 0;
+        return bw-aw || b.res-a.res;
+      })[0];
+    if(pick && (effectivePot(pick)<c.res || pick.chronicDef)){
+      declareEngage('p2', c.uid, pick.uid, function(){ render(); setTimeout(function(){ aiAttackPhase(i+1, done); }, 600); });
+    } else {
+      setTimeout(function(){ aiAttackPhase(i+1, done); }, 60);
+    }
+  }
+}
+
+/* ================= rendering ================= */
+var root = {};
+function cacheRoot(){
+  root = {
+    topStats: document.getElementById('hud-top-stats'),
+    bottomStats: document.getElementById('hud-bottom-stats'),
+    topName: document.getElementById('top-name'), topRole: document.getElementById('top-role'),
+    bottomName: document.getElementById('bottom-name'), bottomRole: document.getElementById('bottom-role'),
+    boardTop: document.getElementById('board-top'), boardBottom: document.getElementById('board-bottom'),
+    hand: document.getElementById('hand'), turnIndicator: document.getElementById('turn-indicator'),
+    log: document.getElementById('log'), cancelBtn: document.getElementById('cancel-btn'),
+    takeHitBtn: document.getElementById('take-hit-btn'), endTurn: document.getElementById('end-turn'),
+    pickCategory: document.getElementById('pick-category'), gameover: document.getElementById('gameover')
+  };
+}
+
+function microPot(){ return '<svg class="micro" viewBox="0 0 12 12"><path d="M1 11 11 1M11 1H5M11 1v6" stroke="var(--pathogen-strong)" stroke-width="1.6" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>'; }
+function microRes(){ return '<svg class="micro" viewBox="0 0 12 12"><path d="M6 1l5 2v3c0 3-2 5-5 6-3-1-5-3-5-6V3z" fill="var(--immune-strong)"/></svg>'; }
+
+function barClass(group){ return group==='pathogen' ? 'bar-pathogen' : (group==='immune' ? 'bar-immune' : 'bar-effect'); }
+function hdrClass(group){ return group==='pathogen' ? 'hdr-pathogen' : (group==='immune' ? 'hdr-immune' : 'hdr-effect'); }
+function cardHeaderHTML(group, inner){ return '<div class="card-header '+hdrClass(group)+'">'+inner+'</div>'; }
+function peekBadgeHTML(kind, uid){ return '<span class="peek-badge" data-action="previewcard" data-kind="'+kind+'" data-uid="'+uid+'">i</span>'; }
+
+function creatureCardHTML(c, opts){
+  opts = opts||{};
+  var cls = ['card','on-board',barClass(c.group)];
+  if(c.dormant) cls.push('dormant'); else if(c.acted && !opts.selectable) cls.push('spent');
+  if(opts.selectable) cls.push('selectable');
+  if(opts.pathtarget) cls.push('pathtarget');
+  if(opts.chosen) cls.push('chosen');
+  if(opts.attacking) cls.push('attacking');
+  if(S.anim.hits[c.uid]){ cls.push('hit'); setTimeout(function(){delete S.anim.hits[c.uid];},320); }
+  if(S.anim.dying[c.uid]) cls.push('dying');
+  var attrs = opts.onclick ? ' data-action="'+opts.onclick+'" data-uid="'+c.uid+'"' : '';
+  var catTag = c.category ? '<span class="tag cat-'+c.category+'">'+c.category.slice(0,4)+'</span>' : '<span class="tag cls-'+c.class+'">'+c.class.slice(0,4)+'</span>';
+  var specBadge = c.specialized ? '<span class="specbadge">'+(c.specialTag||'Spec')+' • '+c.specialized+'</span>'
+    : (c.primeCategory ? '<span class="specbadge">Priming • '+c.primeCategory+'</span>' : '');
+  var potVal = c.pot===null ? '–' : effectivePot(c);
+  var header = cardHeaderHTML(c.group, '<div class="toprow">'+catTag+'</div><div class="name">'+c.name+'</div>');
+  return '<div class="'+cls.join(' ')+'"'+attrs+'>'+
+    peekBadgeHTML('board', c.uid)+
+    header+
+    '<div class="icon">'+(ICONS[c.icon]?ICONS[c.icon]():'')+'</div>'+
+    '<div class="statrow"><span class="pot">'+microPot()+potVal+'</span>'+(c.res!==null&&c.ability!=='unkillable'?'<span class="res">'+microRes()+c.res+'</span>':'')+'</div>'+
+    specBadge+
+    '<div class="text">'+(c.text||'')+'</div>'+
+  '</div>';
+}
+
+function handCardHTML(h){
+  var def = DEFS[h.defId];
+  var activeSide = S.turn;
+  var canAct = !S.pendingAttack && !S.locked;
+  var canPlay = canAct && !S.selection && affordable(activeSide, def) && localSeatFor(activeSide);
+  var cls = ['card', barClass(def.group)];
+  if(!canPlay) cls.push('dim'); else cls.push('playable');
+  var costHTML = def.cost>0 || def.group!=='immune' ? '<div class="cost">'+def.cost+'</div>' : '<div class="cost">0</div>';
+  var catTag = def.category ? '<span class="tag cat-'+def.category+'">'+def.category.slice(0,4)+'</span>' : (def.class?'<span class="tag cls-'+def.class+'">'+def.class.slice(0,4)+'</span>':'');
+  var body = def.group==='effect'
+    ? '<div class="icon">'+(ICONS[def.icon]?ICONS[def.icon]():'')+'</div>'
+    : '<div class="icon">'+(ICONS[def.icon]?ICONS[def.icon]():'')+'</div>'+
+      '<div class="statrow"><span class="pot">'+microPot()+(def.pot!==null&&def.pot!==undefined?def.pot:'–')+'</span>'+(def.res!==null&&def.res!==undefined&&def.ability!=='unkillable'?'<span class="res">'+microRes()+def.res+'</span>':'')+'</div>';
+  var displayName = (h.defId==='antibody' && h.specCat) ? (h.specCat+'-Specific Antibody') : def.name;
+  var handHeader = cardHeaderHTML(def.group, '<div class="toprow">'+catTag+costHTML+'</div><div class="name">'+displayName+'</div>');
+  return '<div class="'+cls.join(' ')+'" data-action="playhand" data-uid="'+h.uid+'">'+
+    peekBadgeHTML('hand', h.uid)+
+    handHeader+
+    body+
+    '<div class="text">'+(def.text||'')+'</div>'+
+  '</div>';
+}
+
+var HEART_SVG = '<svg class="heart-icon" viewBox="0 0 24 24" width="11" height="11"><path d="M12 21s-7.5-4.6-10-9.3C.5 8.4 2.3 5 6 5c2 0 3.4 1 6 3.6C14.6 6 16 5 18 5c3.7 0 5.5 3.4 4 6.7-2.5 4.7-10 9.3-10 9.3Z" fill="var(--pathogen)"/></svg>';
+var DECK_SVG = '<svg class="deck-icon" viewBox="0 0 14 16" width="10" height="11"><rect x="4" y="1" width="9" height="12" rx="1.6" fill="var(--ink-faint)" opacity=".45"/><rect x="1" y="3" width="9" height="12" rx="1.6" fill="var(--ink-faint)"/></svg>';
+function guideCardHTML(defId, overrides, extraClass){
+  var def = DEFS[defId];
+  var d = Object.assign({}, def, overrides||{});
+  var isPreview = extraClass && extraClass.indexOf('preview-size')>-1;
+  var catTag = d.category ? '<span class="tag cat-'+d.category+'">'+(isPreview?d.category:d.category.slice(0,4))+'</span>' : (d.class?'<span class="tag cls-'+d.class+'">'+(isPreview?d.class:d.class.slice(0,4))+'</span>':'');
+  var hasStats = (d.pot!==null && d.pot!==undefined) || (d.res!==null && d.res!==undefined);
+  var body = '<div class="icon">'+(ICONS[d.icon]?ICONS[d.icon]():'')+'</div>'+
+    (hasStats ? '<div class="statrow"><span class="pot">'+microPot()+(d.pot!==null&&d.pot!==undefined?d.pot:'–')+'</span>'+(d.res!==null&&d.res!==undefined&&d.ability!=='unkillable'?'<span class="res">'+microRes()+d.res+'</span>':'')+'</div>' : '');
+  var specBadge = overrides && overrides.specialized ? '<span class="specbadge">spec: '+overrides.specialized+'</span>' : '';
+  var gHeader = cardHeaderHTML(d.group, '<div class="toprow">'+catTag+'<div class="cost">'+d.cost+'</div></div><div class="name">'+d.name+'</div>');
+  return '<div class="card '+barClass(d.group)+(extraClass?(' '+extraClass):'')+'">'+
+    gHeader+
+    body+specBadge+
+    '<div class="text">'+(d.text||'')+'</div>'+
+  '</div>';
+}
+
+function openCardPreview(html){
+  document.getElementById('card-preview-host').innerHTML = html;
+  document.getElementById('card-preview-overlay').hidden = false;
+}
+function renderHistory(){
+  var list = document.getElementById('history-list');
+  list.innerHTML = S.log.map(function(msg){ return '<div>'+escapeHTML(msg)+'</div>'; }).join('');
+  list.scrollTop = list.scrollHeight;
+}
+function openHistory(){
+  renderHistory();
+  document.getElementById('history-overlay').hidden = false;
+}
+function previewHandHTML(hEntry){
+  var overrides = (hEntry.defId==='antibody' && hEntry.specCat) ? {name: hEntry.specCat+'-Specific Antibody'} : {};
+  return guideCardHTML(hEntry.defId, overrides, 'preview-size');
+}
+function previewBoardHTML(c){
+  var catTag = c.category ? '<span class="tag cat-'+c.category+'">'+c.category+'</span>' : '<span class="tag cls-'+c.class+'">'+c.class+'</span>';
+  var specHTML = c.specialized ? '<span class="specbadge">'+(c.specialTag||'Specialized')+' • '+c.specialized+'</span>'
+    : (c.primeCategory ? '<span class="specbadge">Priming • '+c.primeCategory+'</span>' : '');
+  var chronicHTML = '';
+  if(c.chronicDef){
+    var need = c.chronicDef.threshold || c.chronicDef.threshold1 || c.chronicDef.rollAt;
+    chronicHTML = '<div class="preview-chronic">Unremoved for '+c.hostTurns+' of '+need+' of its host\'s turns before its complication can trigger.</div>';
+  }
+  var restWord = c.group==='pathogen' ? 'Incubating' : 'Resting';
+  var stateHTML = c.dormant ? '<div class="preview-state">'+restWord+' — can\'t act this turn.</div>' : (c.acted ? '<div class="preview-state">Already acted this turn.</div>' : '');
+  var potVal = c.pot===null ? '–' : effectivePot(c);
+  var pHeader = cardHeaderHTML(c.group, '<div class="toprow">'+catTag+'</div><div class="name">'+c.name+'</div>');
+  return '<div class="card preview-size on-board '+barClass(c.group)+'">'+
+    pHeader+
+    '<div class="icon">'+(ICONS[c.icon]?ICONS[c.icon]():'')+'</div>'+
+    '<div class="statrow"><span class="pot">'+microPot()+potVal+'</span>'+(c.res!==null&&c.ability!=='unkillable'?'<span class="res">'+microRes()+c.res+(c.maxRes&&c.maxRes!==c.res?(' / '+c.maxRes):'')+'</span>':'')+'</div>'+
+    specHTML+
+    '<div class="text">'+(c.text||'')+'</div>'+
+    chronicHTML+stateHTML+
+  '</div>';
+}
+
+function renderHowtoGuide(){
+  var statsHost = document.getElementById('guide-stats');
+  if(statsHost){
+    statsHost.innerHTML = statHTML('health','17/20') + statHTML('atp','4/6') + statHTML('deck','23') + '<span class="badge-auto">autoimmune</span>';
+  }
+  var statsLegend = document.getElementById('guide-stats-legend');
+  if(statsLegend){
+    statsLegend.innerHTML = [
+      ['var(--pathogen)','<strong>Health</strong> — life total. Reaches 0 and that side loses. A second number (17/20) means a complication has permanently lowered max Health.'],
+      ['var(--blue)','<strong>ATP</strong> — what you have to spend this turn, out of your current capacity.'],
+      ['var(--ink-faint)','<strong>Deck</strong> — cards left to draw.'],
+      ['var(--effect)','<strong>Autoimmune</strong> badge — appears only once a chronic complication has made that side\'s B-cells/Antibodies misfire.']
+    ].map(function(row){ return '<li><span class="swatch" style="background:'+row[0]+'"></span><span>'+row[1]+'</span></li>'; }).join('');
+  }
+  var cardHost = document.getElementById('guide-card');
+  if(cardHost){ cardHost.innerHTML = guideCardHTML('cytotoxict', {pot:4, res:3, specialized:'Virus'}); }
+  var cardLegend = document.getElementById('guide-card-legend');
+  if(cardLegend){
+    cardLegend.innerHTML = [
+      ['var(--blue)','<strong>Cost</strong> — ATP needed to play it.'],
+      ['var(--pathogen)','<strong>Category / Duration</strong> tag — a Pathogen\'s category, or Acute/Persistent for others.'],
+      ['var(--ink)','<strong>Icon</strong> — a simplified likeness of the real cell or pathogen.'],
+      ['var(--pathogen)','<strong>Potency</strong> (arrow) — damage it deals in combat.'],
+      ['var(--immune)','<strong>Resilience</strong> (shield) — damage it can take before being destroyed.'],
+      ['var(--immune)','<strong>Spec badge</strong> — shown once a Naive adaptive cell has upgraded against a category.'],
+      ['var(--ink-faint)','<strong>Rule text</strong> — its ability, or a flavor note if it has none.']
+    ].map(function(row){ return '<li><span class="swatch" style="background:'+row[0]+'"></span><span>'+row[1]+'</span></li>'; }).join('');
+  }
+}
+
+function statHTML(kind, valueHTML, extraClass, dataAction){
+  var attrs = dataAction ? ' data-action="'+dataAction+'"' : '';
+  var iconHTML = kind==='health' ? HEART_SVG : (kind==='deck' ? DECK_SVG : '<span class="dot"></span>');
+  return '<div class="stat '+kind+(extraClass?(' '+extraClass):'')+'"'+attrs+'>'+iconHTML+'<span class="num">'+valueHTML+'</span></div>';
+}
+
+function sideHUD(who, isAttackTarget){
+  var p = S.players[who];
+  var healthStr = p.health + (p.maxHealth!==20 ? ('/'+p.maxHealth) : '');
+  var html = statHTML('health', healthStr, isAttackTarget?'attackable':'') +
+             statHTML('atp', p.atp+'/'+p.atpMax) +
+             statHTML('deck', p.deck.length);
+  if(p.autoreactive) html += '<span class="badge-auto">autoimmune</span>';
+  return html;
+}
+
+function currentDecisionOwner(){
+  if(S.pendingAttack) return S.pendingAttack.defWho;
+  if(S.selection && S.selection.mode==='specializeChoice') return S.selection.owner;
+  return S.turn;
+}
+function bottomSideFor(){
+  if(S.mode==='online') return S.mySeat;
+  if(S.mode!=='2p') return 'p1';
+  return currentDecisionOwner();
+}
+// Whether THIS device is allowed to act as `who` right now. Solo restricts to p1 (the human);
+// local 2-Player is one shared device, so either side is fair game; Online restricts each
+// device to its own claimed seat.
+function localSeatFor(who){
+  if(S.mode==='solo') return who==='p1';
+  if(S.mode==='online') return who===S.mySeat;
+  return true;
+}
+// Whether it's THIS device's turn to make whatever decision is currently pending (a normal
+// turn action, or responding to an attack, or a mid-combat specialization choice) — only
+// meaningful (and only enforced) in Online mode, where the two seats are on separate devices.
+function canActNow(){
+  return S.mode!=='online' || localSeatFor(currentDecisionOwner());
+}
+function render(){
+  if(!S) return;
+  var bottom = bottomSideFor();
+  var top = opponentOf(bottom);
+  var iCanAct = canActNow();
+
+  function hudName(side){
+    if(S.mode==='solo'){ return side==='p1' ? 'You' : 'Computer'; }
+    if(S.mode==='online'){ return side===S.mySeat ? 'You' : 'Opponent'; }
+    return label(side);
+  }
+  root.topName.textContent = hudName(top);
+  root.bottomName.textContent = hudName(bottom);
+  root.topRole.textContent = top==='p1' ? 'near bank' : 'far bank';
+  root.bottomRole.textContent = 'near bank';
+  root.topStats.innerHTML = sideHUD(top, false);
+  root.bottomStats.innerHTML = sideHUD(bottom, false);
+
+  function renderBoard(container, who, isBottom){
+    var arr = S.players[who].board;
+    if(!arr.length){ container.innerHTML = '<div class="board-empty">No pathogens or cells yet.</div>'; return; }
+    container.innerHTML = arr.map(function(c){
+      var selectable=false, onclick=null, pathtarget=false, chosen=false;
+      if(!iCanAct){
+        // Not this device's decision right now (Online mode only) — no affordance to offer.
+      } else if(S.pendingAttack && S.pendingAttack.defWho===who && S.pendingAttack.blockerUids.indexOf(c.uid)>-1){
+        selectable = true; onclick = 'chooseblocker';
+      } else if(S.selection && S.selection.mode==='engageTarget' && who===opponentOf(S.selection.who) && S.selection.validTargets.indexOf(c.uid)>-1){
+        selectable = true; pathtarget = true; onclick = 'engagetarget';
+      } else if(S.selection && S.selection.mode==='effectTarget' && S.selection.validTargets.indexOf(c.uid)>-1 && ownerOf(c.uid)===S.selection.targetSide){
+        selectable = true; pathtarget = (c.group==='pathogen'); onclick = 'resolveeffecttarget';
+      } else if(!S.selection && !S.pendingAttack && !S.locked && who===S.turn && localSeatFor(who) && !c.dormant && !c.acted){
+        if(c.group==='pathogen'){
+          if(S.players[who].atp>=1){ selectable = true; onclick = 'attackstart'; }
+        }
+        else if(c.ability==='plasmasecrete'){
+          if(S.players[who].atp>=1){ selectable = true; onclick = 'secrete'; }
+        }
+        else if(c.group==='immune' && c.defId!=='antibody'){
+          var hasTargets = S.players[opponentOf(who)].board.some(function(x){return x.group==='pathogen';});
+          if(hasTargets && S.players[who].atp>=1){ selectable = true; onclick = 'engagestart'; }
+        }
+      }
+      if(S.selection && S.selection.mode==='engageTarget' && S.selection.who===who && S.selection.sourceUid===c.uid){ chosen = true; }
+      var attacking = !!(S.pendingAttack && S.pendingAttack.attackerWho===who && S.pendingAttack.attackerUid===c.uid);
+      return creatureCardHTML(c, {selectable:selectable, onclick:onclick, pathtarget:pathtarget, chosen:chosen, attacking:attacking});
+    }).join('');
+  }
+  renderBoard(root.boardTop, top, false);
+  renderBoard(root.boardBottom, bottom, true);
+
+  var handSide = bottom;
+  root.hand.innerHTML = S.players[handSide].hand.map(function(h){ return handCardHTML(h); }).join('');
+
+  // battleline
+  var ti = root.turnIndicator;
+  ti.className = 'turn-indicator';
+  var waitingOnOpponent = S.mode==='online' && !iCanAct;
+  if(S.pendingAttack){
+    ti.classList.add('attackmode');
+    if(S.mode==='online'){ ti.textContent = waitingOnOpponent ? "Waiting for Opponent's move..." : 'Incoming — your move!'; }
+    else { ti.textContent = (S.mode==='2p') ? (label(S.pendingAttack.defWho)+' — your move!') : 'Incoming!'; }
+  } else if(S.selection && S.selection.mode==='specializeChoice'){
+    ti.classList.add('choosemode');
+    ti.textContent = waitingOnOpponent ? 'Waiting for Opponent to choose...' : 'Choose a specialization!';
+  } else if(S.selection && S.selection.mode==='shiftChooseCategory'){
+    ti.classList.add('choosemode');
+    ti.textContent = waitingOnOpponent ? 'Waiting for Opponent to choose...' : 'Choose its new category!';
+  } else if(S.selection && S.selection.mode==='primeChooseCategory'){
+    ti.classList.add('choosemode');
+    ti.textContent = waitingOnOpponent ? 'Waiting for Opponent to choose...' : 'Choose a category to prime!';
+  } else if(S.mode==='solo' && S.turn==='p2'){
+    ti.classList.add('waiting');
+    ti.textContent = "Computer's turn — please wait";
+  } else if(S.mode==='online' && S.turn!==S.mySeat){
+    ti.classList.add('waiting');
+    ti.textContent = "Opponent's turn — please wait";
+  } else {
+    ti.classList.add('side-'+S.turn);
+    ti.textContent = S.over ? 'Game over' : ((S.mode==='solo'||S.mode==='online') ? 'Your turn' : label(S.turn)+"'s turn");
+  }
+  if(S.pendingAttack){
+    var atkC = findCreature(S.pendingAttack.attackerWho, S.pendingAttack.attackerUid);
+    var pdWho = (S.mode==='solo' && S.pendingAttack.defWho==='p1') ? 'your'
+      : (S.mode==='online' ? (S.pendingAttack.defWho===S.mySeat ? 'your' : "your opponent's") : (label(S.pendingAttack.defWho)+"'s"));
+    var atkName = atkC ? atkC.name : 'Something';
+    var atkPot = atkC ? effectivePot(atkC) : '?';
+    var callToAction = waitingOnOpponent ? 'waiting for a response...' : 'block or take it!';
+    root.log.innerHTML = '<div><strong>'+escapeHTML(atkName)+'</strong> ('+atkPot+' ATK) is attacking '+pdWho+' Health — '+callToAction+'</div>';
+  } else {
+    var recent = S.log.slice(-3);
+    root.log.innerHTML = recent.map(function(l){return '<div>'+escapeHTML(l)+'</div>';}).join('');
+  }
+  var pickerMode = iCanAct && S.selection && (S.selection.mode==='vaccinateChooseCategory' || S.selection.mode==='specializeChoice' || S.selection.mode==='shiftChooseCategory' || S.selection.mode==='primeChooseCategory');
+  root.log.hidden = pickerMode;
+  if(!document.getElementById('history-overlay').hidden) renderHistory();
+
+  root.cancelBtn.hidden = !(S.selection && !S.pendingAttack && iCanAct) || (S.selection && (S.selection.mode==='specializeChoice' || S.selection.mode==='primeChooseCategory'));
+  root.takeHitBtn.hidden = !S.pendingAttack || !iCanAct;
+  root.endTurn.hidden = !!S.selection || !!S.pendingAttack;
+  root.endTurn.disabled = S.over || S.locked || (S.mode==='solo' && S.turn!=='p1') || (S.mode==='online' && S.turn!==S.mySeat);
+  root.pickCategory.hidden = !pickerMode;
+  if(S.selection && S.selection.mode==='vaccinateChooseCategory'){
+    root.pickCategory.innerHTML = ['Virus','Bacterium','Fungus','Parasite'].map(function(cat){
+      return '<button data-action="pickcategory" data-cat="'+cat+'">'+cat+'</button>';
+    }).join('');
+  } else if(S.selection && S.selection.mode==='specializeChoice'){
+    var pathOpts = S.selection.kind==='bcell'
+      ? [['memoryb','Memory B-cell +2/+2'],['plasma','Plasma Cell: secrete Ab']]
+      : [['effector','Effector: +3 ATK till next fight'],['memory','Memory: +2 DEF forever']];
+    root.pickCategory.innerHTML = pathOpts.map(function(o){
+      return '<button data-action="pickspecialize" data-path="'+o[0]+'">'+o[1]+'</button>';
+    }).join('');
+  } else if(S.selection && S.selection.mode==='shiftChooseCategory'){
+    root.pickCategory.innerHTML = ['Virus','Bacterium','Fungus','Parasite'].map(function(cat){
+      return '<button data-action="pickshiftcategory" data-cat="'+cat+'">'+cat+'</button>';
+    }).join('');
+  } else if(S.selection && S.selection.mode==='primeChooseCategory'){
+    root.pickCategory.innerHTML = ['Virus','Bacterium','Fungus','Parasite'].map(function(cat){
+      return '<button data-action="pickprimecategory" data-cat="'+cat+'">'+cat+'</button>';
+    }).join('');
+  }
+
+  if(S.over){
+    var winSide = S.winner;
+    var draw = winSide==='draw';
+    var personalized = S.mode==='solo' || S.mode==='online';
+    var youWin = S.mode==='solo' ? winSide==='p1' : (S.mode==='online' ? winSide===S.mySeat : null);
+    root.gameover.hidden = false;
+    var title = draw ? 'Mutual collapse' : (personalized ? (youWin?'You win':'You lose') : label(winSide)+' wins');
+    var sub = draw ? 'Both Health totals gave out at once.' :
+      (S.mode==='solo' ? (youWin ? "The computer's Health gave out. Your host holds." : "Your Health gave out. The computer's host holds.")
+       : S.mode==='online' ? (youWin ? "Your opponent's Health gave out. Your host holds." : "Your Health gave out. Your opponent's host holds.")
+       : label(winSide)+"'s host held; "+label(opponentOf(winSide))+"'s Health gave out.");
+    root.gameover.innerHTML = '<h1 class="'+(draw||(!youWin&&personalized)?'lose':'win')+'">'+title+'</h1>'+
+      '<p>'+sub+'</p><button data-action="newgame">Play again</button>';
+  } else {
+    root.gameover.hidden = true;
+  }
+  syncOnlineState();
+}
+
+function escapeHTML(s){ return s.replace(/[&<>]/g, function(c){ return {'&':'&amp;','<':'&lt;','>':'&gt;'}[c]; }); }
+
+/* ================= interaction ================= */
+function clearSelection(){ S.selection = null; render(); }
+
+document.addEventListener('DOMContentLoaded', function(){
+  cacheRoot();
+  renderHowtoGuide();
+  document.querySelectorAll('.mode-btn[data-mode]').forEach(function(btn){
+    btn.addEventListener('click', function(){
+      if(btn.dataset.mode==='online'){
+        document.getElementById('modeselect').hidden = true;
+        openOnlineLobby();
+        return;
+      }
+      document.getElementById('modeselect').hidden = true;
+      document.getElementById('stage').hidden = false;
+      newGame(btn.dataset.mode);
+    });
+  });
+
+  document.addEventListener('click', function(e){
+    if(!S){ return; }
+    if(S.over){
+      var actEarly = e.target.closest('[data-action]');
+      if(actEarly && actEarly.dataset.action==='newgame'){ newGame(S.mode); }
+      return;
+    }
+    var el = e.target.closest('[data-action]');
+    if(!el) return;
+    var action = el.dataset.action;
+    if(action==='previewcard'){
+      var pkind = el.dataset.kind, puid = el.dataset.uid;
+      if(pkind==='board'){
+        var pinst = findCreatureAnywhere(puid);
+        if(pinst) openCardPreview(previewBoardHTML(pinst));
+      } else {
+        var pEntry = S.players[bottomSideFor()].hand.find(function(x){return x.uid===puid;});
+        if(pEntry) openCardPreview(previewHandHTML(pEntry));
+      }
+      return;
+    }
+    if(action==='openhistory'){
+      openHistory();
+      return;
+    }
+    if(S.mode==='online' && action!=='newgame' && !canActNow()) return;
+    if(S.locked && !S.pendingAttack && action!=='playhand' && action!=='pickspecialize') return;
+    var human = (S.mode==='2p') ? S.turn : 'p1';
+
+    if(action==='playhand'){
+      if(S.selection) return;
+      if(S.pendingAttack){ pushLog('Respond to the incoming attack first — choose a blocker or take the hit.'); render(); return; }
+      if(S.mode==='solo' && S.turn!=='p1'){ pushLog("It's the computer's turn — wait for it to finish."); render(); return; }
+      var uid = el.dataset.uid;
+      var h = S.players[S.turn].hand.find(function(x){return x.uid===uid;});
+      if(!h) return;
+      var def = DEFS[h.defId];
+      if(!affordable(S.turn, def)){ pushLog(def.name+' costs '+def.cost+' ATP — you have '+S.players[S.turn].atp+'.'); render(); return; }
+      if(def.ability==='vaccinate'){
+        var hasNaive = S.players[S.turn].board.some(function(c){return c.specializes && !c.specialized;});
+        if(!hasNaive){ pushLog('No Naive adaptive cell to vaccinate.'); render(); return; }
+        S.selection = {mode:'vaccinateChooseCategory', handUid:uid};
+        render();
+        return;
+      }
+      if(def.ability==='prime'){
+        var idxD = S.players[S.turn].hand.findIndex(function(x){return x.uid===uid;});
+        S.players[S.turn].hand.splice(idxD,1);
+        S.players[S.turn].atp -= def.cost;
+        var dCell = playCreature(S.turn, uid, h.defId, def, h.specCat);
+        S.selection = {mode:'primeChooseCategory', owner:S.turn, ownerUid:dCell.uid};
+        render();
+        return;
+      }
+      if(def.ability==='immuneboost' && immuneBoostPoolFor(S.turn).length===0){
+        pushLog('No immune cells in the discard pile to recall.'); render(); return;
+      }
+      if(needsManualTarget(def)){
+        var targets = validTargetsFor(S.turn, def);
+        if(targets.length===0){ pushLog('No valid target for '+def.name+'.'); render(); return; }
+        var opponentTargeted = (def.ability==='treat' || def.ability==='incinerate');
+        S.selection = {mode:'effectTarget', handUid:uid, def:def, validTargets:targets, targetSide: opponentTargeted?opponentOf(S.turn):S.turn};
+        render();
+        return;
+      }
+      // no target, no vaccinate: play immediately
+      var idx = S.players[S.turn].hand.findIndex(function(x){return x.uid===uid;});
+      S.players[S.turn].hand.splice(idx,1);
+      S.players[S.turn].atp -= def.cost;
+      if(def.group==='effect'){ applyEffect(S.turn, def, null, null); }
+      else { playCreature(S.turn, uid, h.defId, def, h.specCat); }
+      render();
+    } else if(action==='pickcategory'){
+      if(!S.selection || S.selection.mode!=='vaccinateChooseCategory') return;
+      var cat = el.dataset.cat;
+      var validTargets = S.players[S.turn].board.filter(function(c){return c.specializes && !c.specialized;}).map(function(c){return c.uid;});
+      S.selection = {mode:'effectTarget', handUid:S.selection.handUid, def:DEFS.vaccinate, validTargets:validTargets, targetSide:S.turn, vaccinateCategory:cat};
+      render();
+    } else if(action==='attackstart'){
+      var srcUid = el.dataset.uid;
+      declarePathogenAttack(S.turn, srcUid, function(){ render(); });
+      render();
+    } else if(action==='engagestart'){
+      var srcUid2 = el.dataset.uid;
+      if(S.selection && S.selection.mode==='engageTarget' && S.selection.sourceUid===srcUid2){ S.selection=null; }
+      else {
+        var validT = S.players[opponentOf(S.turn)].board.filter(function(c){return c.group==='pathogen';}).map(function(c){return c.uid;});
+        S.selection = {mode:'engageTarget', who:S.turn, sourceUid:srcUid2, validTargets:validT};
+      }
+      render();
+    } else if(action==='engagetarget'){
+      if(!S.selection || S.selection.mode!=='engageTarget') return;
+      var tUid = el.dataset.uid;
+      var engSrcWho = S.selection.who, engSrcUid = S.selection.sourceUid;
+      S.selection = null;
+      declareEngage(engSrcWho, engSrcUid, tUid, function(){ render(); });
+      render();
+    } else if(action==='chooseblocker'){
+      if(!S.pendingAttack) return;
+      resolveBlockChoice(el.dataset.uid);
+    } else if(action==='pickspecialize'){
+      if(!S.selection || S.selection.mode!=='specializeChoice') return;
+      var spec = S.selection;
+      var specCreature = findCreature(spec.owner, spec.uid);
+      S.selection = null;
+      if(specCreature){ applySpecializePath(specCreature, spec.category, el.dataset.path); }
+      render();
+      if(spec.onDoneAfter) spec.onDoneAfter();
+    } else if(action==='secrete'){
+      var secUid = el.dataset.uid;
+      var secC = findCreature(S.turn, secUid);
+      if(!secC || secC.dormant || secC.acted || secC.ability!=='plasmasecrete') return;
+      if(S.players[S.turn].atp<1) return;
+      if(S.players[S.turn].hand.length>=10){ pushLog('Hand full — the antibody is lost.'); render(); return; }
+      S.players[S.turn].atp -= 1;
+      secC.acted = true;
+      S.players[S.turn].hand.push({uid:nextUid(), defId:'antibody', specCat:secC.specialized});
+      pushLog(secC.name+' secretes a '+secC.specialized+'-specific antibody.');
+      render();
+    } else if(action==='resolveeffecttarget'){
+      if(!S.selection || S.selection.mode!=='effectTarget') return;
+      var tgt = el.dataset.uid;
+      if(S.selection.validTargets.indexOf(tgt)===-1) return;
+      var hUid = S.selection.handUid, def2 = S.selection.def, cat2 = S.selection.vaccinateCategory;
+      if(def2.ability==='shift'){
+        S.selection = {mode:'shiftChooseCategory', handUid:hUid, def:def2, targetUid:tgt};
+        render();
+        return;
+      }
+      var idx2 = S.players[S.turn].hand.findIndex(function(x){return x.uid===hUid;});
+      if(idx2===-1){ S.selection=null; render(); return; }
+      S.players[S.turn].hand.splice(idx2,1);
+      S.players[S.turn].atp -= def2.cost;
+      if(def2.ability==='vaccinate'){ applyVaccinate(S.turn, cat2, tgt); }
+      else { applyEffect(S.turn, def2, tgt, null); }
+      S.selection = null;
+      render();
+    } else if(action==='pickshiftcategory'){
+      if(!S.selection || S.selection.mode!=='shiftChooseCategory') return;
+      var shiftCat = el.dataset.cat;
+      var hUid3 = S.selection.handUid, def3 = S.selection.def, tgt3 = S.selection.targetUid;
+      var idx3 = S.players[S.turn].hand.findIndex(function(x){return x.uid===hUid3;});
+      S.selection = null;
+      if(idx3===-1){ render(); return; }
+      S.players[S.turn].hand.splice(idx3,1);
+      S.players[S.turn].atp -= def3.cost;
+      applyEffect(S.turn, def3, tgt3, shiftCat);
+      render();
+    } else if(action==='pickprimecategory'){
+      if(!S.selection || S.selection.mode!=='primeChooseCategory') return;
+      var primeCat = el.dataset.cat;
+      var dCell2 = findCreature(S.selection.owner, S.selection.ownerUid);
+      if(dCell2){ dCell2.primeCategory = primeCat; pushLog(dCell2.name+' primes the next Naive adaptive cell against '+primeCat+'.'); }
+      S.selection = null;
+      render();
+    } else if(action==='newgame'){
+      newGame(S.mode);
+    }
+  });
+
+  document.getElementById('end-turn').addEventListener('click', endTurn);
+  document.getElementById('cancel-btn').addEventListener('click', clearSelection);
+  document.getElementById('take-hit-btn').addEventListener('click', function(){ resolveBlockChoice(null); });
+  document.getElementById('howto-btn').addEventListener('click', function(){ document.getElementById('howto-panel').hidden = false; });
+  document.getElementById('howto-close').addEventListener('click', function(){ document.getElementById('howto-panel').hidden = true; });
+  document.getElementById('howto-panel').addEventListener('click', function(e){ if(e.target.id==='howto-panel') e.currentTarget.hidden = true; });
+  document.getElementById('card-preview-close').addEventListener('click', function(){ document.getElementById('card-preview-overlay').hidden = true; });
+  document.getElementById('card-preview-overlay').addEventListener('click', function(e){ if(e.target.id==='card-preview-overlay') e.currentTarget.hidden = true; });
+  document.getElementById('history-close').addEventListener('click', function(){ document.getElementById('history-overlay').hidden = true; });
+  document.getElementById('history-overlay').addEventListener('click', function(e){ if(e.target.id==='history-overlay') e.currentTarget.hidden = true; });
+
+  document.getElementById('online-create-btn').addEventListener('click', createOnlineGame);
+  document.getElementById('online-show-join-btn').addEventListener('click', function(){ showLobbyScreen('joinform'); lobbyMessage(''); });
+  document.getElementById('online-join-submit-btn').addEventListener('click', function(){ joinOnlineGame(document.getElementById('online-join-code').value); });
+  document.getElementById('online-join-code').addEventListener('keydown', function(e){ if(e.key==='Enter') joinOnlineGame(e.target.value); });
+  document.getElementById('online-rejoin-btn').addEventListener('click', rejoinLastGame);
+  document.getElementById('online-share-link').addEventListener('click', function(e){ e.target.select(); });
+  document.getElementById('online-copy-link-btn').addEventListener('click', function(){
+    var input = document.getElementById('online-share-link');
+    input.select();
+    var done = function(){ lobbyMessage('Link copied!'); setTimeout(function(){ lobbyMessage(''); }, 2000); };
+    if(navigator.clipboard && navigator.clipboard.writeText){
+      navigator.clipboard.writeText(input.value).then(done).catch(function(){ lobbyMessage('Could not copy — select the text above and copy it manually.'); });
+    } else {
+      try{ document.execCommand('copy'); done(); }catch(e){ lobbyMessage('Could not copy — select the text above and copy it manually.'); }
+    }
+  });
+  document.getElementById('online-lobby-back').addEventListener('click', backToModeSelect);
+  document.getElementById('leave-btn').addEventListener('click', leaveOnlineGame);
+
+  document.getElementById('google-signin-btn').addEventListener('click', signInWithGoogle);
+  document.getElementById('guest-solo-btn').addEventListener('click', continueAsGuestSolo);
+  document.getElementById('account-btn').addEventListener('click', signOutUser);
+
+  document.querySelectorAll('[data-action="openabout"]').forEach(function(el){ el.addEventListener('click', function(){ document.getElementById('about-panel').hidden = false; }); });
+  document.querySelectorAll('[data-action="opensupport"]').forEach(function(el){ el.addEventListener('click', function(){ document.getElementById('support-panel').hidden = false; }); });
+  document.querySelectorAll('[data-action="openinterest"]').forEach(function(el){ el.addEventListener('click', function(){ interestMessage(''); document.getElementById('interest-panel').hidden = false; }); });
+  document.getElementById('about-close').addEventListener('click', function(){ document.getElementById('about-panel').hidden = true; });
+  document.getElementById('about-panel').addEventListener('click', function(e){ if(e.target.id==='about-panel') e.currentTarget.hidden = true; });
+  document.getElementById('support-close').addEventListener('click', function(){ document.getElementById('support-panel').hidden = true; });
+  document.getElementById('support-panel').addEventListener('click', function(e){ if(e.target.id==='support-panel') e.currentTarget.hidden = true; });
+  document.getElementById('interest-close').addEventListener('click', function(){ document.getElementById('interest-panel').hidden = true; });
+  document.getElementById('interest-panel').addEventListener('click', function(e){ if(e.target.id==='interest-panel') e.currentTarget.hidden = true; });
+  document.getElementById('interest-submit-btn').addEventListener('click', submitInterestSignup);
+  renderSurveyQuestion();
+
+  if(DONATE_URL){
+    document.getElementById('about-donate-link').href = DONATE_URL;
+    document.getElementById('about-donate-line').hidden = false;
+  }
+
+  document.getElementById('view-responses-btn').addEventListener('click', function(){
+    document.getElementById('responses-panel').hidden = false;
+    loadResponses();
+  });
+  document.getElementById('responses-close').addEventListener('click', function(){ document.getElementById('responses-panel').hidden = true; });
+  document.getElementById('responses-panel').addEventListener('click', function(e){ if(e.target.id==='responses-panel') e.currentTarget.hidden = true; });
+
+  (function initField(){
+    var host = document.getElementById('field');
+    var colors = ['var(--immune)','var(--pathogen)','var(--blue)'];
+    for(var i=0;i<16;i++){
+      var d = document.createElement('div');
+      d.className='mote';
+      var size = 2.5+Math.random()*4;
+      d.style.width=size+'px'; d.style.height=size+'px';
+      d.style.left=(Math.random()*100)+'%';
+      d.style.background = colors[i%3];
+      d.style.setProperty('--dx',(Math.random()*40-20)+'px');
+      d.style.animationDuration=(10+Math.random()*10)+'s';
+      d.style.animationDelay=(Math.random()*10)+'s';
+      host.appendChild(d);
+    }
+  })();
+});
+})();
+</script>
+</body>
+</html>
