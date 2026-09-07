@@ -149,7 +149,7 @@
   .card .text{font-size:8.3px;line-height:1.22;color:var(--ink-dim);min-height:20px;overflow:hidden;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;}
   .card .specbadge{font-family:var(--font-mono);font-size:7px;letter-spacing:.03em;text-transform:uppercase;color:var(--immune-strong);background:var(--immune-soft);border-radius:4px;padding:1px 4px;align-self:flex-start;}
   .card.dim{opacity:0.38;filter:saturate(.6);}
-  .card.playable:not(.dim){cursor:pointer;}
+  .card.playable:not(.dim){cursor:pointer;box-shadow:0 0 0 2px var(--immune-strong), var(--shadow-card);animation:glowPulse 1.15s ease-in-out infinite;}
   .card.playable:not(.dim):active{transform:translateY(-2px) scale(0.98);}
   .card.selectable{cursor:pointer;box-shadow:0 0 0 2px var(--immune-strong), var(--shadow-card);animation:cardIn .2s ease both, glowPulse 1.15s ease-in-out infinite;}
   .card.selectable.pathtarget{box-shadow:0 0 0 2px var(--pathogen-strong), var(--shadow-card);}
@@ -247,6 +247,18 @@
 
   .mode-btn.google{border-color:#fff;background:#fff;color:#1a1a1a;}
   .mode-btn.guest{border-color:var(--rule);}
+  .mode-btn.tutorial{border-color:var(--effect);margin-top:8px;}
+
+  .tutorial-banner{flex:0 0 auto;background:var(--surface-2);border-bottom:1px solid var(--rule);padding:10px 14px;}
+  .tutorial-banner .label{font-family:var(--font-mono);font-size:10px;color:var(--effect-strong);letter-spacing:.08em;text-transform:uppercase;margin-bottom:4px;}
+  .tutorial-banner .text{font-family:var(--font-body);font-size:13.5px;color:var(--ink);line-height:1.4;}
+  .tutorial-banner .next-btn{margin-top:10px;width:100%;padding:10px;border-radius:10px;border:none;background:var(--effect);color:#06121a;font-family:var(--font-display);font-weight:700;text-transform:uppercase;letter-spacing:.02em;font-size:13px;cursor:pointer;}
+  .tutorial-banner .skip-link{display:block;text-align:center;margin-top:8px;font-family:var(--font-mono);font-size:10px;color:var(--ink-faint);text-decoration:underline;cursor:pointer;}
+  .tutorial-highlight{outline:3px solid var(--effect-strong) !important;outline-offset:2px;border-radius:8px;animation:glowPulse 1.15s ease-in-out infinite;}
+
+  .flash-toast{position:absolute;left:50%;top:64px;transform:translate(-50%,-8px);z-index:80;background:var(--surface-2);border:1px solid var(--rule);border-radius:12px;padding:10px 16px;max-width:82%;text-align:center;font-family:var(--font-body);font-size:13px;line-height:1.4;color:var(--ink);box-shadow:0 6px 20px rgba(0,0,0,.35);pointer-events:none;opacity:0;transition:opacity .2s ease, transform .2s ease;}
+  .flash-toast.show{opacity:1;transform:translate(-50%,0);}
+  .no-actions-hint{flex:0 0 auto;text-align:center;font-family:var(--font-body);font-style:italic;font-size:11.5px;color:var(--ink-faint);padding:2px 9px 0;}
   .login-art{width:132px;height:132px;object-fit:cover;border-radius:50%;margin:4px auto 18px;display:block;box-shadow:0 4px 18px rgba(0,0,0,.25);}
   .login-art-sm{width:52px;height:52px;object-fit:cover;border-radius:50%;margin:0 auto 8px;display:block;box-shadow:0 2px 10px rgba(0,0,0,.25);}
   .login-divider{text-align:center;font-family:var(--font-mono);font-size:10px;color:var(--ink-faint);letter-spacing:.08em;text-transform:uppercase;margin:14px 0;}
@@ -286,6 +298,10 @@
       <div class="mt">Try Solo, no sign-up</div>
       <div class="ms">Play against the computer right now — nothing is saved.</div>
     </button>
+    <button class="mode-btn tutorial" id="tutorial-btn">
+      <div class="mt">Learn to Play</div>
+      <div class="ms">A guided walkthrough of the rules, no sign-up needed.</div>
+    </button>
     <div class="login-message" id="login-message"></div>
     <div class="footer-links">
       <span data-action="openabout">About</span>
@@ -311,6 +327,10 @@
     <button class="mode-btn online" data-mode="online">
       <div class="mt">Online 2-Player</div>
       <div class="ms">Two separate devices — share a game code.</div>
+    </button>
+    <button class="mode-btn tutorial" id="tutorial-btn-modeselect">
+      <div class="mt">Learn to Play</div>
+      <div class="ms">A guided walkthrough of the rules.</div>
     </button>
     <button class="mode-btn" id="view-responses-btn" hidden style="border-color:var(--rule);margin-top:18px;">
       <div class="mt">View Card Interest Signups</div>
@@ -380,10 +400,18 @@
 </div>
 
 <div class="stage" id="stage" hidden>
+  <div class="flash-toast" id="flash-toast" hidden></div>
   <header class="hud hud-top">
     <div class="identity"><span class="who" id="top-name">—</span><span class="role" id="top-role">—</span></div>
     <div class="stats" id="hud-top-stats"></div>
   </header>
+
+  <div class="tutorial-banner" id="tutorial-banner" hidden>
+    <div class="label">Learn to Play</div>
+    <div class="text" id="tutorial-text"></div>
+    <button class="next-btn" id="tutorial-next-btn" hidden>Next</button>
+    <span class="skip-link" id="tutorial-skip-link">Skip tutorial</span>
+  </div>
 
   <section class="board board-top" id="board-top"></section>
 
@@ -405,6 +433,7 @@
     <div class="stats" id="hud-bottom-stats"></div>
   </footer>
 
+  <div class="no-actions-hint" id="no-actions-hint" hidden>Nothing to play right now — tap End Turn.</div>
   <section class="hand-tray" id="hand"></section>
 </div>
 
@@ -742,6 +771,195 @@ function continueAsGuestSolo(){
   document.getElementById('leave-btn').hidden = false;
   newGame('solo');
 }
+
+/* ================= tutorial mode =================
+   A fixed, scripted practice game (never random) that walks a new player through the core
+   loop step by step. tutorialStep 0 means "not in a tutorial"; each other integer is one
+   banner state. tutorialActionAllowed gates real game clicks to whatever the current step
+   expects; tutorialAfterAction watches for that expected click completing and advances the
+   step once the real game logic has already run. */
+var tutorialStep = 0;
+var tutorialUids = {};
+var tutorialBlockOutcome = null;
+
+function tutorialSpawnCreature(who, defId){
+  var c = makeCreatureInstance(DEFS[defId], defId, null);
+  c.dormant = false; c.acted = false;
+  S.players[who].board.push(c);
+  return c;
+}
+
+function startTutorial(){
+  document.getElementById('login-screen').hidden = true;
+  document.getElementById('modeselect').hidden = true;
+  document.getElementById('stage').hidden = false;
+  document.getElementById('leave-btn').hidden = false;
+
+  tutorialUids = {};
+  tutorialBlockOutcome = null;
+  S = { mode:'tutorial', turn:'p1', first:'p1', over:false, winner:null, selection:null, pendingAttack:null,
+    log:[], anim:{hits:{}, dying:{}}, locked:false, turnCount:1,
+    players:{ p1: freshPlayer('Player 1'), p2: freshPlayer('Computer') } };
+  S.players.p1.atpMax = 2; S.players.p1.atp = 2; S.players.p1.everStarted = true;
+  S.players.p2.atpMax = 5; S.players.p2.atp = 5; S.players.p2.everStarted = true;
+  S.players.p1.deck = []; S.players.p2.deck = [];
+
+  tutorialUids.neutrophil = nextUid();
+  S.players.p1.hand.push({uid:tutorialUids.neutrophil, defId:'neutrophil'});
+  tutorialUids.antibiotic = nextUid();
+  S.players.p1.hand.push({uid:tutorialUids.antibiotic, defId:'antibiotic'});
+  tutorialUids.nk = nextUid();
+  S.players.p1.hand.push({uid:tutorialUids.nk, defId:'nk'});
+
+  var staph1 = tutorialSpawnCreature('p2', 'staph');
+  tutorialUids.staph1 = staph1.uid;
+
+  pushLog('— Tutorial started —');
+  tutorialStep = 1;
+  render();
+}
+
+function tutorialBeginTurn2(){
+  S.players.p1.atpMax = 5; S.players.p1.atp = 5;
+  S.players.p1.board.forEach(function(c){ c.acted=false; c.dormant=false; });
+}
+
+function tutorialFinish(){
+  tutorialStep = 0;
+  document.getElementById('tutorial-banner').hidden = true;
+  newGame('solo');
+}
+
+function applyTutorialHighlight(selector){
+  document.querySelectorAll('.tutorial-highlight').forEach(function(el){ el.classList.remove('tutorial-highlight'); });
+  if(selector){
+    var el = document.querySelector(selector);
+    if(el) el.classList.add('tutorial-highlight');
+  }
+}
+
+function tutorialActionAllowed(action, el){
+  if(action==='previewcard' || action==='openhistory') return true;
+  switch(tutorialStep){
+    case 4: return action==='playhand' && el.dataset.uid===tutorialUids.neutrophil;
+    case 8: return action==='chooseblocker' && el.dataset.uid===tutorialUids.staph1Blocker;
+    case 10: return action==='playhand' && el.dataset.uid===tutorialUids.antibiotic;
+    case 11: return action==='resolveeffecttarget' && el.dataset.uid===tutorialUids.staph1;
+    case 13: return action==='playhand' && el.dataset.uid===tutorialUids.nk;
+    case 15: return action==='engagestart' && el.dataset.uid===tutorialUids.nkBoard;
+    case 16: return action==='engagetarget' && el.dataset.uid===tutorialUids.staph2;
+    default: return false;
+  }
+}
+
+function tutorialAfterAction(action, el){
+  if(tutorialStep===4 && action==='playhand'){
+    var lastP1 = S.players.p1.board[S.players.p1.board.length-1];
+    tutorialUids.staph1Blocker = lastP1.uid;
+    tutorialStep = 5;
+    render();
+  } else if(tutorialStep===8 && action==='chooseblocker'){
+    tutorialBlockOutcome = 'blocked';
+    tutorialBeginTurn2();
+    tutorialStep = 9;
+    render();
+  } else if(tutorialStep===10 && action==='playhand'){
+    tutorialStep = 11;
+    render();
+  } else if(tutorialStep===11 && action==='resolveeffecttarget'){
+    var s2 = tutorialSpawnCreature('p2', 'staph');
+    tutorialUids.staph2 = s2.uid;
+    tutorialStep = 12;
+    render();
+  } else if(tutorialStep===13 && action==='playhand'){
+    var lastP1b = S.players.p1.board[S.players.p1.board.length-1];
+    tutorialUids.nkBoard = lastP1b.uid;
+    tutorialStep = 14;
+    render();
+  } else if(tutorialStep===15 && action==='engagestart'){
+    tutorialStep = 16;
+    render();
+  } else if(tutorialStep===16 && action==='engagetarget'){
+    tutorialStep = 17;
+    render();
+  }
+}
+
+function tutorialAdvanceOnNext(){
+  if(tutorialStep===18){ tutorialFinish(); return; }
+  tutorialStep += 1;
+  render();
+}
+
+function renderTutorialOverlay(){
+  var banner = document.getElementById('tutorial-banner');
+  if(!tutorialStep){ banner.hidden = true; applyTutorialHighlight(null); return; }
+  banner.hidden = false;
+  var nextBtn = document.getElementById('tutorial-next-btn');
+  nextBtn.hidden = true;
+  nextBtn.textContent = 'Next';
+  var highlight = null, text = '';
+  switch(tutorialStep){
+    case 1:
+      text = "Welcome! This is a short practice game against a fixed opponent, so nothing here is left to chance. Tap Next to begin.";
+      nextBtn.hidden = false; break;
+    case 2:
+      text = "This banner shows whose turn it is. Right now, it's yours.";
+      highlight = '#turn-indicator'; nextBtn.hidden = false; break;
+    case 3:
+      text = "This is your ATP — the energy you spend to play cards. You have 2 out of 2 right now. This cap grows by 1 every one of your turns (up to a max of 8), so you'll have more to work with as the game goes on.";
+      highlight = '#hud-bottom-stats .stat.atp'; nextBtn.hidden = false; break;
+    case 4:
+      text = 'Let’s play your first card. Tap the Neutrophil in your hand — it costs 1 ATP and joins your board.';
+      highlight = '#hand [data-uid="'+tutorialUids.neutrophil+'"]'; break;
+    case 5:
+      text = "Nice — the Neutrophil is now on your board, and your ATP dropped from 2 to 1. The two numbers on a board card are Potency (its attack power) and Resistance (how much damage it can take before being destroyed). A Neutrophil has no special ability — it's a plain 1/1 fighter.";
+      nextBtn.hidden = false; break;
+    case 6:
+      text = "The computer already has a Staphylococcus aureus out — a Bacterium with 3 Potency and 2 Resistance. Keep an eye on it.";
+      highlight = '#board-top [data-uid="'+tutorialUids.staph1+'"]'; nextBtn.hidden = false; break;
+    case 7:
+      text = "You're done for this turn. Tap End Turn to hand things over to the computer and see what it does.";
+      highlight = '#end-turn'; break;
+    case 8:
+      text = "The computer attacks directly with that Staph (3 Potency). You can block with your Neutrophil, or tap “Take the hit” to let it through to your Health. Either is a valid choice — try blocking this time.";
+      break;
+    case 9:
+      text = tutorialBlockOutcome==='blocked'
+        ? "Blocking triggers a trade: your Neutrophil's 1 Potency chipped the Staph's Resistance down to 1, but the Staph's 3 Potency was more than your Neutrophil's 1 Resistance, so your Neutrophil was destroyed. Taking the hit instead would have cost you 3 Health directly but kept the Neutrophil around."
+        : "Taking the hit sent 3 damage straight to your Health, but your Neutrophil is still on your board, ready for later. Blocking instead would have traded hits with the Staph — possibly losing the Neutrophil, but also weakening or destroying the attacker.";
+      nextBtn.hidden = false; break;
+    case 10:
+      text = "It's your turn again, with a higher ATP cap. Effect cards like Antibiotic don't go on the board — they do something immediately, often against a target. Tap Antibiotic in your hand.";
+      highlight = '#hand [data-uid="'+tutorialUids.antibiotic+'"]'; break;
+    case 11:
+      text = "Now tap the glowing Staphylococcus aureus to target it with the Antibiotic.";
+      break;
+    case 12:
+      text = "Antibiotic dealt 3 damage — more than enough to destroy that Staph's Resistance. Effect cards are used up the moment you play them. The computer has brought out another Staph to defend itself.";
+      nextBtn.hidden = false; break;
+    case 13:
+      text = "So far you've played new cards from your hand. But cards already on your board can also act on their turn — attacking directly (Pathogens) or engaging an enemy creature (Immune cells). Let's get another one out first: tap the Natural Killer Cell in your hand.";
+      highlight = '#hand [data-uid="'+tutorialUids.nk+'"]'; break;
+    case 14:
+      text = "Your NK Cell is on the board now. Using a card that's already on the board — instead of playing a new one from your hand — is the other half of a turn's actions.";
+      nextBtn.hidden = false; break;
+    case 15:
+      text = "Tap your NK Cell on the board to start an attack with it.";
+      highlight = '#board-bottom [data-uid="'+tutorialUids.nkBoard+'"]'; break;
+    case 16:
+      text = "Now tap the new Staph to engage it.";
+      break;
+    case 17:
+      text = "Engaging is a two-way fight: both sides deal their Potency to each other at once. Your NK Cell's 2 Potency was enough to destroy the Staph's 2 Resistance — but the Staph's 3 Potency was also enough to destroy your NK Cell's 1 Resistance right back. Both were removed. Choosing what to engage, and when, matters.";
+      nextBtn.hidden = false; break;
+    case 18:
+      text = "That covers the basics: whose turn it is, spending ATP, playing cards onto your board, using effect cards on a target, responding to an attack, and using board creatures to act. Health is what actually ends the game — reach 0 and you lose, bring the opponent to 0 and you win; a card's Resistance is separate from that. A few things you'll discover as you go: your hand can hold up to 10 cards, some pathogens cause ongoing effects if left untreated, and some immune cells can specialize once they survive a fight. Ready to play for real?";
+      nextBtn.hidden = false; nextBtn.textContent = 'Play Solo Now'; break;
+  }
+  document.getElementById('tutorial-text').innerHTML = text;
+  applyTutorialHighlight(highlight);
+}
 function signOutUser(){
   if(onlineUnsub){ onlineUnsub(); onlineUnsub = null; }
   document.getElementById('stage').hidden = true;
@@ -993,6 +1211,8 @@ function leaveGame(){
   document.getElementById('leave-btn').hidden = true;
   document.getElementById('stage').hidden = true;
   document.getElementById('gameover').hidden = true;
+  tutorialStep = 0;
+  document.getElementById('tutorial-banner').hidden = true;
   if(currentUser){ document.getElementById('modeselect').hidden = false; }
   else { document.getElementById('login-screen').hidden = false; }
   S = null;
@@ -1020,6 +1240,38 @@ function newGame(mode, seat, roomCode){
 
 function pushLog(msg){ S.log.push(msg); if(S.log.length>50) S.log.shift(); }
 function label(who){ return S.players[who].name; }
+
+/* A brief on-screen toast for "you tried that, here's why it didn't work" — the small scrolling
+   log is easy to miss (a tester once mashed several unplayable cards thinking the game had
+   frozen), so anything that blocks an action also gets flashed here, not just logged. */
+var flashTimer = null;
+function flashMessage(msg, long){
+  var el = document.getElementById('flash-toast');
+  if(!el) return;
+  el.textContent = msg;
+  el.hidden = false;
+  el.classList.remove('show');
+  void el.offsetWidth;
+  el.classList.add('show');
+  if(flashTimer) clearTimeout(flashTimer);
+  flashTimer = setTimeout(function(){
+    el.classList.remove('show');
+    setTimeout(function(){ el.hidden = true; }, 220);
+  }, long ? 4200 : 2200);
+}
+function pushLogFlash(msg){ pushLog(msg); flashMessage(msg); }
+// Shows an expanded explainer the first time a player (never in the tutorial, which already
+// teaches this explicitly) hits a given situation in a real game; after that, callers fall back
+// to the normal short flash. Persisted per-browser via localStorage, not per-account.
+function tipOnce(key, msg){
+  if(S.mode==='tutorial') return false;
+  try{
+    if(localStorage.getItem(key)) return false;
+    localStorage.setItem(key, '1');
+  }catch(e){ return false; }
+  flashMessage(msg, true);
+  return true;
+}
 
 function drawCard(who){
   var p = S.players[who];
@@ -1096,6 +1348,15 @@ function advanceTurn(){
   render();
 }
 function endTurn(){
+  if(S.mode==='tutorial'){
+    if(tutorialStep!==7) return;
+    pushLog("— Computer's turn —");
+    pushLog('Computer attacks with its Staph.');
+    tutorialStep = 8;
+    render();
+    setTimeout(function(){ declarePathogenAttack('p2', tutorialUids.staph1, function(){}); render(); }, 500);
+    return;
+  }
   // Human-facing "End Turn" button only — the computer's own turn ends via advanceTurn() directly,
   // so this guard can safely assume any call here is a human trying to act out of turn.
   if(S.over || S.selection || S.pendingAttack) return;
@@ -1439,7 +1700,7 @@ function declarePathogenAttack(who, sourceUid, onDone){
     finish();
     return;
   }
-  var isDefenderHuman = (S.mode==='2p') || (S.mode==='solo' && defWho==='p1');
+  var isDefenderHuman = (S.mode==='2p') || ((S.mode==='solo'||S.mode==='tutorial') && defWho==='p1');
   if(!isDefenderHuman){
     setTimeout(function(){
       var choice = aiChooseBlock(defWho, attacker, blockers);
@@ -1455,6 +1716,7 @@ function declarePathogenAttack(who, sourceUid, onDone){
   } else {
     S.pendingAttack = { attackerUid: sourceUid, attackerWho: who, defWho: defWho, blockerUids: blockers.map(function(b){return b.uid;}), onDone: finish };
     render();
+    tipOnce('pathogenesis_tip_attack', "This pathogen is attacking your Health! Tap a glowing Immune cell to block with it, or tap “Take the hit” to let the damage through.");
   }
 }
 
@@ -1839,7 +2101,7 @@ function render(){
   var iCanAct = canActNow();
 
   function hudName(side){
-    if(S.mode==='solo'){ return side==='p1' ? 'You' : 'Computer'; }
+    if(S.mode==='solo' || S.mode==='tutorial'){ return side==='p1' ? 'You' : 'Computer'; }
     if(S.mode==='online'){ return side===S.mySeat ? 'You' : 'Opponent'; }
     return label(side);
   }
@@ -1911,11 +2173,11 @@ function render(){
     ti.textContent = "Opponent's turn — please wait";
   } else {
     ti.classList.add('side-'+S.turn);
-    ti.textContent = S.over ? 'Game over' : ((S.mode==='solo'||S.mode==='online') ? 'Your turn' : label(S.turn)+"'s turn");
+    ti.textContent = S.over ? 'Game over' : ((S.mode==='solo'||S.mode==='online'||S.mode==='tutorial') ? 'Your turn' : label(S.turn)+"'s turn");
   }
   if(S.pendingAttack){
     var atkC = findCreature(S.pendingAttack.attackerWho, S.pendingAttack.attackerUid);
-    var pdWho = (S.mode==='solo' && S.pendingAttack.defWho==='p1') ? 'your'
+    var pdWho = ((S.mode==='solo'||S.mode==='tutorial') && S.pendingAttack.defWho==='p1') ? 'your'
       : (S.mode==='online' ? (S.pendingAttack.defWho===S.mySeat ? 'your' : "your opponent's") : (label(S.pendingAttack.defWho)+"'s"));
     var atkName = atkC ? atkC.name : 'Something';
     var atkPot = atkC ? effectivePot(atkC) : '?';
@@ -1972,6 +2234,20 @@ function render(){
     root.gameover.hidden = true;
   }
   syncOnlineState();
+
+  // A plain "there's genuinely nothing you can do but end your turn" hint — separate from the
+  // tutorial, which has its own scripted instructions and shouldn't also show this.
+  if(S.mode!=='tutorial'){
+    var noActionsHint = document.getElementById('no-actions-hint');
+    var freeToAct = !S.pendingAttack && !S.selection && !S.locked && !S.over && iCanAct && S.turn===bottom;
+    noActionsHint.hidden = !freeToAct || !!(
+      document.querySelector('#hand .card.playable:not(.dim)') ||
+      document.querySelector('#board-top .card.selectable') ||
+      document.querySelector('#board-bottom .card.selectable')
+    );
+  }
+
+  if(S.mode==='tutorial') renderTutorialOverlay();
 }
 
 function escapeHTML(s){ return s.replace(/[&<>]/g, function(c){ return {'&':'&amp;','<':'&lt;','>':'&gt;'}[c]; }); }
@@ -2021,22 +2297,27 @@ document.addEventListener('DOMContentLoaded', function(){
       openHistory();
       return;
     }
+    if(S.mode==='tutorial'){
+      if(!tutorialActionAllowed(action, el)) return;
+      var tutAction = action, tutEl = el;
+      setTimeout(function(){ tutorialAfterAction(tutAction, tutEl); }, 0);
+    }
     if(S.mode==='online' && action!=='newgame' && !canActNow()) return;
     if(S.locked && !S.pendingAttack && action!=='playhand' && action!=='pickspecialize') return;
     var human = (S.mode==='2p') ? S.turn : 'p1';
 
     if(action==='playhand'){
-      if(S.selection) return;
-      if(S.pendingAttack){ pushLog('Respond to the incoming attack first — choose a blocker or take the hit.'); render(); return; }
-      if(S.mode==='solo' && S.turn!=='p1'){ pushLog("It's the computer's turn — wait for it to finish."); render(); return; }
+      if(S.selection) S.selection = null;
+      if(S.pendingAttack){ pushLogFlash('Respond to the incoming attack first — choose a blocker or take the hit.'); render(); return; }
+      if(S.mode==='solo' && S.turn!=='p1'){ pushLogFlash("It's the computer's turn — wait for it to finish."); render(); return; }
       var uid = el.dataset.uid;
       var h = S.players[S.turn].hand.find(function(x){return x.uid===uid;});
       if(!h) return;
       var def = DEFS[h.defId];
-      if(!affordable(S.turn, def)){ pushLog(def.name+' costs '+def.cost+' ATP — you have '+S.players[S.turn].atp+'.'); render(); return; }
+      if(!affordable(S.turn, def)){ pushLogFlash(def.name+' costs '+def.cost+' ATP — you have '+S.players[S.turn].atp+'.'); render(); return; }
       if(def.ability==='vaccinate'){
         var hasNaive = S.players[S.turn].board.some(function(c){return c.specializes && !c.specialized;});
-        if(!hasNaive){ pushLog('No Naive adaptive cell to vaccinate.'); render(); return; }
+        if(!hasNaive){ pushLogFlash('No Naive adaptive cell to vaccinate.'); render(); return; }
         S.selection = {mode:'vaccinateChooseCategory', handUid:uid};
         render();
         return;
@@ -2051,11 +2332,17 @@ document.addEventListener('DOMContentLoaded', function(){
         return;
       }
       if(def.ability==='immuneboost' && immuneBoostPoolFor(S.turn).length===0){
-        pushLog('No immune cells in the discard pile to recall.'); render(); return;
+        pushLogFlash('No immune cells in the discard pile to recall.'); render(); return;
       }
       if(needsManualTarget(def)){
         var targets = validTargetsFor(S.turn, def);
-        if(targets.length===0){ pushLog('No valid target for '+def.name+'.'); render(); return; }
+        if(targets.length===0){
+          var msg = 'No valid target for '+def.name+'.';
+          pushLog(msg);
+          if(!tipOnce('pathogenesis_tip_notarget', msg+" Effect cards like this only work when a matching target is on the board — try a different card, or End Turn.")) flashMessage(msg);
+          render();
+          return;
+        }
         var opponentTargeted = (def.ability==='treat' || def.ability==='incinerate');
         S.selection = {mode:'effectTarget', handUid:uid, def:def, validTargets:targets, targetSide: opponentTargeted?opponentOf(S.turn):S.turn};
         render();
@@ -2109,7 +2396,7 @@ document.addEventListener('DOMContentLoaded', function(){
       var secC = findCreature(S.turn, secUid);
       if(!secC || secC.dormant || secC.acted || secC.ability!=='plasmasecrete') return;
       if(S.players[S.turn].atp<1) return;
-      if(S.players[S.turn].hand.length>=10){ pushLog('Hand full — the antibody is lost.'); render(); return; }
+      if(S.players[S.turn].hand.length>=10){ pushLogFlash('Hand full — the antibody is lost.'); render(); return; }
       S.players[S.turn].atp -= 1;
       secC.acted = true;
       S.players[S.turn].hand.push({uid:nextUid(), defId:'antibody', specCat:secC.specialized});
@@ -2158,7 +2445,15 @@ document.addEventListener('DOMContentLoaded', function(){
 
   document.getElementById('end-turn').addEventListener('click', endTurn);
   document.getElementById('cancel-btn').addEventListener('click', clearSelection);
-  document.getElementById('take-hit-btn').addEventListener('click', function(){ resolveBlockChoice(null); });
+  document.getElementById('take-hit-btn').addEventListener('click', function(){
+    resolveBlockChoice(null);
+    if(S && S.mode==='tutorial' && tutorialStep===8){
+      tutorialBlockOutcome = 'tookhit';
+      tutorialBeginTurn2();
+      tutorialStep = 9;
+      render();
+    }
+  });
   document.getElementById('howto-btn').addEventListener('click', function(){ document.getElementById('howto-panel').hidden = false; });
   document.getElementById('howto-close').addEventListener('click', function(){ document.getElementById('howto-panel').hidden = true; });
   document.getElementById('howto-panel').addEventListener('click', function(e){ if(e.target.id==='howto-panel') e.currentTarget.hidden = true; });
@@ -2188,6 +2483,10 @@ document.addEventListener('DOMContentLoaded', function(){
 
   document.getElementById('google-signin-btn').addEventListener('click', signInWithGoogle);
   document.getElementById('guest-solo-btn').addEventListener('click', continueAsGuestSolo);
+  document.getElementById('tutorial-btn').addEventListener('click', startTutorial);
+  document.getElementById('tutorial-btn-modeselect').addEventListener('click', startTutorial);
+  document.getElementById('tutorial-next-btn').addEventListener('click', tutorialAdvanceOnNext);
+  document.getElementById('tutorial-skip-link').addEventListener('click', leaveGame);
   document.getElementById('account-btn').addEventListener('click', signOutUser);
 
   document.querySelectorAll('[data-action="openabout"]').forEach(function(el){ el.addEventListener('click', function(){ document.getElementById('about-panel').hidden = false; }); });
