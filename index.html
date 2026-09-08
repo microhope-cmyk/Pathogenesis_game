@@ -1598,14 +1598,15 @@ function makeCreatureInstance(def, defId, specCat){
 function playCreature(who, handUid, defId, def, specCat){
   var creature = makeCreatureInstance(def, defId, specCat);
   var p = S.players[who];
+  var primedCategory = null;
   if(creature.specializes){
     // A Dendritic Cell's priming lives on that specific cell (not the player) — it can only be
     // spent once, and only while that Dendritic Cell is still on the board to offer it.
     var primer = p.board.find(function(x){ return x.defId==='dendritic' && x.primeCategory && !S.anim.dying[x.uid]; });
     if(primer){
-      creature.specialized = primer.primeCategory;
+      primedCategory = primer.primeCategory;
       creature.pot += 1; creature.res += 1; creature.maxRes += 1;
-      pushLog(creature.name+' enters already Specialized against '+primer.primeCategory+' (primed by Dendritic Cell).');
+      pushLog(creature.name+' enters primed against '+primedCategory+' by Dendritic Cell.');
       primer.primeCategory = null;
     }
   }
@@ -1637,6 +1638,18 @@ function playCreature(who, handUid, defId, def, specCat){
       pushLog('Mast Cell hits '+pool3[0].name+' for 1.');
     }
     p.board.forEach(function(c){ if(c.defId==='neutrophil') c.tempPot += 1; });
+  }
+  if(primedCategory){
+    // Being primed grants specialization immediately, same as surviving a fight while
+    // eligible — it must always resolve into an Effector/Memory (or Plasma/Memory-B) choice,
+    // never leave `.specialized` set on its own with no specialTag behind it.
+    var isHumanControlled = (who==='p1') || (S.mode==='2p');
+    if(isHumanControlled){
+      var specKind = creature.defId==='bcell' ? 'bcell' : 'tcell';
+      S.selection = {mode:'specializeChoice', uid:creature.uid, owner:who, category:primedCategory, kind:specKind};
+    } else {
+      aiResolveSpecialize(creature, primedCategory, who);
+    }
   }
   return creature;
 }
