@@ -636,6 +636,9 @@ var ICONS = {
   bact_chain: function(){ return svg('<circle cx="11" cy="24" r="5.5" fill="var(--pathogen)" opacity=".88"/><circle cx="11" cy="24" r="1.4" fill="var(--blue)"/><circle cx="21" cy="24" r="5.5" fill="var(--pathogen)" opacity=".88"/><circle cx="21" cy="24" r="1.4" fill="var(--blue)"/><circle cx="31" cy="24" r="5.5" fill="var(--pathogen)" opacity=".88"/><circle cx="31" cy="24" r="1.4" fill="var(--blue)"/><circle cx="41" cy="24" r="5.5" fill="var(--pathogen)" opacity=".88"/><circle cx="41" cy="24" r="1.4" fill="var(--blue)"/>'); },
   fungus: function(){ return svg('<path d="M24 40V20" stroke="var(--pathogen)" stroke-width="3" stroke-linecap="round"/><path d="M24 24c-6-1-9-6-7-13 7-1 11 5 7 13Z" fill="var(--pathogen)" opacity=".85"/><circle cx="20" cy="16" r="1.5" fill="var(--blue)"/><path d="M24 28c6-1 10-6 8-13-7-1-12 5-8 13Z" fill="var(--pathogen)" opacity=".7"/><circle cx="28" cy="20" r="1.5" fill="var(--blue)"/><circle cx="24" cy="40" r="3.4" fill="var(--pathogen)" opacity=".7"/><circle cx="24" cy="40" r="1.3" fill="var(--blue)"/>'); },
   parasite: function(){ return svg('<circle cx="24" cy="24" r="15" fill="none" stroke="var(--pathogen-soft)" stroke-width="2"/><path d="M24 12a12 12 0 0 1 0 24 8 8 0 0 0 0-24Z" fill="var(--pathogen)" opacity=".88"/><circle cx="19" cy="19" r="2.2" fill="var(--blue)"/>'); },
+  bact_capsule: function(){ return svg('<rect x="12" y="18" width="24" height="12" rx="6" fill="var(--pathogen)" opacity=".85"/><ellipse cx="24" cy="24" rx="7" ry="2.2" fill="var(--blue)" opacity=".8"/>'); },
+  ringworm: function(){ return svg('<circle cx="24" cy="24" r="14" fill="none" stroke="var(--pathogen)" stroke-width="3"/><circle cx="24" cy="24" r="8" fill="none" stroke="var(--pathogen)" stroke-width="2.2" opacity=".75"/><circle cx="24" cy="24" r="3" fill="var(--blue)"/>'); },
+  pinworm: function(){ return svg('<path d="M10 30c4-10 10-14 16-10s4 14-2 12-6-10 0-14 12-6 16 4" stroke="var(--pathogen)" stroke-width="3" fill="none" stroke-linecap="round"/><circle cx="38" cy="22" r="1.8" fill="var(--blue)"/>'); },
   prion: function(){ return svg('<path d="M10 14 22 10 18 22 30 18 26 30 38 26 32 38 20 34 24 22 12 26Z" fill="var(--pathogen)" opacity=".88" stroke="var(--pathogen-strong)" stroke-width="1"/><path d="M18 22 26 30 24 22Z" fill="#8a2e1f" opacity=".9"/>'); },
   neutrophil: function(){ return svg('<circle cx="24" cy="24" r="15" fill="var(--immune-soft)" stroke="var(--immune)" stroke-width="1.6"/><circle cx="18" cy="18" r="4" fill="var(--blue)"/><circle cx="30" cy="17" r="4" fill="var(--blue)"/><circle cx="18" cy="30" r="4" fill="var(--blue)"/><circle cx="30" cy="30" r="4" fill="var(--blue)"/><circle cx="24" cy="24" r="1.3" fill="var(--effect)"/><circle cx="20" cy="26" r="1.1" fill="var(--effect)"/><circle cx="28" cy="22" r="1.1" fill="var(--effect)"/>'); },
   macrophage: function(){ return svg('<path d="M10 26c-2-10 6-18 16-16 8 2 14 8 12 16-2 9-11 12-18 10-6-2-9-4-10-10Z" fill="var(--immune)" opacity=".82"/><path d="M16 20c3-3 8-3 10 1s-1 7-5 6-7-4-5-7Z" fill="var(--blue)" opacity=".9"/><circle cx="30" cy="26" r="2" fill="var(--effect)"/><circle cx="26" cy="31" r="1.6" fill="var(--effect)"/><path d="M8 20c-3 1-4 4-2 6M40 16c3 0 5 3 3 6" stroke="var(--immune)" stroke-width="2" stroke-linecap="round" fill="none"/>'); },
@@ -671,7 +674,7 @@ var DEFS = {
   candida: {name:'Candida albicans', group:'pathogen', category:'Fungus', duration:'persistent', cost:3, pot:1, res:5, text:'Low attack, very hard to fully clear.', icon:'fungus', count:2},
   plasmo:  {name:'Plasmodium falciparum', group:'pathogen', category:'Parasite', duration:'persistent', cost:3, pot:2, res:3, ability:'drain', text:'Drain: hitting Health also gives its controller 1 ATP.', icon:'parasite', count:2},
   hiv:     {name:'HIV', group:'pathogen', category:'Virus', duration:'persistent', cost:4, pot:1, res:3, ability:'onplayHelperT', text:'On Play: deal 1 damage directly to an enemy Helper T-cell, ignoring blockers.', icon:'virus_hiv', count:1},
-  prion:   {name:'Prion', group:'pathogen', category:'Prion', duration:'persistent', cost:5, pot:1, res:4, ability:'unkillable', text:'Cannot be destroyed by engaging or blocking — only Incineration works.', icon:'prion', count:1},
+  prion:   {name:'Prion', group:'pathogen', category:'Prion', duration:'persistent', cost:5, pot:1, res:4, ability:'unkillable', text:'Cannot be destroyed by engaging or blocking — only Incineration works.', icon:'prion', count:1, set:'expansion'},
   hpv:     {name:'HPV', group:'pathogen', category:'Virus', duration:'persistent', cost:2, pot:1, res:2, icon:'virus_hpv', count:1,
             chronic:{key:'dysplasia', threshold:3}, text:'Chronic — Dysplasia: unremoved 3 turns → host takes +1 dmg/turn until destroyed.'},
   ebv:     {name:'Epstein-Barr Virus', group:'pathogen', category:'Virus', duration:'persistent', cost:2, pot:1, res:3, icon:'virus_ebv', count:1,
@@ -682,6 +685,9 @@ var DEFS = {
             chronic:{key:'cirrhosis', threshold1:3, threshold2:6}, text:'Chronic — Cirrhosis→HCC: 3 turns → +1 dmg/turn; 6 turns → +2/turn.'},
   strep:   {name:'Group A Streptococcus', group:'pathogen', category:'Bacterium', duration:'persistent', cost:2, pot:2, res:2, icon:'bact_chain', count:1,
             chronic:{key:'rheumatic', rollAt:3}, text:'Chronic — Rheumatic Fever: 3 turns, roll d6; 5+ = permanent -2 max Health.'},
+  ecoli:   {name:'E. coli (mild strain)', group:'pathogen', category:'Bacterium', duration:'acute', cost:1, pot:1, res:null, text:'Usually harmless — this mild strain causes only brief stomach upset.', icon:'bact_capsule', count:2},
+  tinea:   {name:"Athlete's Foot", group:'pathogen', category:'Fungus', duration:'acute', cost:1, pot:1, res:null, text:'A common fungal skin infection — annoying, rarely serious.', icon:'ringworm', count:2},
+  pinworm: {name:'Pinworm', group:'pathogen', category:'Parasite', duration:'acute', cost:1, pot:1, res:null, text:'Extremely common, especially in kids — itchy, but mild.', icon:'pinworm', count:2},
 
   neutrophil: {name:'Neutrophil', group:'immune', class:'Innate', duration:'acute', cost:1, pot:1, res:1, text:'First responder. No special ability.', icon:'neutrophil', count:3},
   macrophage: {name:'Macrophage', group:'immune', class:'Innate', duration:'acute', cost:2, pot:2, res:2, ability:'phagocytose', text:'Phagocytose — On Play: destroy an enemy Acute Pathogen.', icon:'macrophage', count:2},
@@ -705,12 +711,15 @@ var DEFS = {
   sleep:     {name:"A Good Night's Sleep", group:'effect', cost:2, ability:'sleep', text:'Draw 2 cards.', icon:'goodsleep', count:1},
   fever:     {name:'Fever Response', group:'effect', cost:1, ability:'fever', text:'Your Pathogens and Immune cells get +1 Potency until end of turn; you take 1 Health damage.', icon:'fever', count:2},
   storm:     {name:'Cytokine Storm', group:'effect', cost:5, ability:'storm', text:'Deal 2 damage to every Pathogen and Immune cell in play, both sides; you take 2 Health damage.', icon:'storm', count:1},
-  incinerate:{name:'Incineration', group:'effect', cost:5, ability:'incinerate', text:'Destroy a target enemy Pathogen outright, even a Prion. Extreme heat spares nothing.', icon:'incinerate', count:1}
+  incinerate:{name:'Incineration', group:'effect', cost:5, ability:'incinerate', text:'Destroy a target enemy Pathogen outright, even a Prion. Extreme heat spares nothing.', icon:'incinerate', count:1, set:'expansion'}
 };
 
 function buildDeck(){
+  // Expansion cards (set:'expansion') sit out of the shuffled deck entirely for now — they stay
+  // fully defined here, with real stats and counts, so switching them back into the main deck
+  // later is just deleting that one field, not re-designing the card.
   var deck = [];
-  Object.keys(DEFS).forEach(function(id){ for(var i=0;i<DEFS[id].count;i++) deck.push(id); });
+  Object.keys(DEFS).forEach(function(id){ if(DEFS[id].set==='expansion') return; for(var i=0;i<DEFS[id].count;i++) deck.push(id); });
   return deck;
 }
 function shuffle(arr){
