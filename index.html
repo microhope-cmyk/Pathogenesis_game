@@ -197,6 +197,41 @@
   .card.dying{animation:dieOut .38s ease forwards;}
   @keyframes dieOut{to{transform:scale(.4) rotate(8deg);opacity:0;}}
 
+  /* Pathogen-death animations, keyed to how it died (see killCreature's 'kind' param):
+     engaged -> icon overload, blocked -> dissolve ring, killed by an effect card -> flash & fold. */
+  .card.dying-engage, .card.dying-block{overflow:visible;}
+  .card.dying-engage{animation:cardFadeAround .6s ease-in forwards;}
+  @keyframes cardFadeAround{0%,55%{opacity:1;}100%{opacity:0;}}
+  .card.dying-engage .icon{animation:iconGrow .6s cubic-bezier(.3,0,.5,1) forwards;position:relative;z-index:2;}
+  @keyframes iconGrow{
+    0%{transform:scale(1);filter:brightness(1);opacity:1;}
+    55%{transform:scale(2.3);filter:brightness(1.8);opacity:1;}
+    75%{transform:scale(2.6);filter:brightness(2.6);opacity:1;}
+    100%{transform:scale(3.2);filter:brightness(1);opacity:0;}
+  }
+  .death-particle{position:absolute;left:50%;top:50%;width:6px;height:6px;border-radius:1px;background:var(--pathogen-strong);opacity:0;pointer-events:none;animation:particleFly .55s cubic-bezier(.2,.7,.4,1) forwards;animation-delay:.33s;}
+  @keyframes particleFly{
+    0%{opacity:1;transform:translate(-50%,-50%) rotate(0deg) translateY(0);}
+    100%{opacity:0;transform:translate(-50%,-50%) rotate(var(--rot)) translateY(var(--dist));}
+  }
+
+  .card.dying-block{animation:dissolveShrink .55s cubic-bezier(.3,0,.6,1) forwards;}
+  @keyframes dissolveShrink{
+    0%{transform:scale(1);opacity:1;filter:brightness(1);}
+    30%{filter:brightness(1.5);}
+    100%{transform:scale(.8);opacity:0;filter:brightness(1);}
+  }
+  .death-ring{position:absolute;left:50%;top:50%;width:40px;height:40px;margin:-20px 0 0 -20px;border-radius:50%;border:2px solid var(--pathogen-strong);opacity:.9;pointer-events:none;animation:ringOut .6s ease-out forwards;}
+  @keyframes ringOut{0%{transform:scale(.4);opacity:.9;}100%{transform:scale(3.2);opacity:0;}}
+
+  .card.dying-card{animation:foldFlash .48s cubic-bezier(.4,0,.7,1) forwards;transform-origin:top center;}
+  @keyframes foldFlash{
+    0%{transform:scaleY(1);filter:brightness(1);opacity:1;}
+    18%{filter:brightness(2.2);}
+    45%{transform:scaleY(1);filter:brightness(1);opacity:1;}
+    100%{transform:scaleY(.05);opacity:0;filter:brightness(1);}
+  }
+
   [hidden]{display:none !important;}
 
   .howto-btn{position:fixed;top:7px;right:7px;z-index:60;width:25px;height:25px;border-radius:50%;background:var(--surface-2);border:1px solid var(--rule);color:var(--ink-dim);font-family:var(--font-display);font-weight:700;font-size:13px;display:flex;align-items:center;justify-content:center;cursor:pointer;}
@@ -842,7 +877,7 @@ function startTutorial(){
   tutorialBlockOutcome = null;
   tutorialSpecializePath = null;
   S = { mode:'tutorial', turn:'p1', first:'p1', over:false, winner:null, selection:null, pendingAttack:null,
-    log:[], anim:{hits:{}, dying:{}, healthHits:{}}, locked:false, turnCount:1,
+    log:[], anim:{hits:{}, dying:{}, deathKind:{}, healthHits:{}}, locked:false, turnCount:1,
     players:{ p1: freshPlayer('Player 1'), p2: freshPlayer('Computer') } };
   S.players.p1.atpMax = 2; S.players.p1.atp = 2; S.players.p1.everStarted = true;
   S.players.p2.atpMax = 5; S.players.p2.atp = 5; S.players.p2.everStarted = true;
@@ -1322,7 +1357,7 @@ function newGame(mode, seat, roomCode){
   var keepSeat = (mode==='online' && S) ? S.mySeat : null;
   var keepRoom = (mode==='online' && S) ? S.roomCode : null;
   S = { mode:mode, turn:null, first:null, over:false, winner:null, selection:null, pendingAttack:null,
-    log:[], anim:{hits:{}, dying:{}, healthHits:{}}, locked:false, turnCount:0,
+    log:[], anim:{hits:{}, dying:{}, deathKind:{}, healthHits:{}}, locked:false, turnCount:0,
     players:{ p1: freshPlayer('Player 1'), p2: freshPlayer('Player 2') } };
   if(mode==='online'){ S.mySeat = (seat!==undefined ? seat : keepSeat); S.roomCode = (roomCode!==undefined ? roomCode : keepRoom); }
   for(var i=0;i<5;i++){ drawCard('p1'); drawCard('p2'); }
@@ -1475,17 +1510,25 @@ function findCreature(who, uid){ return S.players[who].board.find(function(c){re
 function findCreatureAnywhere(uid){ return findCreature('p1',uid) || findCreature('p2',uid); }
 function ownerOf(uid){ if(findCreature('p1',uid)) return 'p1'; if(findCreature('p2',uid)) return 'p2'; return null; }
 
-function killCreature(who, uid){
+// kind labels which death animation to play on the card: 'engage' (icon overload), 'block'
+// (dissolve ring), or 'card' (flash & fold, for effect-card kills like Antibiotic/Incineration/
+// Cytokine Storm). Omitted for deaths outside those three named contexts (an on-play ability,
+// aura loss, etc.), which keep the original plain fade.
+function killCreature(who, uid, kind){
   var p = S.players[who];
   var c = p.board.find(function(x){return x.uid===uid;});
   if(!c) return;
   S.anim.dying[uid] = true;
+  if(kind) S.anim.deathKind[uid] = kind;
   if(c.defId){ p.discard.push(c.defId); }
   if(c.ability==='makesantibody'){
     if(p.hand.length<10){ p.hand.push({uid:nextUid(), defId:'antibody'}); pushLog(c.name+' leaves behind an Antibody.'); }
   }
   recalcHelperAura(who);
-  setTimeout(function(){ removeCreature(who, uid); delete S.anim.dying[uid]; render(); }, 340);
+  // Longer animations need more time on the board before the card is actually removed, or
+  // they'd be cut off mid-play.
+  var delay = kind==='engage' ? 650 : kind==='block' ? 620 : kind==='card' ? 500 : 340;
+  setTimeout(function(){ removeCreature(who, uid); delete S.anim.dying[uid]; delete S.anim.deathKind[uid]; render(); }, delay);
 }
 
 // Helper T-cell aura ("Your other Persistent Immune cells get +0/+1"): a live, non-stacking
@@ -1508,12 +1551,12 @@ function recalcHelperAura(who){
   });
 }
 
-function damageCreature(target, owner, amt){
+function damageCreature(target, owner, amt, kind){
   if(!target) return;
   if(target.ability==='unkillable') return;
   target.res -= amt;
   S.anim.hits[target.uid] = true;
-  if(target.res<=0) killCreature(owner, target.uid);
+  if(target.res<=0) killCreature(owner, target.uid, kind);
 }
 
 // Every direct hit to a player's Health (attacks, toxins, chronic ticks, self-inflicted effect
@@ -1620,13 +1663,13 @@ function applyEffect(who, def, targetUid, chosenCategory){
     if(t2 && chosenCategory){ t2.pot+=2; t2.res+=2; t2.maxRes+=2; t2.category = chosenCategory; pushLog(t2.name+' mutates — now category '+chosenCategory+'.'); }
   } else if(def.ability==='treat'){
     var t3 = findCreature(opp, targetUid);
-    if(t3) damageCreature(t3, opp, def.dmg);
+    if(t3) damageCreature(t3, opp, def.dmg, 'card');
   } else if(def.ability==='fever'){
     S.players[who].board.forEach(function(c){ c.tempPot += 1; });
     damageHealth(who, 1);
   } else if(def.ability==='storm'){
-    S.players.p1.board.slice().forEach(function(c){ damageCreature(c, 'p1', 2); });
-    S.players.p2.board.slice().forEach(function(c){ damageCreature(c, 'p2', 2); });
+    S.players.p1.board.slice().forEach(function(c){ damageCreature(c, 'p1', 2, 'card'); });
+    S.players.p2.board.slice().forEach(function(c){ damageCreature(c, 'p2', 2, 'card'); });
     damageHealth(who, 2);
   } else if(def.ability==='sleep'){
     drawCard(who); drawCard(who);
@@ -1646,7 +1689,7 @@ function applyEffect(who, def, targetUid, chosenCategory){
     }
   } else if(def.ability==='incinerate'){
     var t5 = findCreature(opp, targetUid);
-    if(t5){ pushLog(t5.name+' is incinerated outright — no resistance helps.'); killCreature(opp, t5.uid); }
+    if(t5){ pushLog(t5.name+' is incinerated outright — no resistance helps.'); killCreature(opp, t5.uid, 'card'); }
   }
   checkGameOver();
 }
@@ -1731,7 +1774,7 @@ function aiResolveSpecialize(creature, category, owner){
   applySpecializePath(creature, category, path);
 }
 
-function resolveCombat(pathogen, pathOwner, immune, immOwner, onDone){
+function resolveCombat(pathogen, pathOwner, immune, immOwner, onDone, context){
   onDone = onDone || function(){};
   if(immune.defId==='antibody'){
     if(S.players[immOwner].autoreactive){
@@ -1740,8 +1783,10 @@ function resolveCombat(pathogen, pathOwner, immune, immOwner, onDone){
       resolveUnblocked(pathogen, pathOwner, immOwner);
     } else {
       pushLog((immune.specificCategory?immune.specificCategory+'-specific antibody':'Antibody')+' neutralizes the attack completely.');
+      // Antibodies can only ever be used as blockers (they're excluded from engage targets),
+      // so this death is always a block death regardless of the caller's context.
       if(immune.specificCategory && immune.specificCategory===pathogen.category && findCreature(pathOwner, pathogen.uid)){
-        damageCreature(pathogen, pathOwner, 1);
+        damageCreature(pathogen, pathOwner, 1, 'block');
         pushLog('Its specificity lands an extra hit on '+pathogen.name+'.');
       }
     }
@@ -1758,7 +1803,7 @@ function resolveCombat(pathogen, pathOwner, immune, immOwner, onDone){
     damageHealth(immOwner, immPot);
     pushLog(immune.name+' misfires on its own controller — autoimmune damage.');
   } else {
-    damageCreature(pathogen, pathOwner, immPot);
+    damageCreature(pathogen, pathOwner, immPot, context);
     if(specMatch){ pushLog(immune.name+"'s "+immune.specialized+' specialization adds +1 force against '+pathogen.name+'.'); }
     eligibleToSpecialize = immune.specializes && !immune.specialized;
   }
@@ -1809,7 +1854,7 @@ function declarePathogenAttack(who, sourceUid, onDone){
       var choice = aiChooseBlock(defWho, attacker, blockers);
       if(choice){
         pushLog(label(defWho)+' blocks with '+choice.name+'.');
-        resolveCombat(attacker, who, choice, defWho, function(){ render(); finish(); });
+        resolveCombat(attacker, who, choice, defWho, function(){ render(); finish(); }, 'block');
       } else {
         resolveUnblocked(attacker, who, defWho);
         render();
@@ -1834,7 +1879,7 @@ function resolveBlockChoice(blockerUidOrNull){
     var blocker = findCreature(pa.defWho, blockerUidOrNull);
     if(blocker){
       pushLog(label(pa.defWho)+' blocks with '+blocker.name+'.');
-      resolveCombat(attacker, pa.attackerWho, blocker, pa.defWho, function(){ render(); if(pa.onDone) pa.onDone(); });
+      resolveCombat(attacker, pa.attackerWho, blocker, pa.defWho, function(){ render(); if(pa.onDone) pa.onDone(); }, 'block');
       return;
     }
   }
@@ -1855,7 +1900,7 @@ function declareEngage(who, sourceUid, targetUid, onDone){
   resolveCombat(target, opponentOf(who), engager, who, function(){
     if(engager.duration==='acute' && !S.anim.dying[sourceUid] && findCreature(who, sourceUid)){ removeCreature(who, sourceUid); }
     onDone();
-  });
+  }, 'engage');
 }
 
 /* ================= AI ================= */
@@ -2028,7 +2073,29 @@ function creatureCardHTML(c, opts){
   if(opts.chosen) cls.push('chosen');
   if(opts.attacking) cls.push('attacking');
   if(S.anim.hits[c.uid]){ cls.push('hit'); setTimeout(function(){delete S.anim.hits[c.uid];},320); }
-  if(S.anim.dying[c.uid]) cls.push('dying');
+  // Death animation: which one plays depends on how the creature died (see killCreature's
+  // 'kind' param) — icon overload for an engaging pathogen, dissolve ring for a blocked one,
+  // flash & fold for an effect card. Anything else (aura loss, an on-play ability kill) keeps
+  // the original plain fade.
+  var deathFxHTML = '';
+  if(S.anim.dying[c.uid]){
+    var deathKind = S.anim.deathKind[c.uid];
+    if(deathKind==='engage'){
+      cls.push('dying-engage');
+      for(var pi=0; pi<10; pi++){
+        var pangle = (Math.PI*2/10)*pi + Math.random()*0.4;
+        var pdist = 34 + Math.random()*22;
+        deathFxHTML += '<span class="death-particle" style="--rot:'+(pangle*180/Math.PI)+'deg;--dist:-'+pdist.toFixed(1)+'px;"></span>';
+      }
+    } else if(deathKind==='block'){
+      cls.push('dying-block');
+      deathFxHTML = '<span class="death-ring"></span>';
+    } else if(deathKind==='card'){
+      cls.push('dying-card');
+    } else {
+      cls.push('dying');
+    }
+  }
   var attrs = opts.onclick ? ' data-action="'+opts.onclick+'" data-uid="'+c.uid+'"' : '';
   var catTag = c.category ? '<span class="tag cat-'+c.category+'">'+c.category.slice(0,4)+'</span>' : '<span class="tag cls-'+c.class+'">'+c.class.slice(0,4)+'</span>';
   var specBadge = c.specialized ? '<span class="specbadge">'+(c.specialTag||'Spec')+' • '+c.specialized+'</span>'
@@ -2036,6 +2103,7 @@ function creatureCardHTML(c, opts){
   var potVal = c.pot===null ? '–' : effectivePot(c);
   var header = cardHeaderHTML(c.group, '<div class="toprow">'+catTag+'</div><div class="name">'+c.name+'</div>');
   return '<div class="'+cls.join(' ')+'"'+attrs+'>'+
+    deathFxHTML+
     peekBadgeHTML('board', c.uid)+
     header+
     '<div class="icon">'+(ICONS[c.icon]?ICONS[c.icon]():'')+'</div>'+
