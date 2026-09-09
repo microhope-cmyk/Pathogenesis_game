@@ -1190,20 +1190,28 @@ function stateForSync(){
     if(k==='mode' || k==='mySeat' || k==='roomCode') continue;
     copy[k] = S[k];
   }
-  return copy;
+  // Firestore rejects a write outright if any value anywhere in it is `undefined` or a
+  // function — and both show up here in normal play: a pathogen card has no `class` field,
+  // an immune card has no `category` field, and a pending-attack/specialize-choice selection
+  // carries a local-only callback. Round-tripping through JSON drops exactly those (an
+  // `undefined` property or a function is simply omitted, never an error), leaving everything
+  // else untouched. Without this, a synced move failed to save on every single turn.
+  return JSON.parse(JSON.stringify(copy));
 }
 function applyIncomingState(remoteState){
   if(!remoteState) return;
   applyingRemoteSnapshot = true;
   for(var k in remoteState){ S[k] = remoteState[k]; }
-  applyingRemoteSnapshot = false;
+  // Left true on return, on purpose — the caller's render() (which runs right after this)
+  // must not see this incoming data as a local change and sync it straight back out. The
+  // caller clears the flag itself once render() is done.
 }
 function syncOnlineState(){
   if(!S || S.mode!=='online' || !firestoreDb || !S.roomCode || applyingRemoteSnapshot) return;
   clearTimeout(syncDebounceTimer);
   syncDebounceTimer = setTimeout(function(){
     firestoreDb.collection('games').doc(S.roomCode).update({ state: stateForSync(), updatedAt: new Date().toISOString() })
-      .catch(function(){ /* transient — the next successful sync will catch the doc up */ });
+      .catch(function(e){ console.error('Online sync write failed (will retry on the next move):', e && e.message); });
   }, 200);
 }
 
@@ -1334,9 +1342,11 @@ function subscribeToRoom(code, seat){
       document.getElementById('stage').hidden = false;
       document.getElementById('leave-btn').hidden = false;
       render();
+      applyingRemoteSnapshot = false;
     } else {
       applyIncomingState(data.state);
       render();
+      applyingRemoteSnapshot = false;
     }
   }, function(err){
     lobbyMessage('Connection error: '+err.message);
@@ -1652,7 +1662,7 @@ function playCreature(who, handUid, defId, def, specCat){
     // Being primed grants specialization immediately, same as surviving a fight while
     // eligible — it must always resolve into an Effector/Memory (or Plasma/Memory-B) choice,
     // never leave `.specialized` set on its own with no specialTag behind it.
-    var isHumanControlled = (who==='p1') || (S.mode==='2p');
+    var isHumanControlled = S.mode!=='solo' || who==='p1';
     if(isHumanControlled){
       var specKind = creature.defId==='bcell' ? 'bcell' : 'tcell';
       S.selection = {mode:'specializeChoice', uid:creature.uid, owner:who, category:primedCategory, kind:specKind};
@@ -1839,7 +1849,7 @@ function resolveCombat(pathogen, pathOwner, immune, immOwner, onDone, context){
   checkGameOver();
   var willSpecialize = eligibleToSpecialize && immuneSurvived;
   if(willSpecialize && !S.over){
-    var isHumanControlled = (immOwner==='p1') || (S.mode==='2p');
+    var isHumanControlled = S.mode!=='solo' || immOwner==='p1';
     if(isHumanControlled){
       var kind = immune.defId==='bcell' ? 'bcell' : 'tcell';
       S.selection = {mode:'specializeChoice', uid:immune.uid, owner:immOwner, category:pathogen.category, kind:kind, onDoneAfter:onDone};
@@ -1870,7 +1880,9 @@ function declarePathogenAttack(who, sourceUid, onDone){
     finish();
     return;
   }
-  var isDefenderHuman = (S.mode==='2p') || ((S.mode==='solo'||S.mode==='tutorial') && defWho==='p1');
+  // Solo is the only mode with a computer opponent (always seated as p2) — every other mode
+  // (2-player pass-and-play, online, tutorial) has a real human on both sides.
+  var isDefenderHuman = S.mode!=='solo' || defWho==='p1';
   if(!isDefenderHuman){
     setTimeout(function(){
       var choice = aiChooseBlock(defWho, attacker, blockers);
@@ -1884,7 +1896,11 @@ function declarePathogenAttack(who, sourceUid, onDone){
       }
     }, 500);
   } else {
-    S.pendingAttack = { attackerUid: sourceUid, attackerWho: who, defWho: defWho, blockerUids: blockers.map(function(b){return b.uid;}), onDone: finish };
+    // Note: no callback stored here (unlike `finish` above) — a function can't survive the
+    // round trip to Firestore in online mode, and whichever device actually resolves this
+    // (the defender's, not the attacker's, once a second real device is involved) needs its
+    // own way to finish the attacker's turn anyway. resolveBlockChoice does that inline.
+    S.pendingAttack = { attackerUid: sourceUid, attackerWho: who, defWho: defWho, blockerUids: blockers.map(function(b){return b.uid;}) };
     render();
     tipOnce('pathogenesis_tip_attack', "This pathogen is attacking your Health! Tap a glowing Immune cell to block with it, or tap “Take the hit” to let the damage through.");
   }
@@ -1897,17 +1913,22 @@ function resolveBlockChoice(blockerUidOrNull){
   var attacker = findCreature(pa.attackerWho, pa.attackerUid);
   S.pendingAttack = null;
   if(!attacker){ render(); return; }
+  var finishAttack = function(){
+    if(attacker.duration==='acute' && !S.anim.dying[pa.attackerUid] && findCreature(pa.attackerWho, pa.attackerUid)){
+      removeCreature(pa.attackerWho, pa.attackerUid);
+    }
+  };
   if(blockerUidOrNull){
     var blocker = findCreature(pa.defWho, blockerUidOrNull);
     if(blocker){
       pushLog(label(pa.defWho)+' blocks with '+blocker.name+'.');
-      resolveCombat(attacker, pa.attackerWho, blocker, pa.defWho, function(){ render(); if(pa.onDone) pa.onDone(); }, 'block');
+      resolveCombat(attacker, pa.attackerWho, blocker, pa.defWho, function(){ render(); finishAttack(); }, 'block');
       return;
     }
   }
   resolveUnblocked(attacker, pa.attackerWho, pa.defWho);
   render();
-  if(pa.onDone) pa.onDone();
+  finishAttack();
 }
 
 function declareEngage(who, sourceUid, targetUid, onDone){
