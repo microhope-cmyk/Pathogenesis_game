@@ -1896,11 +1896,16 @@ function declarePathogenAttack(who, sourceUid, onDone){
       }
     }, 500);
   } else {
-    // Note: no callback stored here (unlike `finish` above) — a function can't survive the
-    // round trip to Firestore in online mode, and whichever device actually resolves this
-    // (the defender's, not the attacker's, once a second real device is involved) needs its
-    // own way to finish the attacker's turn anyway. resolveBlockChoice does that inline.
-    S.pendingAttack = { attackerUid: sourceUid, attackerWho: who, defWho: defWho, blockerUids: blockers.map(function(b){return b.uid;}) };
+    // Note: no callback stored in the synced fields (unlike `finish` above) — a function
+    // can't survive the round trip to Firestore in online mode, and whichever device actually
+    // resolves this (the defender's, not the attacker's, once a second real device is
+    // involved) needs its own way to finish the attacker's turn anyway. resolveBlockChoice
+    // does that inline. `aiOnDone` is the one exception: it only exists when the attacker is
+    // the computer (solo mode, never synced), so it's safe to stash a real callback there —
+    // resolveBlockChoice calls it once the human's block choice resolves, so the AI's attack
+    // loop (and eventually the turn handoff) actually continues instead of hanging forever on
+    // "Computer's turn".
+    S.pendingAttack = { attackerUid: sourceUid, attackerWho: who, defWho: defWho, blockerUids: blockers.map(function(b){return b.uid;}), aiOnDone: (who==='p2' && S.mode==='solo') ? finish : null };
     render();
     tipOnce('pathogenesis_tip_attack', "This pathogen is attacking your Health! Tap a glowing Immune cell to block with it, or tap “Take the hit” to let the damage through.");
   }
@@ -1912,11 +1917,12 @@ function resolveBlockChoice(blockerUidOrNull){
   if(S.mode==='online' && pa.defWho!==S.mySeat) return;
   var attacker = findCreature(pa.attackerWho, pa.attackerUid);
   S.pendingAttack = null;
-  if(!attacker){ render(); return; }
+  if(!attacker){ render(); if(pa.aiOnDone) pa.aiOnDone(); return; }
   var finishAttack = function(){
     if(attacker.duration==='acute' && !S.anim.dying[pa.attackerUid] && findCreature(pa.attackerWho, pa.attackerUid)){
       removeCreature(pa.attackerWho, pa.attackerUid);
     }
+    if(pa.aiOnDone) pa.aiOnDone();
   };
   if(blockerUidOrNull){
     var blocker = findCreature(pa.defWho, blockerUidOrNull);
