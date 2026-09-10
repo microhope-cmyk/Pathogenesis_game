@@ -148,6 +148,7 @@
   .card .micro{width:9px;height:9px;flex:0 0 auto;}
   .card .text{font-size:8.3px;line-height:1.22;color:var(--ink-dim);min-height:20px;overflow:hidden;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;}
   .card .specbadge{font-family:var(--font-mono);font-size:7px;letter-spacing:.03em;text-transform:uppercase;color:var(--immune-strong);background:var(--immune-soft);border-radius:4px;padding:1px 4px;align-self:flex-start;}
+  .card .chronicbadge{font-family:var(--font-mono);font-size:7px;letter-spacing:.03em;text-transform:uppercase;color:var(--pathogen-strong);background:var(--pathogen-soft);border-radius:4px;padding:1px 4px;align-self:flex-start;}
   .card.dim{opacity:0.38;filter:saturate(.6);}
   .card.playable:not(.dim){cursor:pointer;box-shadow:0 0 0 2px var(--blue-strong), var(--shadow-card);animation:glowPulse 1.15s ease-in-out infinite;}
   .card.playable:not(.dim):active{transform:translateY(-2px) scale(0.98);}
@@ -698,9 +699,9 @@ var DEFS = {
   dendritic:  {name:'Dendritic Cell', group:'immune', class:'Innate', duration:'acute', cost:2, pot:0, res:2, ability:'prime', text:'On Play: choose a category. The next Naive adaptive cell you play while this is still on the board enters already Specialized against it (one time only).', icon:'dendritic', count:2},
   mast:       {name:'Mast Cell', group:'immune', class:'Innate', duration:'acute', cost:1, pot:1, res:2, ability:'histamine', text:'On Play: deal 1 damage to an enemy Pathogen; your Neutrophils get +1 Potency this turn.', icon:'mast', count:2},
   eosinophil: {name:'Eosinophil', group:'immune', class:'Innate', duration:'acute', cost:2, pot:2, res:1, ability:'antiparasite', text:'Deals double damage against Parasite-category Pathogens.', icon:'eosinophil', count:2},
-  helpert:    {name:'Naive Helper T-cell', group:'immune', class:'Adaptive', duration:'persistent', cost:2, pot:1, res:3, specializes:true, ability:'supportcell', text:'Your other Persistent Immune cells get +0/+1. (HIV\'s specific target.)', icon:'helpert', count:2},
-  cytotoxict: {name:'Naive Cytotoxic T-cell', group:'immune', class:'Adaptive', duration:'persistent', cost:3, pot:3, res:2, specializes:true, ability:'primed', text:'+1 Potency while you control a Helper T-cell or Dendritic Cell.', icon:'cytotoxict', count:2},
-  bcell:      {name:'Naive B-cell', group:'immune', class:'Adaptive', duration:'persistent', cost:2, pot:1, res:2, specializes:true, ability:'makesantibody', text:'On destroyed: create an Antibody token in hand.', icon:'bcell', count:2},
+  helpert:    {name:'Naive Helper T-cell', group:'immune', class:'Adaptive', duration:'persistent', cost:2, pot:1, res:3, specializes:true, ability:'supportcell', text:'Your other Persistent Immune cells get +0/+1. (HIV\'s specific target.)', icon:'helpert', count:3},
+  cytotoxict: {name:'Naive Cytotoxic T-cell', group:'immune', class:'Adaptive', duration:'persistent', cost:3, pot:3, res:2, specializes:true, ability:'primed', text:'+1 Potency while you control a Helper T-cell or Dendritic Cell.', icon:'cytotoxict', count:3},
+  bcell:      {name:'Naive B-cell', group:'immune', class:'Adaptive', duration:'persistent', cost:2, pot:1, res:2, specializes:true, ability:'makesantibody', text:'On destroyed: create an Antibody token in hand.', icon:'bcell', count:3},
   antibody:   {name:'Antibody', group:'immune', class:'Adaptive', duration:'acute', cost:0, pot:null, res:1, text:'May block any attack, fully neutralizing it, then is spent.', icon:'antibody', count:0},
 
   vaccinate: {name:'Vaccination', group:'effect', cost:3, ability:'vaccinate', text:'Choose a category; a Naive adaptive cell you control becomes Specialized against it immediately.', icon:'vaccine', count:1},
@@ -2184,6 +2185,11 @@ function creatureCardHTML(c, opts){
   var catTag = c.category ? '<span class="tag cat-'+c.category+'">'+c.category.slice(0,4)+'</span>' : '<span class="tag cls-'+c.class+'">'+c.class.slice(0,4)+'</span>';
   var specBadge = c.specialized ? '<span class="specbadge">'+(c.specialTag||'Spec')+' • '+c.specialized+'</span>'
     : (c.primeCategory ? '<span class="specbadge">Priming • '+c.primeCategory+'</span>' : '');
+  var chronicBadge = '';
+  if(c.chronicDef){
+    var chronicNeed = c.chronicDef.threshold || c.chronicDef.threshold1 || c.chronicDef.rollAt;
+    chronicBadge = '<span class="chronicbadge">Incubating • '+c.hostTurns+'/'+chronicNeed+'</span>';
+  }
   var potVal = c.pot===null ? '–' : effectivePot(c);
   var header = cardHeaderHTML(c.group, '<div class="toprow">'+catTag+'</div><div class="name">'+c.name+'</div>');
   return '<div class="'+cls.join(' ')+'"'+attrs+'>'+
@@ -2192,7 +2198,7 @@ function creatureCardHTML(c, opts){
     header+
     '<div class="icon">'+(ICONS[c.icon]?ICONS[c.icon]():'')+'</div>'+
     '<div class="statrow"><span class="pot">'+microPot()+potVal+'</span>'+(c.res!==null&&c.ability!=='unkillable'?'<span class="res">'+microRes()+c.res+'</span>':'')+'</div>'+
-    specBadge+
+    specBadge+chronicBadge+
     '<div class="text">'+(c.text||'')+'</div>'+
   '</div>';
 }
@@ -2211,11 +2217,12 @@ function handCardHTML(h){
     : '<div class="icon">'+(ICONS[def.icon]?ICONS[def.icon]():'')+'</div>'+
       '<div class="statrow"><span class="pot">'+microPot()+(def.pot!==null&&def.pot!==undefined?def.pot:'–')+'</span>'+(def.res!==null&&def.res!==undefined&&def.ability!=='unkillable'?'<span class="res">'+microRes()+def.res+'</span>':'')+'</div>';
   var displayName = (h.defId==='antibody' && h.specCat) ? (h.specCat+'-Specific Antibody') : def.name;
+  var chronicBadge = def.chronic ? '<span class="chronicbadge">Incubation</span>' : '';
   var handHeader = cardHeaderHTML(def.group, '<div class="toprow">'+catTag+costHTML+'</div><div class="name">'+displayName+'</div>');
   return '<div class="'+cls.join(' ')+'" data-action="playhand" data-uid="'+h.uid+'">'+
     peekBadgeHTML('hand', h.uid)+
     handHeader+
-    body+
+    body+chronicBadge+
     '<div class="text">'+(def.text||'')+'</div>'+
   '</div>';
 }
@@ -2231,10 +2238,11 @@ function guideCardHTML(defId, overrides, extraClass){
   var body = '<div class="icon">'+(ICONS[d.icon]?ICONS[d.icon]():'')+'</div>'+
     (hasStats ? '<div class="statrow"><span class="pot">'+microPot()+(d.pot!==null&&d.pot!==undefined?d.pot:'–')+'</span>'+(d.res!==null&&d.res!==undefined&&d.ability!=='unkillable'?'<span class="res">'+microRes()+d.res+'</span>':'')+'</div>' : '');
   var specBadge = overrides && overrides.specialized ? '<span class="specbadge">spec: '+overrides.specialized+'</span>' : '';
+  var chronicBadge = d.chronic ? '<span class="chronicbadge">Incubation</span>' : '';
   var gHeader = cardHeaderHTML(d.group, '<div class="toprow">'+catTag+'<div class="cost">'+d.cost+'</div></div><div class="name">'+d.name+'</div>');
   return '<div class="card '+barClass(d.group)+(extraClass?(' '+extraClass):'')+'">'+
     gHeader+
-    body+specBadge+
+    body+specBadge+chronicBadge+
     '<div class="text">'+(d.text||'')+'</div>'+
   '</div>';
 }
