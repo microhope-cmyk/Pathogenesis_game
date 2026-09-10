@@ -677,13 +677,14 @@ var DEFS = {
   staph:   {name:'Staphylococcus aureus', group:'pathogen', category:'Bacterium', duration:'persistent', cost:2, pot:3, res:2, text:'A solid, unspecialized threat.', icon:'bact_cluster', count:1},
   candida: {name:'Candida albicans', group:'pathogen', category:'Fungus', duration:'persistent', cost:3, pot:1, res:5, text:'Low attack, very hard to fully clear.', icon:'fungus', count:1},
   plasmo:  {name:'Plasmodium falciparum', group:'pathogen', category:'Parasite', duration:'persistent', cost:3, pot:2, res:3, ability:'drain', text:'Drain: hitting Health also gives its controller 1 ATP.', icon:'parasite', count:1},
-  hiv:     {name:'HIV', group:'pathogen', category:'Virus', duration:'persistent', cost:4, pot:1, res:3, ability:'onplayHelperT', text:'On Play: deal 1 damage directly to an enemy Helper T-cell, ignoring blockers.', icon:'virus_hiv', count:1},
+  hiv:     {name:'HIV', group:'pathogen', category:'Virus', duration:'persistent', cost:4, pot:1, res:5, ability:'onplayHelperT', icon:'virus_hiv', count:1,
+            chronic:{key:'aids', rollAt:3, rollTarget:5}, text:'On Play: deal 1 damage directly to an enemy Helper T-cell, ignoring blockers. Chronic — AIDS: unremoved 3 turns, roll d6; 5+ recruits a random pathogen from your discard pile into your hand.'},
   prion:   {name:'Prion', group:'pathogen', category:'Prion', duration:'persistent', cost:5, pot:1, res:4, ability:'unkillable', text:'Cannot be destroyed by engaging or blocking — only Incineration works.', icon:'prion', count:1, set:'expansion'},
-  hpv:     {name:'HPV', group:'pathogen', category:'Virus', duration:'persistent', cost:2, pot:1, res:2, icon:'virus_hpv', count:1,
+  hpv:     {name:'HPV', group:'pathogen', category:'Virus', duration:'persistent', cost:2, pot:1, res:4, icon:'virus_hpv', count:1,
             chronic:{key:'dysplasia', threshold:3}, text:'Chronic — Dysplasia: unremoved 3 turns → host takes +1 dmg/turn until destroyed.'},
-  ebv:     {name:'Epstein-Barr Virus', group:'pathogen', category:'Virus', duration:'persistent', cost:2, pot:1, res:3, icon:'virus_ebv', count:1,
-            chronic:{key:'lupus', rollAt:2}, text:'Chronic — Molecular Mimicry: end of host\'s 2nd turn, roll d6; 5+ triggers lupus.'},
-  hpylori: {name:'Helicobacter pylori', group:'pathogen', category:'Bacterium', duration:'persistent', cost:2, pot:1, res:3, icon:'bact_spiral', count:1,
+  ebv:     {name:'Epstein-Barr Virus', group:'pathogen', category:'Virus', duration:'persistent', cost:2, pot:1, res:5, icon:'virus_ebv', count:1,
+            chronic:{key:'lupus', rollAt:2, rollTarget:6}, text:'Chronic — Molecular Mimicry: end of host\'s 2nd turn, roll d6; a 6 triggers lupus.'},
+  hpylori: {name:'Helicobacter pylori', group:'pathogen', category:'Bacterium', duration:'persistent', cost:2, pot:1, res:4, icon:'bact_spiral', count:1,
             chronic:{key:'gastritis', threshold:4}, text:'Chronic — Gastritis: unremoved 4 turns → host takes +1 dmg/turn until destroyed.'},
   hepc:    {name:'Hepatitis C', group:'pathogen', category:'Virus', duration:'persistent', cost:3, pot:2, res:3, icon:'virus_hepc', count:1,
             chronic:{key:'cirrhosis', threshold1:3, threshold2:6}, text:'Chronic — Cirrhosis→HCC: 3 turns → +1 dmg/turn; 6 turns → +2/turn.'},
@@ -1414,7 +1415,7 @@ function flashMessage(msg, long){
     setTimeout(function(){ el.hidden = true; }, 220);
   }, long ? 4200 : 2200);
 }
-function pushLogFlash(msg){ pushLog(msg); flashMessage(msg); }
+function pushLogFlash(msg, long){ pushLog(msg); flashMessage(msg, long); }
 // Shows an expanded explainer the first time a player (never in the tutorial, which already
 // teaches this explicitly) hits a given situation in a real game; after that, callers fall back
 // to the normal short flash. Persisted per-browser via localStorage, not per-account.
@@ -1441,6 +1442,16 @@ function drawCard(who){
   p.hand.push({uid:nextUid(), defId:id});
 }
 
+// A chronic complication's die roll needs to actually be seen, not just logged — pushLogFlash
+// puts it in the on-screen toast (not just the easy-to-miss scrolling log), and the message
+// spells out the roll and the target together so it's clear what happened and why.
+function rollDiceFlash(hostWho, complicationLabel, target){
+  var roll = 1+Math.floor(Math.random()*6);
+  var hit = roll>=target;
+  pushLogFlash('🎲 '+label(hostWho)+' rolls a '+roll+' (needs '+target+'+) for '+complicationLabel+' — '+(hit?'triggered!':'no complication this time.'), true);
+  return roll;
+}
+
 function tickChronicForHost(hostWho){
   var attackerSide = opponentOf(hostWho);
   var host = S.players[hostWho];
@@ -1458,16 +1469,33 @@ function tickChronicForHost(hostWho){
     } else if(c.key==='lupus'){
       if(p.hostTurns===c.rollAt && !p.rolled){
         p.rolled = true;
-        var roll = 1+Math.floor(Math.random()*6);
-        pushLog(label(hostWho)+' rolls a '+roll+' for molecular mimicry (EBV).');
-        if(roll>=5){ host.autoreactive = true; pushLog('Lupus onset — '+label(hostWho)+"'s B-cells and Antibodies now misfire against their own Health."); }
+        var target = c.rollTarget || 5;
+        var roll = rollDiceFlash(hostWho, 'molecular mimicry (EBV)', target);
+        if(roll>=target){ host.autoreactive = true; pushLogFlash('Lupus onset — '+label(hostWho)+"'s B-cells and Antibodies now misfire against their own Health.", true); }
       }
     } else if(c.key==='rheumatic'){
       if(p.hostTurns===c.rollAt && !p.rolled){
         p.rolled = true;
-        var roll2 = 1+Math.floor(Math.random()*6);
-        pushLog(label(hostWho)+' rolls a '+roll2+' for rheumatic fever risk (Strep).');
-        if(roll2>=5){ host.maxHealth -= 2; host.health = Math.min(host.health, host.maxHealth); pushLog('Rheumatic fever — '+label(hostWho)+' permanently loses 2 max Health.'); }
+        var target2 = c.rollTarget || 5;
+        var roll2 = rollDiceFlash(hostWho, 'rheumatic fever risk (Strep)', target2);
+        if(roll2>=target2){ host.maxHealth -= 2; host.health = Math.min(host.health, host.maxHealth); pushLogFlash('Rheumatic fever — '+label(hostWho)+' permanently loses 2 max Health.', true); }
+      }
+    } else if(c.key==='aids'){
+      if(p.hostTurns===c.rollAt && !p.rolled){
+        p.rolled = true;
+        var target3 = c.rollTarget || 5;
+        var roll3 = rollDiceFlash(hostWho, "HIV's opportunistic-infection risk", target3);
+        if(roll3>=target3){
+          var recruitPool = S.players[attackerSide].discard.filter(function(id){ return DEFS[id] && DEFS[id].group==='pathogen'; });
+          if(recruitPool.length && S.players[attackerSide].hand.length<10){
+            var recruitPick = recruitPool[Math.floor(Math.random()*recruitPool.length)];
+            S.players[attackerSide].discard.splice(S.players[attackerSide].discard.indexOf(recruitPick),1);
+            S.players[attackerSide].hand.push({uid:nextUid(), defId:recruitPick});
+            pushLogFlash('Opportunistic infection — '+DEFS[recruitPick].name+' returns to '+label(attackerSide)+"'s hand from the discard pile.", true);
+          } else {
+            pushLogFlash('Opportunistic-infection risk triggers, but '+label(attackerSide)+' has nothing left in the discard pile to recruit.', true);
+          }
+        }
       }
     }
   });
