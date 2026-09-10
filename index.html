@@ -668,7 +668,8 @@ var ICONS = {
   chemokine: function(){ return svg('<circle cx="24" cy="24" r="4" fill="var(--immune)"/><circle cx="24" cy="24" r="10" fill="none" stroke="var(--effect-strong)" stroke-width="1.6" opacity=".8"/><circle cx="24" cy="24" r="16" fill="none" stroke="var(--effect-strong)" stroke-width="1.4" opacity=".5"/><circle cx="24" cy="24" r="21" fill="none" stroke="var(--effect-strong)" stroke-width="1.2" opacity=".3"/><circle cx="10" cy="10" r="2.4" fill="var(--blue)"/>'); },
   granule: function(){ return svg('<circle cx="24" cy="24" r="5" fill="var(--immune-strong)"/><g fill="var(--blue)"><circle cx="24" cy="10" r="2.6"/><circle cx="36" cy="18" r="2.6"/><circle cx="36" cy="30" r="2.6"/><circle cx="24" cy="38" r="2.6"/><circle cx="12" cy="30" r="2.6"/><circle cx="12" cy="18" r="2.6"/></g>'); },
   ifng: function(){ return svg('<circle cx="24" cy="24" r="9" fill="var(--immune)" opacity=".85"/><g stroke="var(--effect-strong)" stroke-width="2" stroke-linecap="round"><path d="M24 6v8M24 34v8M6 24h8M34 24h8M11 11l6 6M31 31l6 6M37 11l-6 6M17 31l-6 6"/></g><circle cx="24" cy="24" r="3" fill="var(--blue)"/>'); },
-  il4: function(){ return svg('<circle cx="24" cy="24" r="9" fill="var(--effect)" opacity=".8"/><g stroke="var(--immune-strong)" stroke-width="2" stroke-linecap="round"><path d="M24 6v8M24 34v8M6 24h8M34 24h8M11 11l6 6M31 31l6 6M37 11l-6 6M17 31l-6 6"/></g><circle cx="24" cy="24" r="3" fill="var(--blue)"/>'); }
+  il4: function(){ return svg('<circle cx="24" cy="24" r="9" fill="var(--effect)" opacity=".8"/><g stroke="var(--immune-strong)" stroke-width="2" stroke-linecap="round"><path d="M24 6v8M24 34v8M6 24h8M34 24h8M11 11l6 6M31 31l6 6M37 11l-6 6M17 31l-6 6"/></g><circle cx="24" cy="24" r="3" fill="var(--blue)"/>'); },
+  daycare: function(){ return svg('<path d="M8 24 24 10 40 24" stroke="var(--effect-strong)" stroke-width="2.4" fill="none" stroke-linecap="round" stroke-linejoin="round"/><path d="M12 22v14a2 2 0 0 0 2 2h20a2 2 0 0 0 2-2V22" fill="var(--effect)" opacity=".2" stroke="var(--effect-strong)" stroke-width="2"/><circle cx="18" cy="30" r="2.6" fill="var(--pathogen)"/><circle cx="24" cy="32" r="2.6" fill="var(--pathogen)"/><circle cx="30" cy="30" r="2.6" fill="var(--pathogen)"/>'); }
 };
 
 /* ================= card definitions ================= */
@@ -707,7 +708,7 @@ var DEFS = {
   cytotoxict: {name:'Naive Cytotoxic T-cell', group:'immune', class:'Adaptive', duration:'persistent', cost:3, pot:3, res:3, specializes:true, ability:'primed', text:'+1 Potency while you control a Helper T-cell or Dendritic Cell.', icon:'cytotoxict', count:3},
   bcell:      {name:'Naive B-cell', group:'immune', class:'Adaptive', duration:'persistent', cost:2, pot:1, res:3, specializes:true, ability:'makesantibody', text:'On destroyed: create an Antibody token in hand.', icon:'bcell', count:3},
   antibody:   {name:'Antibody', group:'immune', class:'Adaptive', duration:'acute', cost:0, pot:null, res:1, text:'May block any attack, fully neutralizing it, then is spent.', icon:'antibody', count:0},
-  granule:    {name:'Granule', group:'immune', class:'Adaptive', duration:'acute', cost:0, pot:1, res:0, text:"Can attack anything — an opponent's Health, a Pathogen, or an enemy Immune cell — then is spent.", icon:'granule', count:0},
+  granule:    {name:'Granule', group:'immune', class:'Adaptive', duration:'acute', cost:0, pot:1, res:0, text:'Can attack any enemy Pathogen or Immune cell, then is spent.', icon:'granule', count:0},
   ifng:       {name:'IFN-γ', group:'effect', cost:0, ability:'cytokineboost', boostPool:['dendritic','macrophage','cytotoxict'], text:'Target a Dendritic Cell, Macrophage, or Cytotoxic T-cell you control: permanent +1/+1.', icon:'ifng', count:0},
   il4:        {name:'IL-4', group:'effect', cost:0, ability:'cytokineboost', boostPool:['eosinophil','mast','bcell'], text:'Target an Eosinophil, Mast Cell, or B-cell you control: permanent +1/+1.', icon:'il4', count:0},
 
@@ -724,6 +725,7 @@ var DEFS = {
   fever:     {name:'Fever Response', group:'effect', cost:1, ability:'fever', text:'Your Pathogens and Immune cells get +1 Potency until end of turn; you take 1 Health damage.', icon:'fever', count:1},
   boostershot:{name:'Booster Shot', group:'effect', cost:2, ability:'boost', text:'Target an Adaptive Immune cell you control: permanent +1/+1.', icon:'boostershot', count:1},
   chemokine: {name:'Chemokine', group:'effect', cost:3, ability:'chemokine', text:'Return a random Innate Immune cell from your discard pile directly to the board, ready to act.', icon:'chemokine', count:1},
+  daycare:   {name:'Daycare', group:'effect', cost:3, ability:'daycare', text:'Pull up to 3 random Acute Pathogens from your discard pile into your hand.', icon:'daycare', count:1},
   storm:     {name:'Cytokine Storm', group:'effect', cost:5, ability:'storm', text:'Deal 2 damage to every Pathogen and Immune cell in play, both sides; you take 2 Health damage.', icon:'storm', count:1, set:'expansion'},
   incinerate:{name:'Incineration', group:'effect', cost:5, ability:'incinerate', text:'Destroy a target enemy Pathogen outright, even a Prion. Extreme heat spares nothing.', icon:'incinerate', count:1, set:'expansion'}
 };
@@ -1772,6 +1774,18 @@ function applyEffect(who, def, targetUid, chosenCategory){
     } else {
       pushLog('No Innate immune cells in the discard pile to summon.');
     }
+  } else if(def.ability==='daycare'){
+    var acutePool = S.players[who].discard.filter(function(id){ return DEFS[id] && DEFS[id].group==='pathogen' && DEFS[id].duration==='acute'; });
+    var pulledNames = [];
+    for(var dcI=0; dcI<3 && acutePool.length && S.players[who].hand.length<10; dcI++){
+      var dcPick = acutePool[Math.floor(Math.random()*acutePool.length)];
+      acutePool.splice(acutePool.indexOf(dcPick),1);
+      S.players[who].discard.splice(S.players[who].discard.indexOf(dcPick),1);
+      S.players[who].hand.push({uid:nextUid(), defId:dcPick});
+      pulledNames.push(DEFS[dcPick].name);
+    }
+    if(pulledNames.length){ pushLog('Daycare pulls '+pulledNames.join(', ')+' from the discard pile into '+label(who)+"'s hand."); }
+    else { pushLog('No Acute Pathogens in the discard pile for Daycare to pull.'); }
   } else if(def.ability==='immuneboost'){
     var pool = S.players[who].discard.filter(function(id){ return id!=='antibody' && DEFS[id] && DEFS[id].group==='immune'; });
     if(pool.length){
@@ -1848,7 +1862,7 @@ function applySpecializePath(creature, category, path){
     creature.specialTag = 'Effector';
     if(creature.defId==='cytotoxict'){
       creature.ability = 'granulesecrete';
-      creature.text = 'Tap to secrete a Granule into your hand for 1 ATP (once per turn). Granules (+1/0) can attack anything — Health, a Pathogen, or an enemy Immune cell — then are spent.';
+      creature.text = 'Tap to secrete a Granule into your hand for 1 ATP (once per turn). Granules (+1/0) can attack any enemy Pathogen or Immune cell, then are spent.';
       pushLog(creature.name+' becomes an Effector cell — can secrete a Granule each turn for 1 ATP; +1 Resistance.');
     } else {
       var cytokineId = (category==='Virus' || category==='Bacterium') ? 'ifng' : 'il4';
@@ -2109,6 +2123,10 @@ function aiPlayPhase(done){
         var innatePoolScore = ai.discard.filter(function(id){ return DEFS[id] && DEFS[id].group==='immune' && DEFS[id].class==='Innate'; });
         if(innatePoolScore.length===0) s -= 99; else s += 3;
       }
+      if(d.ability==='daycare'){
+        var acutePoolScore = ai.discard.filter(function(id){ return DEFS[id] && DEFS[id].group==='pathogen' && DEFS[id].duration==='acute'; });
+        if(acutePoolScore.length===0) s -= 99; else s += 4;
+      }
       if(d.ability==='sleep' || d.ability==='healthydiet'){ s += 1; }
       return s;
     }
@@ -2190,17 +2208,21 @@ function aiAttackPhase(i, done){
     }
     setTimeout(function(){ aiAttackPhase(i+1, done); }, 60);
   } else if(c.defId==='granule'){
-    // Granules can hit anything — prefer a free kill on an enemy Pathogen or Immune cell
-    // (1 Potency is enough to one-shot anything with 1 Resistance or less), otherwise just
-    // send the 1 damage at Health since the Granule is spent either way.
+    // Granules can only hit an enemy Pathogen or Immune cell now (no more Health option) —
+    // prefer a free kill (1 Potency one-shots anything with 1 Resistance or less), otherwise
+    // just throw it at whatever's most valuable since the Granule is spent either way. Skip
+    // entirely if the opponent's board is empty.
     var human2 = S.players.p1;
-    var killable = human2.board.filter(function(t){
-      return (t.group==='pathogen' || (t.group==='immune' && t.defId!=='antibody')) && t.res!==null && t.res<=effectivePot(c);
-    }).sort(function(a,b){ return b.cost-a.cost; });
-    if(killable.length){
-      declareEngage('p2', c.uid, killable[0].uid, function(){ render(); setTimeout(function(){ aiAttackPhase(i+1, done); }, 600); });
+    var granuleTargets = human2.board.filter(function(t){ return t.group==='pathogen' || (t.group==='immune' && t.defId!=='antibody'); });
+    if(granuleTargets.length){
+      granuleTargets.sort(function(a,b){
+        var aKill = (a.res!==null && a.res<=effectivePot(c)) ? 1 : 0;
+        var bKill = (b.res!==null && b.res<=effectivePot(c)) ? 1 : 0;
+        return bKill-aKill || b.cost-a.cost;
+      });
+      declareEngage('p2', c.uid, granuleTargets[0].uid, function(){ render(); setTimeout(function(){ aiAttackPhase(i+1, done); }, 600); });
     } else {
-      declarePathogenAttack('p2', c.uid, function(){ setTimeout(function(){ aiAttackPhase(i+1, done); }, 600); });
+      setTimeout(function(){ aiAttackPhase(i+1, done); }, 60);
     }
   } else {
     var human = S.players.p1;
@@ -2514,9 +2536,11 @@ function render(){
           if(S.players[who].atp>=1){ selectable = true; onclick = 'secrete'; }
         }
         else if(c.defId==='granule'){
-          // Granules can strike Health directly, an enemy Pathogen, or an enemy Immune cell —
-          // wider than a normal engage (pathogen-only), so it gets its own target-picker mode.
-          if(S.players[who].atp>=1){ selectable = true; onclick = 'granuleattack'; }
+          // Granules can strike an enemy Pathogen OR an enemy Immune cell — wider than a
+          // normal engage (pathogen-only), so it gets its own target-picker mode, but like a
+          // normal engage it needs at least one legal target to even offer the action.
+          var hasGranuleTargets = S.players[opponentOf(who)].board.some(function(x){return x.group==='pathogen' || (x.group==='immune' && x.defId!=='antibody');});
+          if(hasGranuleTargets && S.players[who].atp>=1){ selectable = true; onclick = 'granuleattack'; }
         }
         else if(c.group==='immune' && c.defId!=='antibody'){
           var hasTargets = S.players[opponentOf(who)].board.some(function(x){return x.group==='pathogen';});
@@ -2551,9 +2575,6 @@ function render(){
   } else if(S.selection && S.selection.mode==='primeChooseCategory'){
     ti.classList.add('choosemode');
     ti.textContent = waitingOnOpponent ? 'Waiting for Opponent to choose...' : 'Choose a category to prime!';
-  } else if(S.selection && S.selection.mode==='granuleTarget'){
-    ti.classList.add('choosemode');
-    ti.textContent = 'Tap a target, or attack Health directly!';
   } else if(S.mode==='solo' && S.turn==='p2'){
     ti.classList.add('waiting');
     ti.textContent = "Computer's turn — please wait";
@@ -2576,7 +2597,7 @@ function render(){
     var recent = S.log.slice(-3);
     root.log.innerHTML = recent.map(function(l){return '<div>'+escapeHTML(l)+'</div>';}).join('');
   }
-  var pickerMode = iCanAct && S.selection && (S.selection.mode==='vaccinateChooseCategory' || S.selection.mode==='specializeChoice' || S.selection.mode==='shiftChooseCategory' || S.selection.mode==='primeChooseCategory' || S.selection.mode==='granuleTarget');
+  var pickerMode = iCanAct && S.selection && (S.selection.mode==='vaccinateChooseCategory' || S.selection.mode==='specializeChoice' || S.selection.mode==='shiftChooseCategory' || S.selection.mode==='primeChooseCategory');
   root.log.hidden = pickerMode;
   if(!document.getElementById('history-overlay').hidden) renderHistory();
 
@@ -2606,8 +2627,6 @@ function render(){
     root.pickCategory.innerHTML = ['Virus','Bacterium','Fungus','Parasite'].map(function(cat){
       return '<button data-action="pickprimecategory" data-cat="'+cat+'">'+cat+'</button>';
     }).join('');
-  } else if(S.selection && S.selection.mode==='granuleTarget'){
-    root.pickCategory.innerHTML = '<button data-action="granuleattackhealth">Attack Health directly</button>';
   }
 
   if(S.over){
@@ -2787,12 +2806,6 @@ document.addEventListener('DOMContentLoaded', function(){
       var gWho = S.selection.who, gSrc = S.selection.sourceUid;
       S.selection = null;
       declareEngage(gWho, gSrc, gTUid, function(){ render(); });
-      render();
-    } else if(action==='granuleattackhealth'){
-      if(!S.selection || S.selection.mode!=='granuleTarget') return;
-      var ghWho = S.selection.who, ghSrc = S.selection.sourceUid;
-      S.selection = null;
-      declarePathogenAttack(ghWho, ghSrc, function(){ render(); });
       render();
     } else if(action==='chooseblocker'){
       if(!S.pendingAttack) return;
