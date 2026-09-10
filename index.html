@@ -674,9 +674,9 @@ var DEFS = {
   noro:    {name:'Norovirus', group:'pathogen', category:'Virus', duration:'acute', cost:1, pot:2, res:null, text:'Fast and miserable, over in a day.', icon:'virus_noro', count:2},
   flu:     {name:'Influenza', group:'pathogen', category:'Virus', duration:'acute', cost:2, pot:2, res:null, ability:'replicate', text:'Replicate: if this hits Health, put a copy in your hand.', icon:'virus_flu', count:2},
   salm:    {name:'Salmonella', group:'pathogen', category:'Bacterium', duration:'acute', cost:2, pot:2, res:null, ability:'toxin1', text:'Toxin: if this hits Health, deals 1 more damage on top of its normal attack.', icon:'bact_rod', count:2},
-  staph:   {name:'Staphylococcus aureus', group:'pathogen', category:'Bacterium', duration:'persistent', cost:2, pot:3, res:2, text:'A solid, unspecialized threat.', icon:'bact_cluster', count:2},
-  candida: {name:'Candida albicans', group:'pathogen', category:'Fungus', duration:'persistent', cost:3, pot:1, res:5, text:'Low attack, very hard to fully clear.', icon:'fungus', count:2},
-  plasmo:  {name:'Plasmodium falciparum', group:'pathogen', category:'Parasite', duration:'persistent', cost:3, pot:2, res:3, ability:'drain', text:'Drain: hitting Health also gives its controller 1 ATP.', icon:'parasite', count:2},
+  staph:   {name:'Staphylococcus aureus', group:'pathogen', category:'Bacterium', duration:'persistent', cost:2, pot:3, res:2, text:'A solid, unspecialized threat.', icon:'bact_cluster', count:1},
+  candida: {name:'Candida albicans', group:'pathogen', category:'Fungus', duration:'persistent', cost:3, pot:1, res:5, text:'Low attack, very hard to fully clear.', icon:'fungus', count:1},
+  plasmo:  {name:'Plasmodium falciparum', group:'pathogen', category:'Parasite', duration:'persistent', cost:3, pot:2, res:3, ability:'drain', text:'Drain: hitting Health also gives its controller 1 ATP.', icon:'parasite', count:1},
   hiv:     {name:'HIV', group:'pathogen', category:'Virus', duration:'persistent', cost:4, pot:1, res:3, ability:'onplayHelperT', text:'On Play: deal 1 damage directly to an enemy Helper T-cell, ignoring blockers.', icon:'virus_hiv', count:1},
   prion:   {name:'Prion', group:'pathogen', category:'Prion', duration:'persistent', cost:5, pot:1, res:4, ability:'unkillable', text:'Cannot be destroyed by engaging or blocking — only Incineration works.', icon:'prion', count:1, set:'expansion'},
   hpv:     {name:'HPV', group:'pathogen', category:'Virus', duration:'persistent', cost:2, pot:1, res:2, icon:'virus_hpv', count:1,
@@ -1610,11 +1610,15 @@ function effectivePot(c){
 
 function makeCreatureInstance(def, defId, specCat){
   var name = def.name;
-  if(defId==='antibody' && specCat){ name = specCat+'-Specific Antibody'; }
+  var text = def.text;
+  if(defId==='antibody' && specCat){
+    name = specCat+'-Specific Antibody';
+    text = 'Blocks '+specCat+' pathogens only, fully neutralizing the attack, then is spent.';
+  }
   return {
     uid:nextUid(), defId:defId, name:name, baseName:def.name.replace(/^Naive /,''), group:def.group, category:def.category, class:def.class,
     duration:def.duration, cost:def.cost, pot:def.pot, res:def.res, maxRes:def.res,
-    ability:def.ability, text:def.text, icon:def.icon, specializes:!!def.specializes, specialized:null, specialTag:null,
+    ability:def.ability, text:text, icon:def.icon, specializes:!!def.specializes, specialized:null, specialTag:null,
     specificCategory: specCat||null, plasma:false,
     dormant: def.duration==='persistent', acted:false, tempPot:0, noBlockAcute:false, effectorCharge:0, auraBuffed:false, primeCategory:null,
     chronicDef: def.chronic ? Object.assign({}, def.chronic) : null, hostTurns:0, rolled:false
@@ -1770,6 +1774,10 @@ function eligibleBlockers(defWho, attacker){
     // this cycle — only Acute cells are limited to one action total (attack, block, or engage).
     if(c.duration==='acute' && c.acted) return false;
     if(attacker.noBlockAcute && c.duration==='acute') return false;
+    // A category-specific Antibody (from a Plasma Cell) only neutralizes the category it was
+    // raised against. A generic Antibody (left behind when a Naive B-cell dies, no specificCategory)
+    // isn't specific to anything, so it can still block any pathogen.
+    if(c.defId==='antibody' && c.specificCategory && c.specificCategory!==attacker.category) return false;
     return true;
   });
 }
@@ -2217,13 +2225,14 @@ function handCardHTML(h){
     : '<div class="icon">'+(ICONS[def.icon]?ICONS[def.icon]():'')+'</div>'+
       '<div class="statrow"><span class="pot">'+microPot()+(def.pot!==null&&def.pot!==undefined?def.pot:'–')+'</span>'+(def.res!==null&&def.res!==undefined&&def.ability!=='unkillable'?'<span class="res">'+microRes()+def.res+'</span>':'')+'</div>';
   var displayName = (h.defId==='antibody' && h.specCat) ? (h.specCat+'-Specific Antibody') : def.name;
+  var displayText = (h.defId==='antibody' && h.specCat) ? ('Blocks '+h.specCat+' pathogens only, fully neutralizing the attack, then is spent.') : def.text;
   var chronicBadge = def.chronic ? '<span class="chronicbadge">Incubation</span>' : '';
   var handHeader = cardHeaderHTML(def.group, '<div class="toprow">'+catTag+costHTML+'</div><div class="name">'+displayName+'</div>');
   return '<div class="'+cls.join(' ')+'" data-action="playhand" data-uid="'+h.uid+'">'+
     peekBadgeHTML('hand', h.uid)+
     handHeader+
     body+chronicBadge+
-    '<div class="text">'+(def.text||'')+'</div>'+
+    '<div class="text">'+(displayText||'')+'</div>'+
   '</div>';
 }
 
@@ -2261,7 +2270,9 @@ function openHistory(){
   document.getElementById('history-overlay').hidden = false;
 }
 function previewHandHTML(hEntry){
-  var overrides = (hEntry.defId==='antibody' && hEntry.specCat) ? {name: hEntry.specCat+'-Specific Antibody'} : {};
+  var overrides = (hEntry.defId==='antibody' && hEntry.specCat)
+    ? {name: hEntry.specCat+'-Specific Antibody', text: 'Blocks '+hEntry.specCat+' pathogens only, fully neutralizing the attack, then is spent.'}
+    : {};
   return guideCardHTML(hEntry.defId, overrides, 'preview-size');
 }
 function previewBoardHTML(c){
