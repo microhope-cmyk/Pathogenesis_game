@@ -661,7 +661,10 @@ var ICONS = {
   immuneboost: function(){ return svg('<path d="M12 16a14 14 0 0 1 22-3" stroke="var(--effect-strong)" stroke-width="2.4" fill="none" stroke-linecap="round"/><path d="M34 8v7h-7" stroke="var(--effect-strong)" stroke-width="2.4" fill="none" stroke-linecap="round" stroke-linejoin="round"/><path d="M36 32a14 14 0 0 1-22 3" stroke="var(--effect-strong)" stroke-width="2.4" fill="none" stroke-linecap="round"/><path d="M14 40v-7h7" stroke="var(--effect-strong)" stroke-width="2.4" fill="none" stroke-linecap="round" stroke-linejoin="round"/><circle cx="24" cy="24" r="5" fill="var(--immune)"/><circle cx="24" cy="24" r="2" fill="var(--blue)"/>'); },
   goodsleep: function(){ return svg('<path d="M30 8a14 14 0 1 0 10 22 12 12 0 0 1-10-22Z" fill="var(--effect)" opacity=".85"/><path d="M35 12l2 4 4 2-4 2-2 4-2-4-4-2 4-2Z" fill="var(--blue)"/><circle cx="14" cy="14" r="1.4" fill="var(--effect-strong)"/><circle cx="10" cy="24" r="1" fill="var(--effect-strong)"/>'); },
   incinerate: function(){ return svg('<path d="M24 6c6 8 10 13 10 19a10 10 0 0 1-20 0c0-3 1-6 3-9 1 3 3 4 4 3-1-5 0-9 3-13Z" fill="var(--effect)" opacity=".9"/><path d="M24 20c3 4 4 7 4 9a4 4 0 0 1-8 0c0-1 0-3 1-5 1 2 2 2 2 1-1-2-1-4 1-5Z" fill="var(--pathogen)"/>'); },
-  storm: function(){ return svg('<g stroke-width="2.2" stroke-linecap="round"><line x1="24" y1="6" x2="24" y2="16" stroke="var(--effect-strong)"/><line x1="24" y1="32" x2="24" y2="42" stroke="var(--pathogen)"/><line x1="6" y1="24" x2="16" y2="24" stroke="var(--immune)"/><line x1="32" y1="24" x2="42" y2="24" stroke="var(--effect-strong)"/><line x1="12" y1="12" x2="19" y2="19" stroke="var(--pathogen)"/><line x1="29" y1="29" x2="36" y2="36" stroke="var(--immune)"/><line x1="36" y1="12" x2="29" y2="19" stroke="var(--effect-strong)"/><line x1="19" y1="29" x2="12" y2="36" stroke="var(--pathogen)"/></g><circle cx="24" cy="24" r="6" fill="var(--effect)"/>'); }
+  storm: function(){ return svg('<g stroke-width="2.2" stroke-linecap="round"><line x1="24" y1="6" x2="24" y2="16" stroke="var(--effect-strong)"/><line x1="24" y1="32" x2="24" y2="42" stroke="var(--pathogen)"/><line x1="6" y1="24" x2="16" y2="24" stroke="var(--immune)"/><line x1="32" y1="24" x2="42" y2="24" stroke="var(--effect-strong)"/><line x1="12" y1="12" x2="19" y2="19" stroke="var(--pathogen)"/><line x1="29" y1="29" x2="36" y2="36" stroke="var(--immune)"/><line x1="36" y1="12" x2="29" y2="19" stroke="var(--effect-strong)"/><line x1="19" y1="29" x2="12" y2="36" stroke="var(--pathogen)"/></g><circle cx="24" cy="24" r="6" fill="var(--effect)"/>'); },
+  healthydiet: function(){ return svg('<path d="M24 18c5-6 13-4 13 4 0 10-7 18-13 18S11 32 11 22c0-8 8-10 13-4Z" fill="var(--effect)" opacity=".85"/><path d="M24 18c0-3 1-6 4-8" stroke="var(--effect-strong)" stroke-width="2" fill="none" stroke-linecap="round"/><path d="M26 10c3-1 6 0 7 2-3 1-6 0-7-2Z" fill="var(--immune)"/><circle cx="20" cy="24" r="2" fill="var(--blue)" opacity=".8"/>'); },
+  boostershot: function(){ return svg('<g stroke="var(--effect-strong)" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M32 10 38 16 20 34 14 34 14 28Z" fill="var(--blue)" opacity=".85"/><path d="M28 14l4 4M17 31l4-4"/></g><path d="M24 4v8M20 8h8" stroke="var(--immune-strong)" stroke-width="2.2" stroke-linecap="round"/>'); },
+  chemokine: function(){ return svg('<circle cx="24" cy="24" r="4" fill="var(--immune)"/><circle cx="24" cy="24" r="10" fill="none" stroke="var(--effect-strong)" stroke-width="1.6" opacity=".8"/><circle cx="24" cy="24" r="16" fill="none" stroke="var(--effect-strong)" stroke-width="1.4" opacity=".5"/><circle cx="24" cy="24" r="21" fill="none" stroke="var(--effect-strong)" stroke-width="1.2" opacity=".3"/><circle cx="10" cy="10" r="2.4" fill="var(--blue)"/>'); }
 };
 
 /* ================= card definitions ================= */
@@ -709,8 +712,11 @@ var DEFS = {
   antiparasitic:{name:'Antiparasitic', group:'effect', cost:3, ability:'treat', treatCat:'Parasite', dmg:2, text:'Deal 2 damage to a target Parasite. Costs more — these drugs cross into human cells too easily.', icon:'antiparasitic', count:1},
   immuneboost:{name:'Immune Boost', group:'effect', cost:2, ability:'immuneboost', text:'Return a random Immune cell from your discard pile to your hand.', icon:'immuneboost', count:1},
   sleep:     {name:"A Good Night's Sleep", group:'effect', cost:2, ability:'sleep', text:'Draw 2 cards.', icon:'goodsleep', count:1},
-  fever:     {name:'Fever Response', group:'effect', cost:1, ability:'fever', text:'Your Pathogens and Immune cells get +1 Potency until end of turn; you take 1 Health damage.', icon:'fever', count:2},
-  storm:     {name:'Cytokine Storm', group:'effect', cost:5, ability:'storm', text:'Deal 2 damage to every Pathogen and Immune cell in play, both sides; you take 2 Health damage.', icon:'storm', count:1},
+  healthydiet:{name:'Healthy Diet', group:'effect', cost:1, ability:'healthydiet', text:'Draw 1 card.', icon:'healthydiet', count:1},
+  fever:     {name:'Fever Response', group:'effect', cost:1, ability:'fever', text:'Your Pathogens and Immune cells get +1 Potency until end of turn; you take 1 Health damage.', icon:'fever', count:1},
+  boostershot:{name:'Booster Shot', group:'effect', cost:2, ability:'boost', text:'Target an Adaptive Immune cell you control: permanent +1/+1.', icon:'boostershot', count:1},
+  chemokine: {name:'Chemokine', group:'effect', cost:3, ability:'chemokine', text:'Return a random Innate Immune cell from your discard pile directly to the board, ready to act.', icon:'chemokine', count:1},
+  storm:     {name:'Cytokine Storm', group:'effect', cost:5, ability:'storm', text:'Deal 2 damage to every Pathogen and Immune cell in play, both sides; you take 2 Health damage.', icon:'storm', count:1, set:'expansion'},
   incinerate:{name:'Incineration', group:'effect', cost:5, ability:'incinerate', text:'Destroy a target enemy Pathogen outright, even a Prion. Extreme heat spares nothing.', icon:'incinerate', count:1, set:'expansion'}
 };
 
@@ -1674,13 +1680,14 @@ function playCreature(who, handUid, defId, def, specCat){
 }
 
 function needsManualTarget(def){
-  return def.ability==='drift' || def.ability==='shift' || def.ability==='treat' || def.ability==='incinerate';
+  return def.ability==='drift' || def.ability==='shift' || def.ability==='treat' || def.ability==='incinerate' || def.ability==='boost';
 }
 function validTargetsFor(who, def){
   var opp = opponentOf(who);
   if(def.ability==='drift' || def.ability==='shift') return S.players[who].board.filter(function(c){return c.group==='pathogen';}).map(function(c){return c.uid;});
   if(def.ability==='treat') return S.players[opp].board.filter(function(c){return c.group==='pathogen' && c.category===def.treatCat;}).map(function(c){return c.uid;});
   if(def.ability==='incinerate') return S.players[opp].board.filter(function(c){return c.group==='pathogen';}).map(function(c){return c.uid;});
+  if(def.ability==='boost') return S.players[who].board.filter(function(c){return c.group==='immune' && c.class==='Adaptive';}).map(function(c){return c.uid;});
   return [];
 }
 
@@ -1705,6 +1712,23 @@ function applyEffect(who, def, targetUid, chosenCategory){
     damageHealth(who, 2);
   } else if(def.ability==='sleep'){
     drawCard(who); drawCard(who);
+  } else if(def.ability==='healthydiet'){
+    drawCard(who);
+  } else if(def.ability==='boost'){
+    var t4 = findCreature(who, targetUid);
+    if(t4){ t4.pot+=1; t4.res+=1; t4.maxRes+=1; pushLog(t4.name+' gets a permanent +1/+1 boost.'); }
+  } else if(def.ability==='chemokine'){
+    var innatePool = S.players[who].discard.filter(function(id){ return DEFS[id] && DEFS[id].group==='immune' && DEFS[id].class==='Innate'; });
+    if(innatePool.length){
+      var summonPick = innatePool[Math.floor(Math.random()*innatePool.length)];
+      S.players[who].discard.splice(S.players[who].discard.indexOf(summonPick),1);
+      var summoned = makeCreatureInstance(DEFS[summonPick], summonPick, null);
+      S.players[who].board.push(summoned);
+      recalcHelperAura(who);
+      pushLog('Chemokine signals '+summoned.name+' back onto the board from the discard pile.');
+    } else {
+      pushLog('No Innate immune cells in the discard pile to summon.');
+    }
   } else if(def.ability==='immuneboost'){
     var pool = S.players[who].discard.filter(function(id){ return id!=='antibody' && DEFS[id] && DEFS[id].group==='immune'; });
     if(pool.length){
@@ -2006,7 +2030,15 @@ function aiPlayPhase(done){
       if(d.ability==='immuneboost'){
         if(immuneBoostPoolFor('p2').length===0) s -= 99;
       }
-      if(d.ability==='sleep'){ s += 1; }
+      if(d.ability==='boost'){
+        var hasAdaptive = ai.board.some(function(c){return c.group==='immune' && c.class==='Adaptive';});
+        if(!hasAdaptive) s -= 99;
+      }
+      if(d.ability==='chemokine'){
+        var innatePoolScore = ai.discard.filter(function(id){ return DEFS[id] && DEFS[id].group==='immune' && DEFS[id].class==='Innate'; });
+        if(innatePoolScore.length===0) s -= 99; else s += 3;
+      }
+      if(d.ability==='sleep' || d.ability==='healthydiet'){ s += 1; }
       return s;
     }
     options.sort(function(a,b){ return score(b)-score(a); });
@@ -2037,6 +2069,9 @@ function aiPlayPhase(done){
           return bp-ap || b.cost-a.cost;
         });
         if(pool3.length) applyEffect('p2', def, pool3[0].uid);
+      } else if(def.ability==='boost'){
+        var adaptivePool = ai.board.filter(function(c){return c.group==='immune' && c.class==='Adaptive';}).sort(function(a,b){return b.pot-a.pot;});
+        if(adaptivePool.length) applyEffect('p2', def, adaptivePool[0].uid);
       } else {
         applyEffect('p2', def, null, null);
       }
