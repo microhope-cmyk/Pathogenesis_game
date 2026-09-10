@@ -665,7 +665,10 @@ var ICONS = {
   storm: function(){ return svg('<g stroke-width="2.2" stroke-linecap="round"><line x1="24" y1="6" x2="24" y2="16" stroke="var(--effect-strong)"/><line x1="24" y1="32" x2="24" y2="42" stroke="var(--pathogen)"/><line x1="6" y1="24" x2="16" y2="24" stroke="var(--immune)"/><line x1="32" y1="24" x2="42" y2="24" stroke="var(--effect-strong)"/><line x1="12" y1="12" x2="19" y2="19" stroke="var(--pathogen)"/><line x1="29" y1="29" x2="36" y2="36" stroke="var(--immune)"/><line x1="36" y1="12" x2="29" y2="19" stroke="var(--effect-strong)"/><line x1="19" y1="29" x2="12" y2="36" stroke="var(--pathogen)"/></g><circle cx="24" cy="24" r="6" fill="var(--effect)"/>'); },
   healthydiet: function(){ return svg('<path d="M24 18c5-6 13-4 13 4 0 10-7 18-13 18S11 32 11 22c0-8 8-10 13-4Z" fill="var(--effect)" opacity=".85"/><path d="M24 18c0-3 1-6 4-8" stroke="var(--effect-strong)" stroke-width="2" fill="none" stroke-linecap="round"/><path d="M26 10c3-1 6 0 7 2-3 1-6 0-7-2Z" fill="var(--immune)"/><circle cx="20" cy="24" r="2" fill="var(--blue)" opacity=".8"/>'); },
   boostershot: function(){ return svg('<g stroke="var(--effect-strong)" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M32 10 38 16 20 34 14 34 14 28Z" fill="var(--blue)" opacity=".85"/><path d="M28 14l4 4M17 31l4-4"/></g><path d="M24 4v8M20 8h8" stroke="var(--immune-strong)" stroke-width="2.2" stroke-linecap="round"/>'); },
-  chemokine: function(){ return svg('<circle cx="24" cy="24" r="4" fill="var(--immune)"/><circle cx="24" cy="24" r="10" fill="none" stroke="var(--effect-strong)" stroke-width="1.6" opacity=".8"/><circle cx="24" cy="24" r="16" fill="none" stroke="var(--effect-strong)" stroke-width="1.4" opacity=".5"/><circle cx="24" cy="24" r="21" fill="none" stroke="var(--effect-strong)" stroke-width="1.2" opacity=".3"/><circle cx="10" cy="10" r="2.4" fill="var(--blue)"/>'); }
+  chemokine: function(){ return svg('<circle cx="24" cy="24" r="4" fill="var(--immune)"/><circle cx="24" cy="24" r="10" fill="none" stroke="var(--effect-strong)" stroke-width="1.6" opacity=".8"/><circle cx="24" cy="24" r="16" fill="none" stroke="var(--effect-strong)" stroke-width="1.4" opacity=".5"/><circle cx="24" cy="24" r="21" fill="none" stroke="var(--effect-strong)" stroke-width="1.2" opacity=".3"/><circle cx="10" cy="10" r="2.4" fill="var(--blue)"/>'); },
+  granule: function(){ return svg('<circle cx="24" cy="24" r="5" fill="var(--immune-strong)"/><g fill="var(--blue)"><circle cx="24" cy="10" r="2.6"/><circle cx="36" cy="18" r="2.6"/><circle cx="36" cy="30" r="2.6"/><circle cx="24" cy="38" r="2.6"/><circle cx="12" cy="30" r="2.6"/><circle cx="12" cy="18" r="2.6"/></g>'); },
+  ifng: function(){ return svg('<circle cx="24" cy="24" r="9" fill="var(--immune)" opacity=".85"/><g stroke="var(--effect-strong)" stroke-width="2" stroke-linecap="round"><path d="M24 6v8M24 34v8M6 24h8M34 24h8M11 11l6 6M31 31l6 6M37 11l-6 6M17 31l-6 6"/></g><circle cx="24" cy="24" r="3" fill="var(--blue)"/>'); },
+  il4: function(){ return svg('<circle cx="24" cy="24" r="9" fill="var(--effect)" opacity=".8"/><g stroke="var(--immune-strong)" stroke-width="2" stroke-linecap="round"><path d="M24 6v8M24 34v8M6 24h8M34 24h8M11 11l6 6M31 31l6 6M37 11l-6 6M17 31l-6 6"/></g><circle cx="24" cy="24" r="3" fill="var(--blue)"/>'); }
 };
 
 /* ================= card definitions ================= */
@@ -700,10 +703,13 @@ var DEFS = {
   dendritic:  {name:'Dendritic Cell', group:'immune', class:'Innate', duration:'acute', cost:2, pot:0, res:2, ability:'prime', text:'On Play: choose a category. The next Naive adaptive cell you play while this is still on the board enters already Specialized against it (one time only).', icon:'dendritic', count:2},
   mast:       {name:'Mast Cell', group:'immune', class:'Innate', duration:'acute', cost:1, pot:1, res:2, ability:'histamine', text:'On Play: deal 1 damage to an enemy Pathogen; your Neutrophils get +1 Potency this turn.', icon:'mast', count:2},
   eosinophil: {name:'Eosinophil', group:'immune', class:'Innate', duration:'acute', cost:2, pot:2, res:1, ability:'antiparasite', text:'Deals double damage against Parasite-category Pathogens.', icon:'eosinophil', count:2},
-  helpert:    {name:'Naive Helper T-cell', group:'immune', class:'Adaptive', duration:'persistent', cost:2, pot:1, res:3, specializes:true, ability:'supportcell', text:'Your other Persistent Immune cells get +0/+1. (HIV\'s specific target.)', icon:'helpert', count:3},
-  cytotoxict: {name:'Naive Cytotoxic T-cell', group:'immune', class:'Adaptive', duration:'persistent', cost:3, pot:3, res:2, specializes:true, ability:'primed', text:'+1 Potency while you control a Helper T-cell or Dendritic Cell.', icon:'cytotoxict', count:3},
-  bcell:      {name:'Naive B-cell', group:'immune', class:'Adaptive', duration:'persistent', cost:2, pot:1, res:2, specializes:true, ability:'makesantibody', text:'On destroyed: create an Antibody token in hand.', icon:'bcell', count:3},
+  helpert:    {name:'Naive Helper T-cell', group:'immune', class:'Adaptive', duration:'persistent', cost:2, pot:1, res:4, specializes:true, ability:'supportcell', text:'Your other Persistent Immune cells get +0/+1. (HIV\'s specific target.)', icon:'helpert', count:3},
+  cytotoxict: {name:'Naive Cytotoxic T-cell', group:'immune', class:'Adaptive', duration:'persistent', cost:3, pot:3, res:3, specializes:true, ability:'primed', text:'+1 Potency while you control a Helper T-cell or Dendritic Cell.', icon:'cytotoxict', count:3},
+  bcell:      {name:'Naive B-cell', group:'immune', class:'Adaptive', duration:'persistent', cost:2, pot:1, res:3, specializes:true, ability:'makesantibody', text:'On destroyed: create an Antibody token in hand.', icon:'bcell', count:3},
   antibody:   {name:'Antibody', group:'immune', class:'Adaptive', duration:'acute', cost:0, pot:null, res:1, text:'May block any attack, fully neutralizing it, then is spent.', icon:'antibody', count:0},
+  granule:    {name:'Granule', group:'immune', class:'Adaptive', duration:'acute', cost:0, pot:1, res:0, text:"Can attack anything — an opponent's Health, a Pathogen, or an enemy Immune cell — then is spent.", icon:'granule', count:0},
+  ifng:       {name:'IFN-γ', group:'effect', cost:0, ability:'cytokineboost', boostPool:['dendritic','macrophage','cytotoxict'], text:'Target a Dendritic Cell, Macrophage, or Cytotoxic T-cell you control: permanent +1/+1.', icon:'ifng', count:0},
+  il4:        {name:'IL-4', group:'effect', cost:0, ability:'cytokineboost', boostPool:['eosinophil','mast','bcell'], text:'Target an Eosinophil, Mast Cell, or B-cell you control: permanent +1/+1.', icon:'il4', count:0},
 
   vaccinate: {name:'Vaccination', group:'effect', cost:3, ability:'vaccinate', text:'Choose a category; a Naive adaptive cell you control becomes Specialized against it immediately.', icon:'vaccine', count:1},
   drift:     {name:'Antigenic Drift', group:'effect', cost:1, ability:'drift', text:'Target your Pathogen: +1 Potency this turn; can\'t be blocked by Acute cells this turn.', icon:'driftmut', count:2},
@@ -1703,7 +1709,7 @@ function playCreature(who, handUid, defId, def, specCat){
     // never leave `.specialized` set on its own with no specialTag behind it.
     var isHumanControlled = S.mode!=='solo' || who==='p1';
     if(isHumanControlled){
-      var specKind = creature.defId==='bcell' ? 'bcell' : 'tcell';
+      var specKind = creature.defId==='bcell' ? 'bcell' : (creature.defId==='cytotoxict' ? 'cd8' : 'cd4');
       S.selection = {mode:'specializeChoice', uid:creature.uid, owner:who, category:primedCategory, kind:specKind};
     } else {
       aiResolveSpecialize(creature, primedCategory, who);
@@ -1713,7 +1719,7 @@ function playCreature(who, handUid, defId, def, specCat){
 }
 
 function needsManualTarget(def){
-  return def.ability==='drift' || def.ability==='shift' || def.ability==='treat' || def.ability==='incinerate' || def.ability==='boost';
+  return def.ability==='drift' || def.ability==='shift' || def.ability==='treat' || def.ability==='incinerate' || def.ability==='boost' || def.ability==='cytokineboost';
 }
 function validTargetsFor(who, def){
   var opp = opponentOf(who);
@@ -1721,6 +1727,7 @@ function validTargetsFor(who, def){
   if(def.ability==='treat') return S.players[opp].board.filter(function(c){return c.group==='pathogen' && c.category===def.treatCat;}).map(function(c){return c.uid;});
   if(def.ability==='incinerate') return S.players[opp].board.filter(function(c){return c.group==='pathogen';}).map(function(c){return c.uid;});
   if(def.ability==='boost') return S.players[who].board.filter(function(c){return c.group==='immune' && c.class==='Adaptive';}).map(function(c){return c.uid;});
+  if(def.ability==='cytokineboost') return S.players[who].board.filter(function(c){return def.boostPool.indexOf(c.defId)>-1;}).map(function(c){return c.uid;});
   return [];
 }
 
@@ -1750,6 +1757,9 @@ function applyEffect(who, def, targetUid, chosenCategory){
   } else if(def.ability==='boost'){
     var t4 = findCreature(who, targetUid);
     if(t4){ t4.pot+=1; t4.res+=1; t4.maxRes+=1; pushLog(t4.name+' gets a permanent +1/+1 boost.'); }
+  } else if(def.ability==='cytokineboost'){
+    var t6 = findCreature(who, targetUid);
+    if(t6){ t6.pot+=1; t6.res+=1; t6.maxRes+=1; pushLog(t6.name+' gets a permanent +1/+1 boost from '+def.name+'.'); }
   } else if(def.ability==='chemokine'){
     var innatePool = S.players[who].discard.filter(function(id){ return DEFS[id] && DEFS[id].group==='immune' && DEFS[id].class==='Innate'; });
     if(innatePool.length){
@@ -1830,30 +1840,42 @@ function resolveUnblocked(pathogen, pathOwner, hostWho){
 
 function applySpecializePath(creature, category, path){
   creature.specialized = category;
+  // Every specialization path toughens the cell by +1 Resistance, on top of whatever else
+  // that path grants — a flat counterweight to the chronic pathogens getting harder to kill.
+  creature.res += 1; creature.maxRes += 1;
   if(path==='effector'){
-    creature.effectorCharge = 3;
     creature.name = 'Effector '+creature.baseName;
     creature.specialTag = 'Effector';
-    pushLog(creature.name+' becomes an Effector cell — +3 Potency until it next fights.');
+    if(creature.defId==='cytotoxict'){
+      creature.ability = 'granulesecrete';
+      creature.text = 'Tap to secrete a Granule into your hand for 1 ATP (once per turn). Granules (+1/0) can attack anything — Health, a Pathogen, or an enemy Immune cell — then are spent.';
+      pushLog(creature.name+' becomes an Effector cell — can secrete a Granule each turn for 1 ATP; +1 Resistance.');
+    } else {
+      var cytokineId = (category==='Virus' || category==='Bacterium') ? 'ifng' : 'il4';
+      creature.ability = 'cytokinesecrete';
+      creature.cytokineId = cytokineId;
+      creature.text = 'Tap to secrete '+DEFS[cytokineId].name+' into your hand for 1 ATP (once per turn).';
+      pushLog(creature.name+' becomes an Effector cell — can secrete '+DEFS[cytokineId].name+' each turn for 1 ATP; +1 Resistance.');
+    }
   } else if(path==='memory'){
     creature.res += 2; creature.maxRes += 2;
     creature.name = 'Memory '+creature.baseName;
     creature.specialTag = 'Memory';
-    pushLog(creature.name+' becomes a Memory cell — permanent +2 Resilience.');
+    pushLog(creature.name+' becomes a Memory cell — permanent +3 Resilience.');
   } else if(path==='memoryb'){
     creature.pot += 2; creature.res += 2; creature.maxRes += 2;
     creature.name = 'Memory B-cell';
     creature.specialTag = 'Memory';
     creature.ability = null;
     creature.text = 'A tougher, faster combatant now — no longer leaves an Antibody on death.';
-    pushLog('Memory B-cell — permanent +2/+2, no longer leaves an Antibody on death.');
+    pushLog('Memory B-cell — permanent +2 Potency, +3 Resistance, no longer leaves an Antibody on death.');
   } else if(path==='plasma'){
     creature.plasma = true;
     creature.ability = 'plasmasecrete';
     creature.name = 'Plasma Cell';
     creature.specialTag = 'Plasma';
     creature.text = 'Tap to secrete a '+category+'-specific Antibody into your hand for 1 ATP (once per turn). No longer engages directly, and no longer leaves an Antibody on death.';
-    pushLog('Plasma Cell — can secrete a '+category+'-specific Antibody each turn for 1 ATP.');
+    pushLog('Plasma Cell — can secrete a '+category+'-specific Antibody each turn for 1 ATP; +1 Resistance.');
   }
 }
 function aiResolveSpecialize(creature, category, owner){
@@ -1919,7 +1941,7 @@ function resolveCombat(pathogen, pathOwner, immune, immOwner, onDone, context){
   if(willSpecialize && !S.over){
     var isHumanControlled = S.mode!=='solo' || immOwner==='p1';
     if(isHumanControlled){
-      var kind = immune.defId==='bcell' ? 'bcell' : 'tcell';
+      var kind = immune.defId==='bcell' ? 'bcell' : (immune.defId==='cytotoxict' ? 'cd8' : 'cd4');
       S.selection = {mode:'specializeChoice', uid:immune.uid, owner:immOwner, category:pathogen.category, kind:kind, onDoneAfter:onDone};
       render();
       return;
@@ -2079,6 +2101,10 @@ function aiPlayPhase(done){
         var hasAdaptive = ai.board.some(function(c){return c.group==='immune' && c.class==='Adaptive';});
         if(!hasAdaptive) s -= 99;
       }
+      if(d.ability==='cytokineboost'){
+        var hasCytokinePool = ai.board.some(function(c){return d.boostPool.indexOf(c.defId)>-1;});
+        if(!hasCytokinePool) s -= 99;
+      }
       if(d.ability==='chemokine'){
         var innatePoolScore = ai.discard.filter(function(id){ return DEFS[id] && DEFS[id].group==='immune' && DEFS[id].class==='Innate'; });
         if(innatePoolScore.length===0) s -= 99; else s += 3;
@@ -2117,6 +2143,9 @@ function aiPlayPhase(done){
       } else if(def.ability==='boost'){
         var adaptivePool = ai.board.filter(function(c){return c.group==='immune' && c.class==='Adaptive';}).sort(function(a,b){return b.pot-a.pot;});
         if(adaptivePool.length) applyEffect('p2', def, adaptivePool[0].uid);
+      } else if(def.ability==='cytokineboost'){
+        var cytokinePool = ai.board.filter(function(c){return def.boostPool.indexOf(c.defId)>-1;}).sort(function(a,b){return b.pot-a.pot;});
+        if(cytokinePool.length) applyEffect('p2', def, cytokinePool[0].uid);
       } else {
         applyEffect('p2', def, null, null);
       }
@@ -2143,15 +2172,36 @@ function aiAttackPhase(i, done){
   if(!findCreature('p2', c.uid) || c.acted){ return setTimeout(function(){ aiAttackPhase(i+1, done); }, 10); }
   if(c.group==='pathogen'){
     declarePathogenAttack('p2', c.uid, function(){ setTimeout(function(){ aiAttackPhase(i+1, done); }, 600); });
-  } else if(c.ability==='plasmasecrete'){
+  } else if(c.ability==='plasmasecrete' || c.ability==='granulesecrete' || c.ability==='cytokinesecrete'){
     if(S.players.p2.atp>=1 && S.players.p2.hand.length<10){
       S.players.p2.atp -= 1;
       c.acted = true;
-      S.players.p2.hand.push({uid:nextUid(), defId:'antibody', specCat:c.specialized});
-      pushLog(c.name+' secretes a '+c.specialized+'-specific antibody.');
+      if(c.ability==='plasmasecrete'){
+        S.players.p2.hand.push({uid:nextUid(), defId:'antibody', specCat:c.specialized});
+        pushLog(c.name+' secretes a '+c.specialized+'-specific antibody.');
+      } else if(c.ability==='granulesecrete'){
+        S.players.p2.hand.push({uid:nextUid(), defId:'granule'});
+        pushLog(c.name+' secretes a Granule.');
+      } else {
+        S.players.p2.hand.push({uid:nextUid(), defId:c.cytokineId});
+        pushLog(c.name+' secretes '+DEFS[c.cytokineId].name+'.');
+      }
       render();
     }
     setTimeout(function(){ aiAttackPhase(i+1, done); }, 60);
+  } else if(c.defId==='granule'){
+    // Granules can hit anything — prefer a free kill on an enemy Pathogen or Immune cell
+    // (1 Potency is enough to one-shot anything with 1 Resistance or less), otherwise just
+    // send the 1 damage at Health since the Granule is spent either way.
+    var human2 = S.players.p1;
+    var killable = human2.board.filter(function(t){
+      return (t.group==='pathogen' || (t.group==='immune' && t.defId!=='antibody')) && t.res!==null && t.res<=effectivePot(c);
+    }).sort(function(a,b){ return b.cost-a.cost; });
+    if(killable.length){
+      declareEngage('p2', c.uid, killable[0].uid, function(){ render(); setTimeout(function(){ aiAttackPhase(i+1, done); }, 600); });
+    } else {
+      declarePathogenAttack('p2', c.uid, function(){ setTimeout(function(){ aiAttackPhase(i+1, done); }, 600); });
+    }
   } else {
     var human = S.players.p1;
     var targets = human.board.filter(function(p){ return p.group==='pathogen'; });
@@ -2452,14 +2502,21 @@ function render(){
         selectable = true; onclick = 'chooseblocker';
       } else if(S.selection && S.selection.mode==='engageTarget' && who===opponentOf(S.selection.who) && S.selection.validTargets.indexOf(c.uid)>-1){
         selectable = true; pathtarget = true; onclick = 'engagetarget';
+      } else if(S.selection && S.selection.mode==='granuleTarget' && who===opponentOf(S.selection.who) && S.selection.validTargets.indexOf(c.uid)>-1){
+        selectable = true; pathtarget = true; onclick = 'granuletarget';
       } else if(S.selection && S.selection.mode==='effectTarget' && S.selection.validTargets.indexOf(c.uid)>-1 && ownerOf(c.uid)===S.selection.targetSide){
         selectable = true; pathtarget = (c.group==='pathogen'); onclick = 'resolveeffecttarget';
       } else if(!S.selection && !S.pendingAttack && !S.locked && who===S.turn && localSeatFor(who) && !c.dormant && !c.acted){
         if(c.group==='pathogen'){
           if(S.players[who].atp>=1){ selectable = true; onclick = 'attackstart'; }
         }
-        else if(c.ability==='plasmasecrete'){
+        else if(c.ability==='plasmasecrete' || c.ability==='granulesecrete' || c.ability==='cytokinesecrete'){
           if(S.players[who].atp>=1){ selectable = true; onclick = 'secrete'; }
+        }
+        else if(c.defId==='granule'){
+          // Granules can strike Health directly, an enemy Pathogen, or an enemy Immune cell —
+          // wider than a normal engage (pathogen-only), so it gets its own target-picker mode.
+          if(S.players[who].atp>=1){ selectable = true; onclick = 'granuleattack'; }
         }
         else if(c.group==='immune' && c.defId!=='antibody'){
           var hasTargets = S.players[opponentOf(who)].board.some(function(x){return x.group==='pathogen';});
@@ -2494,6 +2551,9 @@ function render(){
   } else if(S.selection && S.selection.mode==='primeChooseCategory'){
     ti.classList.add('choosemode');
     ti.textContent = waitingOnOpponent ? 'Waiting for Opponent to choose...' : 'Choose a category to prime!';
+  } else if(S.selection && S.selection.mode==='granuleTarget'){
+    ti.classList.add('choosemode');
+    ti.textContent = 'Tap a target, or attack Health directly!';
   } else if(S.mode==='solo' && S.turn==='p2'){
     ti.classList.add('waiting');
     ti.textContent = "Computer's turn — please wait";
@@ -2516,7 +2576,7 @@ function render(){
     var recent = S.log.slice(-3);
     root.log.innerHTML = recent.map(function(l){return '<div>'+escapeHTML(l)+'</div>';}).join('');
   }
-  var pickerMode = iCanAct && S.selection && (S.selection.mode==='vaccinateChooseCategory' || S.selection.mode==='specializeChoice' || S.selection.mode==='shiftChooseCategory' || S.selection.mode==='primeChooseCategory');
+  var pickerMode = iCanAct && S.selection && (S.selection.mode==='vaccinateChooseCategory' || S.selection.mode==='specializeChoice' || S.selection.mode==='shiftChooseCategory' || S.selection.mode==='primeChooseCategory' || S.selection.mode==='granuleTarget');
   root.log.hidden = pickerMode;
   if(!document.getElementById('history-overlay').hidden) renderHistory();
 
@@ -2531,8 +2591,10 @@ function render(){
     }).join('');
   } else if(S.selection && S.selection.mode==='specializeChoice'){
     var pathOpts = S.selection.kind==='bcell'
-      ? [['memoryb','Memory +2/+2'],['plasma','Plasma: makes Ab']]
-      : [['effector','Effector +3 ATK'],['memory','Memory +2 DEF']];
+      ? [['memoryb','Memory +2/+3'],['plasma','Plasma: makes Ab']]
+      : S.selection.kind==='cd8'
+        ? [['effector','Effector: Granules'],['memory','Memory +3 DEF']]
+        : [['effector','Effector: Cytokines'],['memory','Memory +3 DEF']];
     root.pickCategory.innerHTML = pathOpts.map(function(o){
       return '<button data-action="pickspecialize" data-path="'+o[0]+'">'+o[1]+'</button>';
     }).join('');
@@ -2544,6 +2606,8 @@ function render(){
     root.pickCategory.innerHTML = ['Virus','Bacterium','Fungus','Parasite'].map(function(cat){
       return '<button data-action="pickprimecategory" data-cat="'+cat+'">'+cat+'</button>';
     }).join('');
+  } else if(S.selection && S.selection.mode==='granuleTarget'){
+    root.pickCategory.innerHTML = '<button data-action="granuleattackhealth">Attack Health directly</button>';
   }
 
   if(S.over){
@@ -2709,6 +2773,27 @@ document.addEventListener('DOMContentLoaded', function(){
       S.selection = null;
       declareEngage(engSrcWho, engSrcUid, tUid, function(){ render(); });
       render();
+    } else if(action==='granuleattack'){
+      var gSrcUid = el.dataset.uid;
+      if(S.selection && S.selection.mode==='granuleTarget' && S.selection.sourceUid===gSrcUid){ S.selection=null; }
+      else {
+        var gValidT = S.players[opponentOf(S.turn)].board.filter(function(c){return c.group==='pathogen' || (c.group==='immune' && c.defId!=='antibody');}).map(function(c){return c.uid;});
+        S.selection = {mode:'granuleTarget', who:S.turn, sourceUid:gSrcUid, validTargets:gValidT};
+      }
+      render();
+    } else if(action==='granuletarget'){
+      if(!S.selection || S.selection.mode!=='granuleTarget') return;
+      var gTUid = el.dataset.uid;
+      var gWho = S.selection.who, gSrc = S.selection.sourceUid;
+      S.selection = null;
+      declareEngage(gWho, gSrc, gTUid, function(){ render(); });
+      render();
+    } else if(action==='granuleattackhealth'){
+      if(!S.selection || S.selection.mode!=='granuleTarget') return;
+      var ghWho = S.selection.who, ghSrc = S.selection.sourceUid;
+      S.selection = null;
+      declarePathogenAttack(ghWho, ghSrc, function(){ render(); });
+      render();
     } else if(action==='chooseblocker'){
       if(!S.pendingAttack) return;
       resolveBlockChoice(el.dataset.uid);
@@ -2723,13 +2808,22 @@ document.addEventListener('DOMContentLoaded', function(){
     } else if(action==='secrete'){
       var secUid = el.dataset.uid;
       var secC = findCreature(S.turn, secUid);
-      if(!secC || secC.dormant || secC.acted || secC.ability!=='plasmasecrete') return;
+      var secretable = secC && !secC.dormant && !secC.acted && (secC.ability==='plasmasecrete' || secC.ability==='granulesecrete' || secC.ability==='cytokinesecrete');
+      if(!secretable) return;
       if(S.players[S.turn].atp<1) return;
-      if(S.players[S.turn].hand.length>=10){ pushLogFlash('Hand full — the antibody is lost.'); render(); return; }
+      if(S.players[S.turn].hand.length>=10){ pushLogFlash('Hand full — the secretion is lost.'); render(); return; }
       S.players[S.turn].atp -= 1;
       secC.acted = true;
-      S.players[S.turn].hand.push({uid:nextUid(), defId:'antibody', specCat:secC.specialized});
-      pushLog(secC.name+' secretes a '+secC.specialized+'-specific antibody.');
+      if(secC.ability==='plasmasecrete'){
+        S.players[S.turn].hand.push({uid:nextUid(), defId:'antibody', specCat:secC.specialized});
+        pushLog(secC.name+' secretes a '+secC.specialized+'-specific antibody.');
+      } else if(secC.ability==='granulesecrete'){
+        S.players[S.turn].hand.push({uid:nextUid(), defId:'granule'});
+        pushLog(secC.name+' secretes a Granule.');
+      } else {
+        S.players[S.turn].hand.push({uid:nextUid(), defId:secC.cytokineId});
+        pushLog(secC.name+' secretes '+DEFS[secC.cytokineId].name+'.');
+      }
       render();
     } else if(action==='resolveeffecttarget'){
       if(!S.selection || S.selection.mode!=='effectTarget') return;
