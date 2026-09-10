@@ -1900,12 +1900,19 @@ function resolveCombat(pathogen, pathOwner, immune, immOwner, onDone, context){
     if(specMatch){ pushLog(immune.name+"'s "+immune.specialized+' specialization adds +1 force against '+pathogen.name+'.'); }
     eligibleToSpecialize = immune.specializes && !immune.specialized;
   }
+  var pathogenSurvived = !S.anim.dying[pathogen.uid];
   if(immune.effectorCharge){
     immune.effectorCharge = 0;
     pushLog(immune.name+"'s Effector boost is spent.");
   }
   damageCreature(immune, immOwner, effectivePot(pathogen));
   var immuneSurvived = !S.anim.dying[immune.uid];
+  // Explicit, numbers-included outcome for every fight (block or engage) — otherwise a card
+  // dying in combat was never actually announced anywhere, just silently removed from the
+  // board, which made "why did my cell just die" impossible to verify from the log alone.
+  var resLabel = function(c){ return c.res===null ? '—' : Math.max(c.res,0); };
+  pushLog(immune.name+' ('+resLabel(immune)+' Res left) '+(immuneSurvived?'survives':'is destroyed')+'; '+
+          pathogen.name+' ('+resLabel(pathogen)+' Res left) '+(pathogenSurvived?'survives':'is destroyed')+'.');
   if(immune.duration==='acute' && immuneSurvived){ removeCreature(immOwner, immune.uid); }
   checkGameOver();
   var willSpecialize = eligibleToSpecialize && immuneSurvived;
@@ -1929,6 +1936,7 @@ function declarePathogenAttack(who, sourceUid, onDone){
   if(S.players[who].atp<1){ if(onDone) onDone(); return; }
   S.players[who].atp -= 1;
   attacker.acted = true;
+  pushLog(attacker.name+' attacks with '+effectivePot(attacker)+' Potency.');
   var defWho = opponentOf(who);
   var blockers = eligibleBlockers(defWho, attacker);
   var finish = function(){
@@ -1948,7 +1956,7 @@ function declarePathogenAttack(who, sourceUid, onDone){
     setTimeout(function(){
       var choice = aiChooseBlock(defWho, attacker, blockers);
       if(choice){
-        pushLog(label(defWho)+' blocks with '+choice.name+'.');
+        pushLog(label(defWho)+' blocks '+attacker.name+' with '+choice.name+'.');
         resolveCombat(attacker, who, choice, defWho, function(){ render(); finish(); }, 'block');
       } else {
         resolveUnblocked(attacker, who, defWho);
@@ -1988,7 +1996,7 @@ function resolveBlockChoice(blockerUidOrNull){
   if(blockerUidOrNull){
     var blocker = findCreature(pa.defWho, blockerUidOrNull);
     if(blocker){
-      pushLog(label(pa.defWho)+' blocks with '+blocker.name+'.');
+      pushLog(label(pa.defWho)+' blocks '+attacker.name+' with '+blocker.name+'.');
       resolveCombat(attacker, pa.attackerWho, blocker, pa.defWho, function(){ render(); finishAttack(); }, 'block');
       return;
     }
