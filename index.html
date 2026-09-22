@@ -1947,9 +1947,17 @@ function resolveCombat(pathogen, pathOwner, immune, immOwner, onDone, context){
   // Explicit, numbers-included outcome for every fight (block or engage) — otherwise a card
   // dying in combat was never actually announced anywhere, just silently removed from the
   // board, which made "why did my cell just die" impossible to verify from the log alone.
+  // An Acute card that wins its fight still only gets the one action — it's removed right
+  // after, same as an Acute pathogen after it attacks — so "survives" alone would read as a
+  // contradiction once the card vanishes a moment later. Spell that out instead of just
+  // saying "survives".
   var resLabel = function(c){ return c.res===null ? '—' : Math.max(c.res,0); };
-  pushLog(immune.name+' ('+resLabel(immune)+' Res left) '+(immuneSurvived?'survives':'is destroyed')+'; '+
-          pathogen.name+' ('+resLabel(pathogen)+' Res left) '+(pathogenSurvived?'survives':'is destroyed')+'.');
+  var fateLabel = function(c, survived){
+    if(!survived) return 'is destroyed';
+    return c.duration==='acute' ? 'survives the fight, but is spent (Acute — one action only)' : 'survives';
+  };
+  pushLog(immune.name+' ('+resLabel(immune)+' Res left) '+fateLabel(immune, immuneSurvived)+'; '+
+          pathogen.name+' ('+resLabel(pathogen)+' Res left) '+fateLabel(pathogen, pathogenSurvived)+'.');
   if(immune.duration==='acute' && immuneSurvived){ removeCreature(immOwner, immune.uid); }
   checkGameOver();
   var willSpecialize = eligibleToSpecialize && immuneSurvived;
