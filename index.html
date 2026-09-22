@@ -1054,7 +1054,7 @@ function renderTutorialOverlay(){
       text = "This banner shows whose turn it is. Right now, it's yours.";
       highlight = '#turn-indicator'; nextBtn.hidden = false; break;
     case 3:
-      text = "This is your ATP — the energy you spend to play cards. You have 2 out of 2 right now. This cap grows by 1 every one of your turns (up to a max of 8), so you'll have more to work with as the game goes on.";
+      text = "This is your ATP — the energy you spend to play cards. You have 2 out of 2 right now. This cap grows by 1 every one of your turns (up to a max of 8), so you'll have more to work with as the game goes on. One rule bend up front: to keep this lesson short, I'll jump your ATP up faster than that a couple of times — just so there's enough on hand to show you more of the game. A real game only ever climbs by 1 per turn.";
       highlight = '#hud-bottom-stats .stat.atp'; nextBtn.hidden = false; break;
     case 4:
       text = 'Let’s play your first card. Tap the Neutrophil in your hand — it costs 1 ATP and joins your board.';
@@ -1077,7 +1077,7 @@ function renderTutorialOverlay(){
         : "Taking the hit sent 3 damage straight to your Health, but your Neutrophil is still on your board, ready for later. Blocking instead would have traded hits with the Staph — possibly losing the Neutrophil, but also weakening or destroying the attacker.";
       nextBtn.hidden = false; break;
     case 10:
-      text = "It's your turn again. Rule bend: your ATP jumped from 2 up to 5, not just the usual +1 — I sped that up so we can get to a few more things in this lesson. In a real game it only climbs by 1 each of your turns. Effect cards like Antibiotic don't go on the board — they do something immediately, often against a target. Tap Antibiotic in your hand.";
+      text = "It's your turn again. Effect cards like Antibiotic don't go on the board — they do something immediately, often against a target. Tap Antibiotic in your hand.";
       highlight = '#hand [data-uid="'+tutorialUids.antibiotic+'"]'; break;
     case 11:
       text = "Now tap the glowing Staphylococcus aureus to target it with the Antibiotic.";
@@ -1101,7 +1101,7 @@ function renderTutorialOverlay(){
       text = "Engaging is a two-way fight: both sides deal their Potency to each other at once. Your NK Cell's 2 Potency was enough to destroy the Staph's 2 Resistance — but the Staph's 3 Potency was also enough to destroy your NK Cell's 1 Resistance right back. Both were removed. Choosing what to engage, and when, matters.";
       nextBtn.hidden = false; break;
     case 18:
-      text = "One more thing worth seeing: your turn again. Rule bend again: your ATP jumped from 0 up to 4, another bigger-than-usual increase just for this lesson. \"Naive\" adaptive cells like your Helper T-cell haven't proven themselves against anything yet. Tap the Naive Helper T-cell in your hand.";
+      text = "One more thing worth seeing: your turn again. \"Naive\" adaptive cells like your Helper T-cell haven't proven themselves against anything yet. Tap the Naive Helper T-cell in your hand.";
       highlight = '#hand [data-uid="'+tutorialUids.helpert+'"]'; break;
     case 19:
       text = "Your Naive Helper T-cell is on the board. Rule bend: a freshly played card like this would normally be \"dormant\" and unable to act until your next turn — I've let yours skip that wait so we can see specialization in this same lesson. The computer has a Rhinovirus out — a mild one, 1 Potency. Let's send your T-cell to engage it and see what happens if your cell survives a fight.";
