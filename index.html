@@ -191,6 +191,7 @@
 
   .card.on-board{width:70px;}
   .card.dormant::after{content:'resting';position:absolute;inset:0;background:rgba(4,6,8,0.46);display:flex;align-items:center;justify-content:center;font-family:var(--font-mono);font-size:8.5px;letter-spacing:.05em;text-transform:uppercase;color:var(--ink-dim);}
+  .card.hidden-latent::after{content:'dormant';position:absolute;inset:0;background:rgba(4,6,8,0.46);display:flex;align-items:center;justify-content:center;font-family:var(--font-mono);font-size:8.5px;letter-spacing:.05em;text-transform:uppercase;color:var(--ink-dim);}
   .card.dormant.bar-pathogen::after{content:'incubating';}
   .card.spent{opacity:0.55;}
   .card.hit{animation:hitshake .32s ease;}
@@ -629,6 +630,7 @@ var ICONS = {
   virus_noro: function(){ return virusIcon(10,'var(--pathogen)',false); },
   virus_flu: function(){ return virusIcon(6,'var(--pathogen-strong)',true,['var(--effect)','var(--blue-strong)']); },
   virus_hiv: function(){ return svg('<circle cx="24" cy="24" r="17" fill="none" stroke="var(--pathogen-strong)" stroke-width="1.4" opacity=".5"/><path d="M24 10 34 20 30 34 18 34 14 20Z" fill="var(--pathogen)" opacity=".9"/><circle cx="21" cy="22" r="2" fill="var(--blue)"/><circle cx="27" cy="24" r="2" fill="var(--blue)"/><circle cx="23" cy="29" r="1.6" fill="var(--effect)"/>'); },
+  virus_hsv: function(){ return svg('<circle cx="24" cy="24" r="13" fill="var(--pathogen)" opacity=".88"/><circle cx="24" cy="24" r="5" fill="var(--blue)" opacity=".85"/><g stroke="var(--pathogen-strong)" stroke-width="1.6" stroke-linecap="round" opacity=".8"><path d="M24 8v6M24 34v6M8 24h6M34 24h6M13 13l4.2 4.2M30.8 30.8l4.2 4.2M35 13l-4.2 4.2M17.2 30.8l-4.2 4.2"/></g><circle cx="24" cy="8" r="1.6" fill="var(--pathogen-strong)"/><circle cx="24" cy="40" r="1.6" fill="var(--pathogen-strong)"/><circle cx="8" cy="24" r="1.6" fill="var(--pathogen-strong)"/><circle cx="40" cy="24" r="1.6" fill="var(--pathogen-strong)"/>'); },
   virus_hpv: function(){ return svg('<circle cx="24" cy="24" r="14" fill="var(--pathogen)" opacity=".88"/><circle cx="24" cy="24" r="6" fill="var(--blue)" opacity=".85"/><g stroke="var(--bg)" stroke-width="1" opacity=".6"><path d="M24 10v10M24 28v10M11 24h7M30 24h7M14 14l7 7M27 27l7 7M34 14l-7 7M21 27l-7 7"/></g>'); },
   virus_ebv: function(){ return virusIcon(9,'var(--pathogen)',true); },
   virus_hepc: function(){ return svg('<circle cx="24" cy="24" r="16" fill="none" stroke="var(--pathogen-strong)" stroke-width="1.6"/><circle cx="24" cy="24" r="10" fill="var(--pathogen)" opacity=".88"/><circle cx="24" cy="24" r="4" fill="var(--blue)" opacity=".85"/><circle cx="24" cy="8" r="1.6" fill="var(--effect)"/><circle cx="38" cy="28" r="1.6" fill="var(--effect)"/><circle cx="12" cy="30" r="1.6" fill="var(--effect)"/>'); },
@@ -670,7 +672,8 @@ var ICONS = {
   granule: function(){ return svg('<circle cx="24" cy="24" r="5" fill="var(--immune-strong)"/><g fill="var(--blue)"><circle cx="24" cy="10" r="2.6"/><circle cx="36" cy="18" r="2.6"/><circle cx="36" cy="30" r="2.6"/><circle cx="24" cy="38" r="2.6"/><circle cx="12" cy="30" r="2.6"/><circle cx="12" cy="18" r="2.6"/></g>'); },
   ifng: function(){ return svg('<circle cx="24" cy="24" r="9" fill="var(--immune)" opacity=".85"/><g stroke="var(--effect-strong)" stroke-width="2" stroke-linecap="round"><path d="M24 6v8M24 34v8M6 24h8M34 24h8M11 11l6 6M31 31l6 6M37 11l-6 6M17 31l-6 6"/></g><circle cx="24" cy="24" r="3" fill="var(--blue)"/>'); },
   il4: function(){ return svg('<circle cx="24" cy="24" r="9" fill="var(--effect)" opacity=".8"/><g stroke="var(--immune-strong)" stroke-width="2" stroke-linecap="round"><path d="M24 6v8M24 34v8M6 24h8M34 24h8M11 11l6 6M31 31l6 6M37 11l-6 6M17 31l-6 6"/></g><circle cx="24" cy="24" r="3" fill="var(--blue)"/>'); },
-  daycare: function(){ return svg('<path d="M8 24 24 10 40 24" stroke="var(--effect-strong)" stroke-width="2.4" fill="none" stroke-linecap="round" stroke-linejoin="round"/><path d="M12 22v14a2 2 0 0 0 2 2h20a2 2 0 0 0 2-2V22" fill="var(--effect)" opacity=".2" stroke="var(--effect-strong)" stroke-width="2"/><circle cx="18" cy="30" r="2.6" fill="var(--pathogen)"/><circle cx="24" cy="32" r="2.6" fill="var(--pathogen)"/><circle cx="30" cy="30" r="2.6" fill="var(--pathogen)"/>'); }
+  daycare: function(){ return svg('<path d="M8 24 24 10 40 24" stroke="var(--effect-strong)" stroke-width="2.4" fill="none" stroke-linecap="round" stroke-linejoin="round"/><path d="M12 22v14a2 2 0 0 0 2 2h20a2 2 0 0 0 2-2V22" fill="var(--effect)" opacity=".2" stroke="var(--effect-strong)" stroke-width="2"/><circle cx="18" cy="30" r="2.6" fill="var(--pathogen)"/><circle cx="24" cy="32" r="2.6" fill="var(--pathogen)"/><circle cx="30" cy="30" r="2.6" fill="var(--pathogen)"/>'); },
+  toxin: function(){ return svg('<path d="M18 6h12v9l6 6v17a4 4 0 0 1-4 4H16a4 4 0 0 1-4-4V21Z" fill="none" stroke="var(--pathogen-strong)" stroke-width="1.8"/><rect x="18" y="6" width="12" height="5" fill="var(--pathogen-strong)"/><path d="M14 28h20v13a2 2 0 0 1-2 2H16a2 2 0 0 1-2-2Z" fill="var(--pathogen)" opacity=".85"/><path d="M20 22a1.8 1.8 0 1 1 0 .01ZM26 24a1.6 1.6 0 1 1 0 .01ZM24 33a2 2 0 1 1 0 .01Z" fill="var(--effect)"/>'); }
 };
 
 /* ================= card definitions ================= */
@@ -679,22 +682,26 @@ var DEFS = {
   noro:    {name:'Norovirus', group:'pathogen', category:'Virus', duration:'acute', cost:1, pot:2, res:null, text:'Fast and miserable, over in a day.', icon:'virus_noro', count:2},
   flu:     {name:'Influenza', group:'pathogen', category:'Virus', duration:'acute', cost:2, pot:2, res:null, ability:'replicate', text:'Replicate: if this hits Health, put a copy in your hand.', icon:'virus_flu', count:2},
   salm:    {name:'Salmonella', group:'pathogen', category:'Bacterium', duration:'acute', cost:2, pot:2, res:null, ability:'toxin1', text:'Toxin: if this hits Health, deals 1 more damage on top of its normal attack.', icon:'bact_rod', count:2},
-  staph:   {name:'Staphylococcus aureus', group:'pathogen', category:'Bacterium', duration:'persistent', cost:2, pot:3, res:2, text:'A solid, unspecialized threat.', icon:'bact_cluster', count:1},
-  candida: {name:'Candida albicans', group:'pathogen', category:'Fungus', duration:'persistent', cost:3, pot:1, res:5, text:'Low attack, very hard to fully clear.', icon:'fungus', count:1},
-  plasmo:  {name:'Plasmodium falciparum', group:'pathogen', category:'Parasite', duration:'persistent', cost:3, pot:2, res:3, ability:'drain', text:'Drain: hitting Health also gives its controller 1 ATP.', icon:'parasite', count:1},
-  hiv:     {name:'HIV', group:'pathogen', category:'Virus', duration:'persistent', cost:4, pot:1, res:5, ability:'onplayHelperT', icon:'virus_hiv', count:1,
-            chronic:{key:'aids', rollAt:3, rollTarget:5}, text:'On Play: deal 1 damage directly to an enemy Helper T-cell, ignoring blockers. Chronic — AIDS: unremoved 3 turns, roll d6; 5+ recruits a random pathogen from your discard pile into your hand.'},
+  staph:   {name:'Staphylococcus aureus', group:'pathogen', category:'Bacterium', duration:'persistent', cost:2, pot:3, res:2, icon:'bact_cluster', count:1,
+            secretesToxin:true, text:'Secretes a Toxin into your hand every turn it survives — one of its many exotoxins at work.'},
+  candida: {name:'Candida albicans', group:'pathogen', category:'Fungus', duration:'persistent', cost:3, pot:1, res:5, icon:'fungus', count:1,
+            regen:1, spawnsCopies:true, text:'Regenerates 1 Resistance each of your turns (biofilm), and buds off a copy of itself into your hand every round after the first.'},
+  plasmo:  {name:'Plasmodium falciparum', group:'pathogen', category:'Parasite', duration:'persistent', cost:3, pot:2, res:3, ability:'drain', spawnsCopies:true, text:'Drain: hitting Health also gives its controller 1 ATP. Also spawns a copy of itself into your hand every round after the first.', icon:'parasite', count:1},
+  hiv:     {name:'HIV', group:'pathogen', category:'Virus', duration:'persistent', cost:4, pot:1, res:5, ability:'onplayHelperT', canHide:true, icon:'virus_hiv', count:1,
+            chronic:{key:'aids', rollAt:3, rollTarget:5}, text:'On Play: deal 1 damage directly to an enemy Helper T-cell, ignoring blockers. Can go dormant (latent) instead of attacking — free to stay dormant, 1 ATP to reactivate. Chronic — AIDS: unremoved 3 turns, roll d6; 5+ recruits a random pathogen from your discard pile into your hand.'},
   prion:   {name:'Prion', group:'pathogen', category:'Prion', duration:'persistent', cost:5, pot:1, res:4, ability:'unkillable', text:'Cannot be destroyed by engaging or blocking — only Incineration works.', icon:'prion', count:1, set:'expansion'},
-  hpv:     {name:'HPV', group:'pathogen', category:'Virus', duration:'persistent', cost:2, pot:1, res:4, icon:'virus_hpv', count:1,
-            chronic:{key:'dysplasia', threshold:3}, text:'Chronic — Dysplasia: unremoved 3 turns → host takes +1 dmg/turn until destroyed.'},
-  ebv:     {name:'Epstein-Barr Virus', group:'pathogen', category:'Virus', duration:'persistent', cost:2, pot:1, res:5, icon:'virus_ebv', count:1,
-            chronic:{key:'lupus', rollAt:2, rollTarget:6}, text:'Chronic — Molecular Mimicry: end of host\'s 2nd turn, roll d6; a 6 triggers lupus.'},
-  hpylori: {name:'Helicobacter pylori', group:'pathogen', category:'Bacterium', duration:'persistent', cost:2, pot:1, res:4, icon:'bact_spiral', count:1,
-            chronic:{key:'gastritis', threshold:4}, text:'Chronic — Gastritis: unremoved 4 turns → host takes +1 dmg/turn until destroyed.'},
-  hepc:    {name:'Hepatitis C', group:'pathogen', category:'Virus', duration:'persistent', cost:3, pot:2, res:3, icon:'virus_hepc', count:1,
-            chronic:{key:'cirrhosis', threshold1:3, threshold2:6}, text:'Chronic — Cirrhosis→HCC: 3 turns → +1 dmg/turn; 6 turns → +2/turn.'},
-  strep:   {name:'Group A Streptococcus', group:'pathogen', category:'Bacterium', duration:'persistent', cost:2, pot:2, res:2, icon:'bact_chain', count:1,
-            chronic:{key:'rheumatic', rollAt:3}, text:'Chronic — Rheumatic Fever: 3 turns, roll d6; 5+ = permanent -2 max Health.'},
+  hpv:     {name:'HPV', group:'pathogen', category:'Virus', duration:'persistent', cost:2, pot:1, res:4, icon:'virus_hpv', count:1, spawnsCopies:true,
+            chronic:{key:'dysplasia', threshold:3}, text:'Chronic — Dysplasia: unremoved 3 turns → host takes +1 dmg/turn until destroyed. Also spawns a copy of itself into your hand every round after the first.'},
+  ebv:     {name:'Epstein-Barr Virus', group:'pathogen', category:'Virus', duration:'persistent', cost:2, pot:1, res:5, icon:'virus_ebv', count:1, spawnsCopies:true,
+            chronic:{key:'lupus', rollAt:2, rollTarget:6}, text:'Chronic — Molecular Mimicry: end of host\'s 2nd turn, roll d6; a 6 triggers lupus. Also spawns a copy of itself into your hand every round after the first.'},
+  hsv:     {name:'Herpes Simplex Virus', group:'pathogen', category:'Virus', duration:'persistent', cost:2, pot:2, res:3, canHide:true, icon:'virus_hsv', count:1,
+            text:'Can go dormant (latent in a nerve ganglion) instead of attacking — free to stay dormant, 1 ATP to reactivate.'},
+  hpylori: {name:'Helicobacter pylori', group:'pathogen', category:'Bacterium', duration:'persistent', cost:2, pot:1, res:4, icon:'bact_spiral', count:1, regen:1,
+            chronic:{key:'gastritis', threshold:4}, text:'Chronic — Gastritis: unremoved 4 turns → host takes +1 dmg/turn until destroyed. Regenerates 1 Resistance each of your turns (biofilm).'},
+  hepc:    {name:'Hepatitis C', group:'pathogen', category:'Virus', duration:'persistent', cost:3, pot:2, res:3, icon:'virus_hepc', count:1, retaliateKillInnate:true,
+            chronic:{key:'cirrhosis', threshold1:3, threshold2:6}, text:'Chronic — Cirrhosis→HCC: 3 turns → +1 dmg/turn; 6 turns → +2/turn. If attacked and not destroyed, exhausts and destroys one attacking Innate cell with 1 Resistance or less.'},
+  strep:   {name:'Group A Streptococcus', group:'pathogen', category:'Bacterium', duration:'persistent', cost:2, pot:2, res:2, icon:'bact_chain', count:1, secretesToxin:true,
+            chronic:{key:'rheumatic', rollAt:3}, text:'Chronic — Rheumatic Fever: 3 turns, roll d6; 5+ = permanent -2 max Health. Also secretes a Toxin into your hand every turn it survives.'},
   ecoli:   {name:'E. coli (mild strain)', group:'pathogen', category:'Bacterium', duration:'acute', cost:1, pot:1, res:null, text:'Usually harmless — this mild strain causes only brief stomach upset.', icon:'bact_capsule', count:2},
   tinea:   {name:"Athlete's Foot", group:'pathogen', category:'Fungus', duration:'acute', cost:1, pot:1, res:null, text:'A common fungal skin infection — annoying, rarely serious.', icon:'ringworm', count:2},
   pinworm: {name:'Pinworm', group:'pathogen', category:'Parasite', duration:'acute', cost:1, pot:1, res:null, text:'Extremely common, especially in kids — itchy, but mild.', icon:'pinworm', count:2},
@@ -712,6 +719,7 @@ var DEFS = {
   granule:    {name:'Granule', group:'immune', class:'Adaptive', duration:'acute', cost:0, pot:1, res:0, text:'Can attack any enemy Pathogen or Immune cell, then is spent.', icon:'granule', count:0},
   ifng:       {name:'IFN-γ', group:'effect', cost:0, ability:'cytokineboost', boostPool:['dendritic','macrophage','cytotoxict'], text:'Target a Dendritic Cell, Macrophage, or Cytotoxic T-cell you control: permanent +1/+1.', icon:'ifng', count:0},
   il4:        {name:'IL-4', group:'effect', cost:0, ability:'cytokineboost', boostPool:['eosinophil','mast','bcell'], text:'Target an Eosinophil, Mast Cell, or B-cell you control: permanent +1/+1.', icon:'il4', count:0},
+  toxin:      {name:'Toxin', group:'effect', cost:0, ability:'toxincard', text:'Deal 1 damage to a target enemy Immune cell.', icon:'toxin', count:0},
 
   vaccinate: {name:'Vaccination', group:'effect', cost:3, ability:'vaccinate', text:'Choose a category; a Naive adaptive cell you control becomes Specialized against it immediately.', icon:'vaccine', count:1},
   drift:     {name:'Antigenic Drift', group:'effect', cost:1, ability:'drift', text:'Target your Pathogen: +1 Potency this turn; can\'t be blocked by Acute cells this turn.', icon:'driftmut', count:2},
@@ -1515,6 +1523,40 @@ function clearTempBuffs(who){
   S.players[who].board.forEach(function(c){ c.tempPot = 0; c.noBlockAcute = false; });
 }
 
+// Regeneration, Toxin secretion, and self-copying all tick at the start of the pathogen's OWN
+// controller's turn (unlike chronic complications, which tick on the host/victim's turn) —
+// these represent the pathogen's own body doing something, not an effect on its host.
+// spawnsCopies deliberately skips the first tick (its first active turn) per design — a
+// pathogen shouldn't duplicate itself the instant it wakes up, only once it's actually stuck
+// around a full round. Regeneration and Toxin secretion have no such exclusion.
+function tickPathogenPassives(who){
+  var p = S.players[who];
+  p.board.slice().forEach(function(c){
+    if(c.group!=='pathogen' || c.dormant || S.anim.dying[c.uid]) return;
+    c.passiveTurns = (c.passiveTurns||0) + 1;
+    if(c.regen && c.res!==null && c.res<c.maxRes){
+      c.res = Math.min(c.maxRes, c.res + c.regen);
+      pushLog(c.name+' regenerates back to '+c.res+' Resistance.');
+    }
+    if(c.secretesToxin){
+      if(p.hand.length<10){
+        p.hand.push({uid:nextUid(), defId:'toxin'});
+        pushLog(c.name+' secretes a Toxin into '+label(who)+"'s hand.");
+      } else {
+        pushLog(c.name+"'s Toxin breaks down — "+label(who)+"'s hand is full.");
+      }
+    }
+    if(c.spawnsCopies && c.passiveTurns>1){
+      if(p.hand.length<10){
+        p.hand.push({uid:nextUid(), defId:c.defId});
+        pushLog(c.name+' spawns a copy of itself into '+label(who)+"'s hand.");
+      } else {
+        pushLog(c.name+"'s new copy is lost — "+label(who)+"'s hand is full.");
+      }
+    }
+  });
+}
+
 function startTurn(who){
   if(S.over) return;
   S.turn = who;
@@ -1522,6 +1564,7 @@ function startTurn(who){
   var p = S.players[who];
   p.board.forEach(function(c){ c.dormant = false; c.acted = false; });
   clearTempBuffs(who);
+  tickPathogenPassives(who);
   if(!p.everStarted){ p.atpMax = 2; p.everStarted = true; } else { p.atpMax = Math.min(8, p.atpMax+1); }
   p.atp = p.atpMax;
   tickChronicForHost(who);
@@ -1658,7 +1701,9 @@ function makeCreatureInstance(def, defId, specCat){
     ability:def.ability, text:text, icon:def.icon, specializes:!!def.specializes, specialized:null, specialTag:null,
     specificCategory: specCat||null, plasma:false,
     dormant: def.duration==='persistent', acted:false, tempPot:0, noBlockAcute:false, effectorCharge:0, auraBuffed:false, primeCategory:null,
-    chronicDef: def.chronic ? Object.assign({}, def.chronic) : null, hostTurns:0, rolled:false
+    chronicDef: def.chronic ? Object.assign({}, def.chronic) : null, hostTurns:0, rolled:false,
+    regen: def.regen||0, secretesToxin: !!def.secretesToxin, spawnsCopies: !!def.spawnsCopies,
+    retaliateKillInnate: !!def.retaliateKillInnate, canHide: !!def.canHide, hidden:false, passiveTurns:0
   };
 }
 
@@ -1722,7 +1767,7 @@ function playCreature(who, handUid, defId, def, specCat){
 }
 
 function needsManualTarget(def){
-  return def.ability==='drift' || def.ability==='shift' || def.ability==='treat' || def.ability==='incinerate' || def.ability==='boost' || def.ability==='cytokineboost';
+  return def.ability==='drift' || def.ability==='shift' || def.ability==='treat' || def.ability==='incinerate' || def.ability==='boost' || def.ability==='cytokineboost' || def.ability==='toxincard';
 }
 function validTargetsFor(who, def){
   var opp = opponentOf(who);
@@ -1731,6 +1776,7 @@ function validTargetsFor(who, def){
   if(def.ability==='incinerate') return S.players[opp].board.filter(function(c){return c.group==='pathogen';}).map(function(c){return c.uid;});
   if(def.ability==='boost') return S.players[who].board.filter(function(c){return c.group==='immune' && c.class==='Adaptive';}).map(function(c){return c.uid;});
   if(def.ability==='cytokineboost') return S.players[who].board.filter(function(c){return def.boostPool.indexOf(c.defId)>-1;}).map(function(c){return c.uid;});
+  if(def.ability==='toxincard') return S.players[opp].board.filter(function(c){return c.group==='immune';}).map(function(c){return c.uid;});
   return [];
 }
 
@@ -1746,6 +1792,9 @@ function applyEffect(who, def, targetUid, chosenCategory){
   } else if(def.ability==='treat'){
     var t3 = findCreature(opp, targetUid);
     if(t3) damageCreature(t3, opp, def.dmg, 'card');
+  } else if(def.ability==='toxincard'){
+    var tTox = findCreature(opp, targetUid);
+    if(tTox) damageCreature(tTox, opp, 1, 'card');
   } else if(def.ability==='fever'){
     S.players[who].board.forEach(function(c){ c.tempPot += 1; });
     damageHealth(who, 1);
@@ -1969,6 +2018,16 @@ function resolveCombat(pathogen, pathOwner, immune, immOwner, onDone, context){
   };
   pushLog(immune.name+' ('+resLabel(immune)+' Res left) '+fateLabel(immune, immuneSurvived)+'; '+
           pathogen.name+' ('+resLabel(pathogen)+' Res left) '+fateLabel(pathogen, pathogenSurvived)+'.');
+  if(pathogen.retaliateKillInnate && pathogenSurvived){
+    var retalPool = S.players[immOwner].board.filter(function(c){
+      return c.group==='immune' && c.class==='Innate' && c.res!==null && c.res<=1 && !S.anim.dying[c.uid];
+    });
+    if(retalPool.length){
+      var retalTarget = retalPool[Math.floor(Math.random()*retalPool.length)];
+      pushLog(pathogen.name+' exhausts and destroys '+retalTarget.name+'.');
+      killCreature(immOwner, retalTarget.uid, 'engage');
+    }
+  }
   if(immune.duration==='acute' && immuneSurvived){ removeCreature(immOwner, immune.uid); }
   checkGameOver();
   var willSpecialize = eligibleToSpecialize && immuneSurvived;
@@ -1988,7 +2047,7 @@ function resolveCombat(pathogen, pathOwner, immune, immOwner, onDone, context){
 
 function declarePathogenAttack(who, sourceUid, onDone){
   var attacker = findCreature(who, sourceUid);
-  if(!attacker || attacker.dormant || attacker.acted){ if(onDone) onDone(); return; }
+  if(!attacker || attacker.dormant || attacker.acted || attacker.hidden){ if(onDone) onDone(); return; }
   if(S.players[who].atp<1){ if(onDone) onDone(); return; }
   S.players[who].atp -= 1;
   attacker.acted = true;
@@ -2148,6 +2207,10 @@ function aiPlayPhase(done){
         if(acutePoolScore.length===0) s -= 99; else s += 4;
       }
       if(d.ability==='sleep' || d.ability==='healthydiet'){ s += 1; }
+      if(d.ability==='toxincard'){
+        var toxinPool = human.board.filter(function(c){return c.group==='immune';});
+        if(toxinPool.length===0) s -= 99; else if(toxinPool.some(function(c){return c.res!==null && c.res<=1;})) s += 4;
+      }
       return s;
     }
     options.sort(function(a,b){ return score(b)-score(a); });
@@ -2169,6 +2232,11 @@ function aiPlayPhase(done){
       } else if(def.ability==='treat'){
         var pool2 = human.board.filter(function(c){return c.group==='pathogen' && c.category===def.treatCat;}).sort(function(a,b){return a.res-b.res;});
         if(pool2.length) applyEffect('p2', def, pool2[0].uid);
+      } else if(def.ability==='toxincard'){
+        var toxinTargets = human.board.filter(function(c){return c.group==='immune';}).sort(function(a,b){
+          var ar = a.res===null?99:a.res, br = b.res===null?99:b.res; return ar-br;
+        });
+        if(toxinTargets.length) applyEffect('p2', def, toxinTargets[0].uid);
       } else if(def.ability==='drift' || def.ability==='shift'){
         var mine = ai.board.filter(function(c){return c.group==='pathogen';}).sort(function(a,b){return b.pot-a.pot;});
         if(mine.length) applyEffect('p2', def, mine[0].uid, def.ability==='shift' ? 'Virus' : null);
@@ -2288,7 +2356,7 @@ function peekBadgeHTML(kind, uid){ return '<span class="peek-badge" data-action=
 function creatureCardHTML(c, opts){
   opts = opts||{};
   var cls = ['card','on-board',barClass(c.group)];
-  if(c.dormant) cls.push('dormant'); else if(c.acted && !opts.selectable) cls.push('spent');
+  if(c.dormant) cls.push('dormant'); else if(c.hidden) cls.push('hidden-latent'); else if(c.acted && !opts.selectable) cls.push('spent');
   if(opts.selectable) cls.push('selectable');
   if(opts.pathtarget) cls.push('pathtarget');
   if(opts.chosen) cls.push('chosen');
@@ -2413,7 +2481,9 @@ function previewBoardHTML(c){
     chronicHTML = '<div class="preview-chronic">Unremoved for '+c.hostTurns+' of '+need+' of its host\'s turns before its complication can trigger.</div>';
   }
   var restWord = c.group==='pathogen' ? 'Incubating' : 'Resting';
-  var stateHTML = c.dormant ? '<div class="preview-state">'+restWord+' — can\'t act this turn.</div>' : (c.acted ? '<div class="preview-state">Already acted this turn.</div>' : '');
+  var stateHTML = c.dormant ? '<div class="preview-state">'+restWord+' — can\'t act this turn.</div>'
+    : (c.hidden ? '<div class="preview-state">Dormant — latent, costs 1 ATP to reactivate.</div>'
+    : (c.acted ? '<div class="preview-state">Already acted this turn.</div>' : ''));
   var potVal = c.pot===null ? '–' : effectivePot(c);
   var pHeader = cardHeaderHTML(c.group, '<div class="toprow">'+catTag+'</div><div class="name">'+c.name+'</div>');
   return '<div class="card preview-size on-board '+barClass(c.group)+'">'+
@@ -2549,7 +2619,17 @@ function render(){
       } else if(S.selection && S.selection.mode==='effectTarget' && S.selection.validTargets.indexOf(c.uid)>-1 && ownerOf(c.uid)===S.selection.targetSide){
         selectable = true; pathtarget = (c.group==='pathogen'); onclick = 'resolveeffecttarget';
       } else if(!S.selection && !S.pendingAttack && !S.locked && who===S.turn && localSeatFor(who) && !c.dormant && !c.acted){
-        if(c.group==='pathogen'){
+        if(c.canHide && c.hidden){
+          // Latent — no upkeep needed to stay hidden, but reactivating (the only thing you can
+          // do with it right now) costs 1 ATP, same as any other action.
+          if(S.players[who].atp>=1){ selectable = true; onclick = 'reactivate'; }
+        }
+        else if(c.canHide){
+          // Active and capable of going dormant — offer a choice instead of jumping straight
+          // into an attack, since going dormant is free and always on the table.
+          selectable = true; onclick = 'pathogenchoice';
+        }
+        else if(c.group==='pathogen'){
           if(S.players[who].atp>=1){ selectable = true; onclick = 'attackstart'; }
         }
         else if(c.ability==='plasmasecrete' || c.ability==='granulesecrete' || c.ability==='cytokinesecrete'){
@@ -2595,6 +2675,9 @@ function render(){
   } else if(S.selection && S.selection.mode==='primeChooseCategory'){
     ti.classList.add('choosemode');
     ti.textContent = waitingOnOpponent ? 'Waiting for Opponent to choose...' : 'Choose a category to prime!';
+  } else if(S.selection && S.selection.mode==='dormancyChoice'){
+    ti.classList.add('choosemode');
+    ti.textContent = waitingOnOpponent ? 'Waiting for Opponent to choose...' : 'Attack, or go dormant?';
   } else if(S.mode==='solo' && S.turn==='p2'){
     ti.classList.add('waiting');
     ti.textContent = "Computer's turn — please wait";
@@ -2617,7 +2700,7 @@ function render(){
     var recent = S.log.slice(-3);
     root.log.innerHTML = recent.map(function(l){return '<div>'+escapeHTML(l)+'</div>';}).join('');
   }
-  var pickerMode = iCanAct && S.selection && (S.selection.mode==='vaccinateChooseCategory' || S.selection.mode==='specializeChoice' || S.selection.mode==='shiftChooseCategory' || S.selection.mode==='primeChooseCategory');
+  var pickerMode = iCanAct && S.selection && (S.selection.mode==='vaccinateChooseCategory' || S.selection.mode==='specializeChoice' || S.selection.mode==='shiftChooseCategory' || S.selection.mode==='primeChooseCategory' || S.selection.mode==='dormancyChoice');
   root.log.hidden = pickerMode;
   if(!document.getElementById('history-overlay').hidden) renderHistory();
 
@@ -2647,6 +2730,8 @@ function render(){
     root.pickCategory.innerHTML = ['Virus','Bacterium','Fungus','Parasite'].map(function(cat){
       return '<button data-action="pickprimecategory" data-cat="'+cat+'">'+cat+'</button>';
     }).join('');
+  } else if(S.selection && S.selection.mode==='dormancyChoice'){
+    root.pickCategory.innerHTML = '<button data-action="choiceattack">Attack</button><button data-action="choicedormant">Go Dormant</button>';
   }
 
   if(S.over){
@@ -2775,7 +2860,7 @@ document.addEventListener('DOMContentLoaded', function(){
           render();
           return;
         }
-        var opponentTargeted = (def.ability==='treat' || def.ability==='incinerate');
+        var opponentTargeted = (def.ability==='treat' || def.ability==='incinerate' || def.ability==='toxincard');
         S.selection = {mode:'effectTarget', handUid:uid, def:def, validTargets:targets, targetSide: opponentTargeted?opponentOf(S.turn):S.turn};
         render();
         return;
@@ -2796,6 +2881,38 @@ document.addEventListener('DOMContentLoaded', function(){
     } else if(action==='attackstart'){
       var srcUid = el.dataset.uid;
       declarePathogenAttack(S.turn, srcUid, function(){ render(); });
+      render();
+    } else if(action==='pathogenchoice'){
+      var pcUid = el.dataset.uid;
+      if(S.selection && S.selection.mode==='dormancyChoice' && S.selection.sourceUid===pcUid){ S.selection = null; }
+      else { S.selection = {mode:'dormancyChoice', who:S.turn, sourceUid:pcUid}; }
+      render();
+    } else if(action==='choiceattack'){
+      if(!S.selection || S.selection.mode!=='dormancyChoice') return;
+      var caWho = S.selection.who, caSrc = S.selection.sourceUid;
+      S.selection = null;
+      declarePathogenAttack(caWho, caSrc, function(){ render(); });
+      render();
+    } else if(action==='choicedormant'){
+      if(!S.selection || S.selection.mode!=='dormancyChoice') return;
+      var cdCreature = findCreature(S.selection.who, S.selection.sourceUid);
+      var cdWho = S.selection.who;
+      S.selection = null;
+      if(cdCreature){
+        cdCreature.hidden = true;
+        cdCreature.acted = true;
+        pushLog(cdCreature.name+' goes dormant.');
+      }
+      render();
+    } else if(action==='reactivate'){
+      var raUid = el.dataset.uid;
+      var raCreature = findCreature(S.turn, raUid);
+      if(!raCreature || !raCreature.hidden || raCreature.acted || raCreature.dormant) return;
+      if(S.players[S.turn].atp<1) return;
+      S.players[S.turn].atp -= 1;
+      raCreature.hidden = false;
+      raCreature.acted = true;
+      pushLog(raCreature.name+' reactivates.');
       render();
     } else if(action==='engagestart'){
       var srcUid2 = el.dataset.uid;
