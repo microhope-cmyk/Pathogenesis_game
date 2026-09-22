@@ -265,6 +265,8 @@
   .mode-btn{display:block;width:100%;text-align:left;background:var(--surface);border:1px solid var(--rule);border-radius:12px;padding:14px 16px;margin-bottom:12px;cursor:pointer;color:var(--ink);}
   .mode-btn .mt{font-family:var(--font-display);font-size:16px;font-weight:700;text-transform:uppercase;letter-spacing:.02em;}
   .mode-btn .ms{font-family:var(--font-body);font-size:11.5px;color:var(--ink-faint);margin-top:2px;}
+  .short-game-toggle{display:flex;align-items:center;gap:8px;justify-content:center;font-family:var(--font-mono);font-size:11px;color:var(--ink-dim);margin:-16px 0 18px;cursor:pointer;letter-spacing:.02em;}
+  .short-game-toggle input{width:15px;height:15px;accent-color:var(--effect);cursor:pointer;flex:0 0 auto;}
   .mode-btn.solo{border-color:var(--immune);}
   .mode-btn.twop{border-color:var(--blue);}
   .mode-btn.online{border-color:var(--pathogen);}
@@ -396,6 +398,7 @@
     <img class="login-art-sm" src="images/pathogenesis-icon.png" alt="Pathogenesis logo">
     <h1>PATHOGEN<span>ESIS</span></h1>
     <div class="tag">infection &amp; immunity, card by card</div>
+    <label class="short-game-toggle"><input type="checkbox" id="short-game-toggle"> Short game — ATP +2/turn, 10 Health</label>
     <button class="mode-btn solo" data-mode="solo">
       <div class="mt">Solo</div>
       <div class="ms">Play against the computer.</div>
@@ -696,7 +699,7 @@ var DEFS = {
   hpv:     {name:'HPV', group:'pathogen', category:'Virus', duration:'persistent', cost:2, pot:1, res:4, icon:'virus_hpv', count:1, spawnsCopies:true,
             chronic:{key:'dysplasia', threshold:3}, text:'Chronic — Dysplasia: unremoved 3 turns → host takes +1 dmg/turn until destroyed. Also spawns a copy of itself into your hand every round after the first.'},
   ebv:     {name:'Epstein-Barr Virus', group:'pathogen', category:'Virus', duration:'persistent', cost:2, pot:1, res:5, icon:'virus_ebv', count:1, spawnsCopies:true,
-            chronic:{key:'lupus', rollAt:2, rollTarget:6}, text:'Chronic — Molecular Mimicry: end of host\'s 2nd turn, roll d6; a 6 triggers lupus. Also spawns a copy of itself into your hand every round after the first.'},
+            chronic:{key:'lupus', rollAt:2, rollTarget:100, rollSides:100}, text:'Chronic — Molecular Mimicry: end of host\'s 2nd turn, roll d100; only a 100 triggers lupus (1:100 odds). Also spawns a copy of itself into your hand every round after the first.'},
   hsv:     {name:'Herpes Simplex Virus', group:'pathogen', category:'Virus', duration:'persistent', cost:2, pot:2, res:3, canHide:true, icon:'virus_hsv', count:1,
             text:'Can go dormant (latent in a nerve ganglion) instead of attacking — free to stay dormant, 1 ATP to reactivate.'},
   hpylori: {name:'Helicobacter pylori', group:'pathogen', category:'Bacterium', duration:'persistent', cost:2, pot:1, res:4, icon:'bact_spiral', count:1, regen:1,
@@ -1288,7 +1291,8 @@ async function createOnlineGame(){
   if(notReady){ lobbyMessage(notReady); return; }
   lobbyMessage('Creating your game...');
   var code = generateRoomCode();
-  newGame('online', 'p1', code);
+  var shortToggle = document.getElementById('short-game-toggle');
+  newGame('online', 'p1', code, shortToggle && shortToggle.checked);
   try{
     await firestoreDb.collection('games').doc(code).set({
       status: 'waiting',
@@ -1401,12 +1405,19 @@ function freshPlayer(name){
 }
 function opponentOf(who){ return who==='p1' ? 'p2' : 'p1'; }
 
-function newGame(mode, seat, roomCode){
+function newGame(mode, seat, roomCode, shortGame){
   var keepSeat = (mode==='online' && S) ? S.mySeat : null;
   var keepRoom = (mode==='online' && S) ? S.roomCode : null;
+  // "Play again" calls newGame(S.mode) with no shortGame argument at all — fall back to
+  // whatever the game just finished was, so a rematch keeps the same short/full setting.
+  var keepShort = (shortGame!==undefined) ? !!shortGame : (S ? !!S.shortGame : false);
   S = { mode:mode, turn:null, first:null, over:false, winner:null, selection:null, pendingAttack:null,
-    log:[], anim:{hits:{}, dying:{}, deathKind:{}, healthHits:{}}, locked:false, turnCount:0,
+    log:[], anim:{hits:{}, dying:{}, deathKind:{}, healthHits:{}}, locked:false, turnCount:0, shortGame:keepShort,
     players:{ p1: freshPlayer('Player 1'), p2: freshPlayer('Player 2') } };
+  if(keepShort){
+    S.players.p1.health = 10; S.players.p1.maxHealth = 10;
+    S.players.p2.health = 10; S.players.p2.maxHealth = 10;
+  }
   if(mode==='online'){ S.mySeat = (seat!==undefined ? seat : keepSeat); S.roomCode = (roomCode!==undefined ? roomCode : keepRoom); }
   for(var i=0;i<5;i++){ drawCard('p1'); drawCard('p2'); }
   S.first = Math.random()<0.5 ? 'p1' : 'p2';
@@ -1466,10 +1477,12 @@ function drawCard(who){
 // A chronic complication's die roll needs to actually be seen, not just logged — pushLogFlash
 // puts it in the on-screen toast (not just the easy-to-miss scrolling log), and the message
 // spells out the roll and the target together so it's clear what happened and why.
-function rollDiceFlash(hostWho, complicationLabel, target){
-  var roll = 1+Math.floor(Math.random()*6);
+function rollDiceFlash(hostWho, complicationLabel, target, sides){
+  sides = sides || 6;
+  var roll = 1+Math.floor(Math.random()*sides);
   var hit = roll>=target;
-  pushLogFlash('🎲 '+label(hostWho)+' rolls a '+roll+' (needs '+target+'+) for '+complicationLabel+' — '+(hit?'triggered!':'no complication this time.'), true);
+  var sidesNote = sides===6 ? '' : (' out of '+sides);
+  pushLogFlash('🎲 '+label(hostWho)+' rolls a '+roll+sidesNote+' (needs '+target+'+) for '+complicationLabel+' — '+(hit?'triggered!':'no complication this time.'), true);
   return roll;
 }
 
@@ -1491,7 +1504,8 @@ function tickChronicForHost(hostWho){
       if(p.hostTurns===c.rollAt && !p.rolled){
         p.rolled = true;
         var target = c.rollTarget || 5;
-        var roll = rollDiceFlash(hostWho, 'molecular mimicry (EBV)', target);
+        var sides = c.rollSides || 6;
+        var roll = rollDiceFlash(hostWho, 'molecular mimicry (EBV)', target, sides);
         if(roll>=target){ host.autoreactive = true; pushLogFlash('Lupus onset — '+label(hostWho)+"'s B-cells and Antibodies now misfire against their own Health.", true); }
       }
     } else if(c.key==='rheumatic'){
@@ -1569,7 +1583,7 @@ function startTurn(who){
   p.board.forEach(function(c){ c.dormant = false; c.acted = false; });
   clearTempBuffs(who);
   tickPathogenPassives(who);
-  if(!p.everStarted){ p.atpMax = 2; p.everStarted = true; } else { p.atpMax = Math.min(8, p.atpMax+1); }
+  if(!p.everStarted){ p.atpMax = 2; p.everStarted = true; } else { p.atpMax = Math.min(8, p.atpMax + (S.shortGame ? 2 : 1)); }
   p.atp = p.atpMax;
   tickChronicForHost(who);
   if(S.over) return;
@@ -1963,7 +1977,7 @@ function aiResolveSpecialize(creature, category, owner){
     path = (S.players[owner].board.filter(function(c){return c.group==='immune';}).length>=3) ? 'plasma' : 'memoryb';
   } else {
     var opp = S.players[opponentOf(owner)];
-    path = (opp.health<=8) ? 'effector' : 'memory';
+    path = (opp.health<=opp.maxHealth*0.4) ? 'effector' : 'memory';
   }
   applySpecializePath(creature, category, path);
 }
@@ -2146,7 +2160,7 @@ function aiChooseBlock(defWho, attacker, blockers){
   var lethal = effectivePot(attacker) >= def.health;
   var survivorKiller = blockers.find(function(c){ return effectivePot(c)>=attacker.res && effectivePot(attacker)<c.res; });
   if(survivorKiller) return survivorKiller;
-  if(lethal || def.health - effectivePot(attacker) < 6){
+  if(lethal || def.health - effectivePot(attacker) < def.maxHealth*0.3){
     blockers = blockers.slice().sort(function(a,b){ return (effectivePot(b)>=attacker.res)-(effectivePot(a)>=attacker.res) || b.res-a.res; });
     return blockers[0];
   }
@@ -2168,8 +2182,8 @@ function aiPlayPhase(done){
     var options = hand.filter(function(h){ return affordable('p2', DEFS[h.defId]); });
     if(options.length===0) return done();
 
-    var wantsImmune = ai.health < 14;
-    var wantsPathogen = human.health < 14;
+    var wantsImmune = ai.health < ai.maxHealth*0.7;
+    var wantsPathogen = human.health < human.maxHealth*0.7;
     function score(h){
       var d = DEFS[h.defId]; var s = d.cost;
       if(d.group==='immune' && wantsImmune) s += 3;
@@ -2508,7 +2522,7 @@ function renderHowtoGuide(){
   var statsLegend = document.getElementById('guide-stats-legend');
   if(statsLegend){
     statsLegend.innerHTML = [
-      ['var(--pathogen)','<strong>Health</strong> — life total. Reaches 0 and that side loses. A second number (17/20) means a complication has permanently lowered max Health.'],
+      ['var(--pathogen)','<strong>Health</strong> — life total. Reaches 0 and that side loses. A second number (17/20) means either a complication has permanently lowered max Health, or this is a Short Game (10 max).'],
       ['var(--blue)','<strong>ATP</strong> — what you have to spend this turn, out of your current capacity.'],
       ['var(--ink-faint)','<strong>Deck</strong> — cards left to draw.'],
       ['var(--effect)','<strong>Autoimmune</strong> badge — appears only once a chronic complication has made that side\'s B-cells/Antibodies misfire.']
@@ -2789,7 +2803,7 @@ document.addEventListener('DOMContentLoaded', function(){
       document.getElementById('modeselect').hidden = true;
       document.getElementById('stage').hidden = false;
       document.getElementById('leave-btn').hidden = false;
-      newGame(btn.dataset.mode);
+      newGame(btn.dataset.mode, undefined, undefined, document.getElementById('short-game-toggle').checked);
     });
   });
 
