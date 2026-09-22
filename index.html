@@ -1814,8 +1814,19 @@ function immuneBoostPoolFor(who){
 function applyVaccinate(who, category, targetUid){
   var t = findCreature(who, targetUid);
   if(t && t.specializes && !t.specialized){
-    t.specialized = category; t.pot += 1; t.res += 1; t.maxRes += 1;
-    pushLog(t.name+' is vaccinated — Specialized against '+category+'.');
+    // Vaccination gets a cell to the same "Specialized" state a combat win does — full
+    // path choice included — just without needing to survive a fight first. It used to only
+    // set .specialized and a flat +1/+1 directly, skipping the Effector/Memory (or
+    // Plasma/Memory-B) choice entirely; the card stayed named "Naive X" and never got a
+    // specialTag, which looked exactly like it had silently failed to specialize at all.
+    pushLog(t.name+' is vaccinated against '+category+'.');
+    var isHumanControlled = S.mode!=='solo' || who==='p1';
+    if(isHumanControlled){
+      var kind = t.defId==='bcell' ? 'bcell' : (t.defId==='cytotoxict' ? 'cd8' : 'cd4');
+      S.selection = {mode:'specializeChoice', uid:t.uid, owner:who, category:category, kind:kind};
+    } else {
+      aiResolveSpecialize(t, category, who);
+    }
   }
 }
 
@@ -2861,9 +2872,14 @@ document.addEventListener('DOMContentLoaded', function(){
       if(idx2===-1){ S.selection=null; render(); return; }
       S.players[S.turn].hand.splice(idx2,1);
       S.players[S.turn].atp -= def2.cost;
-      if(def2.ability==='vaccinate'){ applyVaccinate(S.turn, cat2, tgt); }
-      else { applyEffect(S.turn, def2, tgt, null); }
-      S.selection = null;
+      if(def2.ability==='vaccinate'){
+        // applyVaccinate sets S.selection itself (to the Effector/Memory-style path choice
+        // for a human-controlled cell) — don't stomp on it the way the generic case below does.
+        applyVaccinate(S.turn, cat2, tgt);
+      } else {
+        applyEffect(S.turn, def2, tgt, null);
+        S.selection = null;
+      }
       render();
     } else if(action==='pickshiftcategory'){
       if(!S.selection || S.selection.mode!=='shiftChooseCategory') return;
