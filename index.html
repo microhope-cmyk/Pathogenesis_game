@@ -687,7 +687,7 @@ var DEFS = {
             secretesToxin:true, text:'Secretes a Toxin into your hand every turn it survives — one of its many exotoxins at work.'},
   candida: {name:'Candida albicans', group:'pathogen', category:'Fungus', duration:'persistent', cost:3, pot:1, res:5, icon:'fungus', count:1,
             regen:1, text:'Regenerates 1 Resistance each of your turns — a biofilm shrugging off damage.'},
-  aspergillus: {name:'Aspergillus', group:'pathogen', category:'Fungus', duration:'persistent', cost:2, pot:1, res:4, icon:'mold', count:1, spawnsCopies:true,
+  aspergillus: {name:'Aspergillus', group:'pathogen', category:'Fungus', duration:'persistent', cost:2, pot:1, res:4, icon:'mold', count:1, spawnsCopies:true, set:'expansion',
             text:'Spreads by releasing spores — spawns a copy of itself into your hand every round after the first it survives.'},
   plasmo:  {name:'Plasmodium falciparum', group:'pathogen', category:'Parasite', duration:'persistent', cost:3, pot:2, res:3, ability:'drain', spawnsCopies:true, text:'Drain: hitting Health also gives its controller 1 ATP. Also spawns a copy of itself into your hand every round after the first.', icon:'parasite', count:1},
   hiv:     {name:'HIV', group:'pathogen', category:'Virus', duration:'persistent', cost:4, pot:1, res:5, ability:'onplayHelperT', canHide:true, icon:'virus_hiv', count:1,
@@ -705,7 +705,8 @@ var DEFS = {
             chronic:{key:'cirrhosis', threshold1:3, threshold2:6}, text:'Chronic — Cirrhosis→HCC: 3 turns → +1 dmg/turn; 6 turns → +2/turn. If attacked and not destroyed, exhausts and destroys one attacking Innate cell with 1 Resistance or less.'},
   strep:   {name:'Group A Streptococcus', group:'pathogen', category:'Bacterium', duration:'persistent', cost:2, pot:2, res:2, icon:'bact_chain', count:1, secretesToxin:true,
             chronic:{key:'rheumatic', rollAt:3}, text:'Chronic — Rheumatic Fever: 3 turns, roll d6; 5+ = permanent -2 max Health. Also secretes a Toxin into your hand every turn it survives.'},
-  ecoli:   {name:'E. coli (mild strain)', group:'pathogen', category:'Bacterium', duration:'acute', cost:1, pot:1, res:null, text:'Usually harmless — this mild strain causes only brief stomach upset.', icon:'bact_capsule', count:2},
+  ecoli:   {name:'UTI (E. coli)', group:'pathogen', category:'Bacterium', duration:'persistent', cost:2, pot:1, res:4, icon:'bact_capsule', count:1, spawnsCopies:true,
+            text:'E. coli is the leading cause of urinary tract infections — notorious for lingering and recurring. Spawns a copy of itself into your hand every round after the first it survives.'},
   tinea:   {name:"Athlete's Foot", group:'pathogen', category:'Fungus', duration:'acute', cost:1, pot:1, res:null, text:'A common fungal skin infection — annoying, rarely serious.', icon:'ringworm', count:2},
   pinworm: {name:'Pinworm', group:'pathogen', category:'Parasite', duration:'acute', cost:1, pot:1, res:null, text:'Extremely common, especially in kids — itchy, but mild.', icon:'pinworm', count:2},
 
