@@ -970,75 +970,75 @@ function applyTutorialHighlight(selector){
 function tutorialActionAllowed(action, el){
   if(action==='previewcard' || action==='openhistory') return true;
   switch(tutorialStep){
-    case 4: return action==='playhand' && el.dataset.uid===tutorialUids.neutrophil;
-    case 8: return action==='chooseblocker' && el.dataset.uid===tutorialUids.staph1Blocker;
-    case 10: return action==='playhand' && el.dataset.uid===tutorialUids.antibiotic;
-    case 11: return action==='resolveeffecttarget' && el.dataset.uid===tutorialUids.staph1;
-    case 13: return action==='playhand' && el.dataset.uid===tutorialUids.nk;
-    case 15: return action==='engagestart' && el.dataset.uid===tutorialUids.nkBoard;
-    case 16: return action==='engagetarget' && el.dataset.uid===tutorialUids.staph2;
-    case 18: return action==='playhand' && el.dataset.uid===tutorialUids.helpert;
-    case 20: return action==='engagestart' && el.dataset.uid===tutorialUids.helpertBoard;
-    case 21: return action==='engagetarget' && el.dataset.uid===tutorialUids.rhino;
-    case 22: return action==='pickspecialize';
+    case 5: return action==='playhand' && el.dataset.uid===tutorialUids.neutrophil;
+    case 9: return action==='chooseblocker' && el.dataset.uid===tutorialUids.staph1Blocker;
+    case 11: return action==='playhand' && el.dataset.uid===tutorialUids.antibiotic;
+    case 12: return action==='resolveeffecttarget' && el.dataset.uid===tutorialUids.staph1;
+    case 14: return action==='playhand' && el.dataset.uid===tutorialUids.nk;
+    case 16: return action==='engagestart' && el.dataset.uid===tutorialUids.nkBoard;
+    case 17: return action==='engagetarget' && el.dataset.uid===tutorialUids.staph2;
+    case 19: return action==='playhand' && el.dataset.uid===tutorialUids.helpert;
+    case 21: return action==='engagestart' && el.dataset.uid===tutorialUids.helpertBoard;
+    case 22: return action==='engagetarget' && el.dataset.uid===tutorialUids.rhino;
+    case 23: return action==='pickspecialize';
     default: return false;
   }
 }
 
 function tutorialAfterAction(action, el){
-  if(tutorialStep===4 && action==='playhand'){
+  if(tutorialStep===5 && action==='playhand'){
     var lastP1 = S.players.p1.board[S.players.p1.board.length-1];
     tutorialUids.staph1Blocker = lastP1.uid;
-    tutorialStep = 5;
+    tutorialStep = 6;
     render();
-  } else if(tutorialStep===8 && action==='chooseblocker'){
+  } else if(tutorialStep===9 && action==='chooseblocker'){
     tutorialBlockOutcome = 'blocked';
     tutorialBeginTurn2();
-    tutorialStep = 9;
+    tutorialStep = 10;
     render();
-  } else if(tutorialStep===10 && action==='playhand'){
-    tutorialStep = 11;
-    render();
-  } else if(tutorialStep===11 && action==='resolveeffecttarget'){
-    var s2 = tutorialSpawnCreature('p2', 'staph');
-    tutorialUids.staph2 = s2.uid;
+  } else if(tutorialStep===11 && action==='playhand'){
     tutorialStep = 12;
     render();
-  } else if(tutorialStep===13 && action==='playhand'){
+  } else if(tutorialStep===12 && action==='resolveeffecttarget'){
+    var s2 = tutorialSpawnCreature('p2', 'staph');
+    tutorialUids.staph2 = s2.uid;
+    tutorialStep = 13;
+    render();
+  } else if(tutorialStep===14 && action==='playhand'){
     var lastP1b = S.players.p1.board[S.players.p1.board.length-1];
     tutorialUids.nkBoard = lastP1b.uid;
-    tutorialStep = 14;
+    tutorialStep = 15;
     render();
-  } else if(tutorialStep===15 && action==='engagestart'){
-    tutorialStep = 16;
-    render();
-  } else if(tutorialStep===16 && action==='engagetarget'){
+  } else if(tutorialStep===16 && action==='engagestart'){
     tutorialStep = 17;
     render();
-  } else if(tutorialStep===18 && action==='playhand'){
+  } else if(tutorialStep===17 && action==='engagetarget'){
+    tutorialStep = 18;
+    render();
+  } else if(tutorialStep===19 && action==='playhand'){
     var lastP1c = S.players.p1.board[S.players.p1.board.length-1];
     lastP1c.dormant = false;
     tutorialUids.helpertBoard = lastP1c.uid;
     var rhino = tutorialSpawnCreature('p2', 'rhino');
     tutorialUids.rhino = rhino.uid;
-    tutorialStep = 19;
+    tutorialStep = 20;
     render();
-  } else if(tutorialStep===20 && action==='engagestart'){
-    tutorialStep = 21;
-    render();
-  } else if(tutorialStep===21 && action==='engagetarget'){
+  } else if(tutorialStep===21 && action==='engagestart'){
     tutorialStep = 22;
     render();
-  } else if(tutorialStep===22 && action==='pickspecialize'){
-    tutorialSpecializePath = el.dataset.path;
+  } else if(tutorialStep===22 && action==='engagetarget'){
     tutorialStep = 23;
+    render();
+  } else if(tutorialStep===23 && action==='pickspecialize'){
+    tutorialSpecializePath = el.dataset.path;
+    tutorialStep = 24;
     render();
   }
 }
 
 function tutorialAdvanceOnNext(){
-  if(tutorialStep===24){ tutorialFinish(); return; }
-  if(tutorialStep===17){ tutorialBeginTurn3(); }
+  if(tutorialStep===25){ tutorialFinish(); return; }
+  if(tutorialStep===18){ tutorialBeginTurn3(); }
   tutorialStep += 1;
   render();
 }
@@ -1062,71 +1062,74 @@ function renderTutorialOverlay(){
       text = "This is your ATP — the energy you spend to play cards. You have 2 out of 2 right now. This cap grows by 1 every one of your turns (up to a max of 8), so you'll have more to work with as the game goes on. One rule bend up front: to keep this lesson short, I'll jump your ATP up faster than that a couple of times — just so there's enough on hand to show you more of the game. A real game only ever climbs by 1 per turn.";
       highlight = '#hud-bottom-stats .stat.atp'; nextBtn.hidden = false; break;
     case 4:
+      text = "And this is your Health — it's how the game is actually won. Reach 0 and you lose; bring your opponent's Health to 0 first and you win. You're starting at 20. A card's own Resistance is a separate number from this — losing that just costs you the card, not the game.";
+      highlight = '#hud-bottom-stats .stat.health'; nextBtn.hidden = false; break;
+    case 5:
       text = 'Let’s play your first card. Tap the Neutrophil in your hand — it costs 1 ATP and joins your board.';
       highlight = '#hand [data-uid="'+tutorialUids.neutrophil+'"]'; break;
-    case 5:
+    case 6:
       text = "Nice — the Neutrophil is now on your board, and your ATP dropped from 2 to 1. The two numbers on a board card are Potency (its attack power) and Resistance (how much damage it can take before being destroyed). A Neutrophil has no special ability — it's a plain 1/1 fighter.";
       nextBtn.hidden = false; break;
-    case 6:
+    case 7:
       text = "The computer already has a Staphylococcus aureus out — a Bacterium with 3 Potency and 2 Resistance. Keep an eye on it. (Rule bend: a real game always starts with both boards empty — I've given the computer a head start so there's something to interact with right away.)";
       highlight = '#board-top [data-uid="'+tutorialUids.staph1+'"]'; nextBtn.hidden = false; break;
-    case 7:
+    case 8:
       text = "You're done for this turn. Tap End Turn to hand things over to the computer and see what it does.";
       highlight = '#end-turn'; break;
-    case 8:
+    case 9:
       text = "The computer attacks directly with that Staph (3 Potency). You can block with your Neutrophil, or tap “Take the hit” to let it through to your Health. Either is a valid choice — try blocking this time.";
       break;
-    case 9:
+    case 10:
       text = tutorialBlockOutcome==='blocked'
         ? "Blocking triggers a trade: your Neutrophil's 1 Potency chipped the Staph's Resistance down to 1, but the Staph's 3 Potency was more than your Neutrophil's 1 Resistance, so your Neutrophil was destroyed. Taking the hit instead would have cost you 3 Health directly but kept the Neutrophil around."
         : "Taking the hit sent 3 damage straight to your Health, but your Neutrophil is still on your board, ready for later. Blocking instead would have traded hits with the Staph — possibly losing the Neutrophil, but also weakening or destroying the attacker.";
       nextBtn.hidden = false; break;
-    case 10:
+    case 11:
       text = "It's your turn again. Effect cards like Antibiotic don't go on the board — they do something immediately, often against a target. Tap Antibiotic in your hand.";
       highlight = '#hand [data-uid="'+tutorialUids.antibiotic+'"]'; break;
-    case 11:
+    case 12:
       text = "Now tap the glowing Staphylococcus aureus to target it with the Antibiotic.";
       break;
-    case 12:
+    case 13:
       text = "Antibiotic dealt 3 damage — more than enough to destroy that Staph's Resistance. Effect cards are used up the moment you play them. The computer has brought out another Staph to defend itself. (Rule bend again: I placed that one directly rather than having the computer actually spend a turn and ATP on it.)";
       nextBtn.hidden = false; break;
-    case 13:
+    case 14:
       text = "So far you've played new cards from your hand. But cards already on your board can also act on their turn — attacking directly (Pathogens) or engaging an enemy creature (Immune cells). Let's get another one out first: tap the Natural Killer Cell in your hand.";
       highlight = '#hand [data-uid="'+tutorialUids.nk+'"]'; break;
-    case 14:
+    case 15:
       text = "Your NK Cell is on the board now. Using a card that's already on the board — instead of playing a new one from your hand — is the other half of a turn's actions.";
       nextBtn.hidden = false; break;
-    case 15:
+    case 16:
       text = "Tap your NK Cell on the board to start an attack with it.";
       highlight = '#board-bottom [data-uid="'+tutorialUids.nkBoard+'"]'; break;
-    case 16:
+    case 17:
       text = "Now tap the new Staph to engage it.";
       break;
-    case 17:
+    case 18:
       text = "Engaging is a two-way fight: both sides deal their Potency to each other at once. Your NK Cell's 2 Potency was enough to destroy the Staph's 2 Resistance — but the Staph's 3 Potency was also enough to destroy your NK Cell's 1 Resistance right back. Both were removed. Choosing what to engage, and when, matters.";
       nextBtn.hidden = false; break;
-    case 18:
+    case 19:
       text = "One more thing worth seeing: your turn again. \"Naive\" adaptive cells like your Helper T-cell haven't proven themselves against anything yet. Tap the Naive Helper T-cell in your hand.";
       highlight = '#hand [data-uid="'+tutorialUids.helpert+'"]'; break;
-    case 19:
+    case 20:
       text = "Your Naive Helper T-cell is on the board. Rule bend: a freshly played card like this would normally be \"dormant\" and unable to act until your next turn — I've let yours skip that wait so we can see specialization in this same lesson. The computer has a Rhinovirus out — a mild one, 1 Potency. Let's send your T-cell to engage it and see what happens if your cell survives a fight.";
       nextBtn.hidden = false; break;
-    case 20:
+    case 21:
       text = "Tap your Naive Helper T-cell on the board to start an engagement.";
       highlight = '#board-bottom [data-uid="'+tutorialUids.helpertBoard+'"]'; break;
-    case 21:
+    case 22:
       text = "Now tap the Rhinovirus to engage it.";
       break;
-    case 22:
+    case 23:
       text = "Your Helper T-cell's 1 Potency was enough to finish off the Rhinovirus, and the Rhinovirus's 1 Potency only chipped your cell's Resistance from 4 down to 3 — nowhere near enough to destroy it. Surviving its first fight lets a Naive adaptive cell specialize against whatever category it just fought — here, Virus. Pick a path below.";
       highlight = '#pick-category'; break;
-    case 23:
+    case 24:
       text = tutorialSpecializePath==='effector'
         ? "It's now an Effector Helper T-cell, Specialized against Virus. Effector cells trade away attacking or engaging directly — instead, once per turn it can tap to secrete IFN-γ into your hand for 1 ATP, which you can then play to give a permanent +1/+1 to a Dendritic Cell, Macrophage, or Cytotoxic T-cell you control. It still gets a permanent +1 Resistance just from specializing, and it can still block. Picking Memory instead would have kept it able to engage normally and given it a permanent +3 Resistance instead. Either way, being Specialized against Virus means a permanent +1 Potency bonus whenever it fights a Virus-category pathogen again — including while blocking one — since it now recognizes that threat."
         : "It's now a Memory Helper T-cell, Specialized against Virus: a permanent +3 Resistance, and — unlike an Effector — it can still attack and engage normally. Picking Effector instead would have traded that away for the ability to secrete a Cytokine each turn (a card that permanently boosts another ally's stats), plus a smaller +1 Resistance. Either way, being Specialized against Virus also means a permanent +1 Potency bonus whenever this cell fights a Virus-category pathogen again — it now recognizes that threat.";
       nextBtn.hidden = false; break;
-    case 24:
-      text = "That covers the basics: whose turn it is, spending ATP, playing cards onto your board, using effect cards on a target, responding to an attack, using board creatures to act, and specialization. Health is what actually ends the game — reach 0 and you lose, bring the opponent to 0 and you win; a card's Resistance is separate from that. One more thing you'll run into: some pathogens cause ongoing damage if left unremoved too long. A few, like Helicobacter pylori, just start adding +1 damage per turn on a fixed schedule; others, like Epstein-Barr Virus or HIV, instead roll a die once a threshold is reached, risking a worse complication — you'll see that roll flash on screen when it happens, so you always know exactly what was rolled. Tap the small \"i\" on any card, in your hand or on the board, any time to check exactly what it does. Your hand can also hold up to 10 cards at a time. Ready to play for real?";
+    case 25:
+      text = "That covers the basics: whose turn it is, Health and ATP, playing cards onto your board, using effect cards on a target, responding to an attack, using board creatures to act, and specialization. One more thing you'll run into: some pathogens cause ongoing damage if left unremoved too long. A few, like Helicobacter pylori, just start adding +1 damage per turn on a fixed schedule; others, like Epstein-Barr Virus or HIV, instead roll a die once a threshold is reached, risking a worse complication — you'll see that roll flash on screen when it happens, so you always know exactly what was rolled. Tap the small \"i\" on any card, in your hand or on the board, any time to check exactly what it does. Your hand can also hold up to 10 cards at a time. Ready to play for real?";
       nextBtn.hidden = false; nextBtn.textContent = 'Play Solo Now'; break;
   }
   document.getElementById('tutorial-text').innerHTML = text;
@@ -1604,10 +1607,10 @@ function advanceTurn(){
 }
 function endTurn(){
   if(S.mode==='tutorial'){
-    if(tutorialStep!==7) return;
+    if(tutorialStep!==8) return;
     pushLog("— Computer's turn —");
     pushLog('Computer attacks with its Staph.');
-    tutorialStep = 8;
+    tutorialStep = 9;
     render();
     setTimeout(function(){ declarePathogenAttack('p2', tutorialUids.staph1, function(){}); render(); }, 500);
     return;
@@ -3045,10 +3048,10 @@ document.addEventListener('DOMContentLoaded', function(){
   document.getElementById('cancel-btn').addEventListener('click', clearSelection);
   document.getElementById('take-hit-btn').addEventListener('click', function(){
     resolveBlockChoice(null);
-    if(S && S.mode==='tutorial' && tutorialStep===8){
+    if(S && S.mode==='tutorial' && tutorialStep===9){
       tutorialBlockOutcome = 'tookhit';
       tutorialBeginTurn2();
-      tutorialStep = 9;
+      tutorialStep = 10;
       render();
     }
   });
