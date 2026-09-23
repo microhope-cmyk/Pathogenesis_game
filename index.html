@@ -148,6 +148,7 @@
   .card .micro{width:9px;height:9px;flex:0 0 auto;}
   .card .text{font-size:8.3px;line-height:1.22;color:var(--ink-dim);min-height:20px;overflow:hidden;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;}
   .card .specbadge{font-family:var(--font-mono);font-size:7px;letter-spacing:.03em;text-transform:uppercase;color:var(--immune-strong);background:var(--immune-soft);border-radius:4px;padding:1px 4px;align-self:flex-start;}
+  .card .chronicbadge{font-family:var(--font-mono);font-size:7px;letter-spacing:.03em;text-transform:uppercase;color:var(--pathogen-strong);background:var(--pathogen-soft);border-radius:4px;padding:1px 4px;align-self:flex-start;}
   .card.dim{opacity:0.38;filter:saturate(.6);}
   .card.playable:not(.dim){cursor:pointer;box-shadow:0 0 0 2px var(--blue-strong), var(--shadow-card);animation:glowPulse 1.15s ease-in-out infinite;}
   .card.playable:not(.dim):active{transform:translateY(-2px) scale(0.98);}
@@ -190,6 +191,7 @@
 
   .card.on-board{width:70px;}
   .card.dormant::after{content:'resting';position:absolute;inset:0;background:rgba(4,6,8,0.46);display:flex;align-items:center;justify-content:center;font-family:var(--font-mono);font-size:8.5px;letter-spacing:.05em;text-transform:uppercase;color:var(--ink-dim);}
+  .card.hidden-latent::after{content:'dormant';position:absolute;inset:0;background:rgba(4,6,8,0.46);display:flex;align-items:center;justify-content:center;font-family:var(--font-mono);font-size:8.5px;letter-spacing:.05em;text-transform:uppercase;color:var(--ink-dim);}
   .card.dormant.bar-pathogen::after{content:'incubating';}
   .card.spent{opacity:0.55;}
   .card.hit{animation:hitshake .32s ease;}
@@ -263,6 +265,8 @@
   .mode-btn{display:block;width:100%;text-align:left;background:var(--surface);border:1px solid var(--rule);border-radius:12px;padding:14px 16px;margin-bottom:12px;cursor:pointer;color:var(--ink);}
   .mode-btn .mt{font-family:var(--font-display);font-size:16px;font-weight:700;text-transform:uppercase;letter-spacing:.02em;}
   .mode-btn .ms{font-family:var(--font-body);font-size:11.5px;color:var(--ink-faint);margin-top:2px;}
+  .short-game-toggle{display:flex;align-items:center;gap:8px;justify-content:center;font-family:var(--font-mono);font-size:11px;color:var(--ink-dim);margin:2px 0 14px;cursor:pointer;letter-spacing:.02em;}
+  .short-game-toggle input{width:15px;height:15px;accent-color:var(--effect);cursor:pointer;flex:0 0 auto;}
   .mode-btn.solo{border-color:var(--immune);}
   .mode-btn.twop{border-color:var(--blue);}
   .mode-btn.online{border-color:var(--pathogen);}
@@ -270,7 +274,8 @@
   .online-code-input{width:100%;box-sizing:border-box;font-family:var(--font-mono);font-size:22px;letter-spacing:.15em;text-align:center;text-transform:uppercase;background:var(--surface);border:1px solid var(--rule);border-radius:10px;padding:12px;color:var(--ink);margin-bottom:12px;}
   .online-code-display{font-family:var(--font-mono);font-size:36px;letter-spacing:.12em;color:var(--effect-strong);margin:14px 0;font-weight:700;}
   .online-lobby-message{font-size:12.5px;color:var(--ink-dim);margin:10px 0;min-height:16px;}
-  .leave-btn{position:fixed;top:9px;left:9px;z-index:60;font-family:var(--font-mono);font-size:10px;color:var(--ink-dim);background:var(--surface-2);border:1px solid var(--rule);border-radius:14px;padding:5px 10px;cursor:pointer;}
+  .leave-btn{position:fixed;top:9px;left:9px;z-index:60;display:flex;align-items:center;gap:5px;font-family:var(--font-mono);font-size:10px;color:var(--ink-dim);background:var(--surface-2);border:1px solid var(--rule);border-radius:14px;padding:5px 10px 5px 6px;cursor:pointer;}
+  .leave-btn-icon{width:16px;height:16px;object-fit:contain;flex:0 0 auto;}
 
   .gameover{position:fixed;inset:0;z-index:40;background:rgba(4,6,8,0.88);display:flex;align-items:center;justify-content:center;flex-direction:column;gap:10px;text-align:center;padding:20px;}
   .gameover h1{font-family:var(--font-display);font-size:34px;text-transform:uppercase;letter-spacing:.02em;margin:0;text-wrap:balance;}
@@ -336,8 +341,8 @@
   .flash-toast{position:absolute;left:50%;top:64px;transform:translate(-50%,-8px);z-index:80;background:var(--surface-2);border:1px solid var(--rule);border-radius:12px;padding:10px 16px;max-width:82%;text-align:center;font-family:var(--font-body);font-size:13px;line-height:1.4;color:var(--ink);box-shadow:0 6px 20px rgba(0,0,0,.35);pointer-events:none;opacity:0;transition:opacity .2s ease, transform .2s ease;}
   .flash-toast.show{opacity:1;transform:translate(-50%,0);}
   .no-actions-hint{flex:0 0 auto;text-align:center;font-family:var(--font-body);font-style:italic;font-size:11.5px;color:var(--ink-faint);padding:2px 9px 0;}
-  .login-art{width:132px;height:132px;object-fit:cover;border-radius:50%;margin:4px auto 18px;display:block;box-shadow:0 4px 18px rgba(0,0,0,.25);}
-  .login-art-sm{width:52px;height:52px;object-fit:cover;border-radius:50%;margin:0 auto 8px;display:block;box-shadow:0 2px 10px rgba(0,0,0,.25);}
+  .login-art{width:132px;height:132px;object-fit:contain;margin:4px auto 18px;display:block;}
+  .login-art-sm{width:56px;height:56px;object-fit:contain;margin:0 auto 8px;display:block;}
   .login-divider{text-align:center;font-family:var(--font-mono);font-size:10px;color:var(--ink-faint);letter-spacing:.08em;text-transform:uppercase;margin:14px 0;}
   .footer-links{display:flex;justify-content:center;gap:16px;margin-top:22px;font-family:var(--font-mono);font-size:11px;}
   .footer-links a, .footer-links span{color:var(--ink-faint);cursor:pointer;text-decoration:underline;}
@@ -358,14 +363,14 @@
 
 <div class="field" id="field"></div>
 <div class="howto-btn" id="howto-btn" title="How to play">?</div>
-<div class="leave-btn" id="leave-btn" hidden>Leave Game</div>
+<div class="leave-btn" id="leave-btn" hidden><img class="leave-btn-icon" src="images/pathogenesis-icon.png" alt="">Leave Game</div>
 <div class="account-btn" id="account-btn" hidden>Sign out</div>
 
 <div class="modeselect" id="login-screen" hidden>
   <div class="inner">
     <h1>PATHOGEN<span>ESIS</span></h1>
     <div class="tag">infection &amp; immunity, card by card</div>
-    <img class="login-art" src="images/gemini-2.5-flash-image_Watercolor_style_multicolor_macrophage_with_teal_as_the_dominant_color_and_micro-0.jpg" alt="">
+    <img class="login-art" src="images/pathogenesis-icon.png" alt="Pathogenesis logo">
     <button class="mode-btn google" id="google-signin-btn">
       <div class="mt">Sign in with Google</div>
       <div class="ms">Keeps your games tied to your account.</div>
@@ -375,6 +380,7 @@
       <div class="mt">Try Solo, no sign-up</div>
       <div class="ms">Play against the computer right now — nothing is saved.</div>
     </button>
+    <label class="short-game-toggle"><input type="checkbox" id="short-game-toggle-guest"> Short game — ATP +2/turn, 10 Health</label>
     <button class="mode-btn tutorial" id="tutorial-btn">
       <div class="mt">Learn to Play</div>
       <div class="ms">A guided walkthrough of the rules, no sign-up needed.</div>
@@ -390,9 +396,10 @@
 
 <div class="modeselect" id="modeselect" hidden>
   <div class="inner">
-    <img class="login-art-sm" src="images/gemini-2.5-flash-image_Watercolor_style_multicolor_macrophage_with_teal_as_the_dominant_color_and_micro-0.jpg" alt="">
+    <img class="login-art-sm" src="images/pathogenesis-icon.png" alt="Pathogenesis logo">
     <h1>PATHOGEN<span>ESIS</span></h1>
     <div class="tag">infection &amp; immunity, card by card</div>
+    <label class="short-game-toggle"><input type="checkbox" id="short-game-toggle"> Short game — ATP +2/turn, 10 Health</label>
     <button class="mode-btn solo" data-mode="solo">
       <div class="mt">Solo</div>
       <div class="ms">Play against the computer.</div>
@@ -573,11 +580,11 @@
     <h3>Engaging</h3>
     <p>Tap a ready <strong class="imm">Immune cell</strong> to proactively attack an enemy Pathogen already on the board — no blocking involved. This costs 1 ATP too. This is the only way to actually clear a chronic infection; blocking just absorbs one turn's damage.</p>
     <h3>Specialization</h3>
-    <p>A Naive Helper T-cell or Cytotoxic T-cell permanently upgrades the first time it fights a Pathogen, becoming Specialized against that category and choosing one of two paths: Effector (a strong one-time Potency boost, held in reserve until its next fight) or Memory (+2 Resilience, forever). A Naive B-cell instead becomes a Memory B-cell (+2/+2, forever) or a Plasma Cell (secretes Antibodies each turn). <strong class="eff">Vaccination</strong> can Specialize a cell early, before it ever meets the real thing — it grants a flat +1/+1 with no path choice. Afterward, a Specialized cell deals +1 Potency any time it fights a Pathogen of its own category.</p>
+    <p>A Naive Helper T-cell or Cytotoxic T-cell permanently upgrades the first time it fights a Pathogen, becoming Specialized against that category and choosing one of two paths — both also grant a flat +1 Resistance just for specializing, on top of whatever else the path gives. <strong>Memory</strong> gives +3 Resistance total, and the cell keeps attacking and engaging normally. <strong>Effector</strong> trades away attacking and engaging directly (it can still block) for a once-per-turn secrete instead: a Helper T-cell secretes a Cytokine — IFN-&gamma; or IL-4, depending on the category it specialized against — which permanently gives one eligible ally +1/+1; a Cytotoxic T-cell secretes a Granule, a one-shot token that can strike any enemy Pathogen or Immune cell. A Naive B-cell instead becomes a Memory B-cell (+2 Potency, +3 Resistance, forever) or a Plasma Cell (secretes a category-specific Antibody each turn — unlike the generic Antibody a B-cell leaves behind when it dies, a category-specific one only blocks that one Pathogen category). <strong class="eff">Vaccination</strong> can Specialize a cell early, before it ever meets the real thing — it grants a flat +1/+1 with no path choice. Afterward, a Specialized cell deals +1 Potency any time it fights or blocks a Pathogen of its own category.</p>
     <h3>Chronic complications</h3>
-    <p>A few Pathogens (HPV, EBV, <em>H. pylori</em>, Hepatitis C, Group A Strep) cause lasting harm if left unremoved for several of your turns — extra Health loss, or worse. Destroying the Pathogen is usually the only way to stop it.</p>
+    <p>Several Pathogens (HPV, EBV, <em>H. pylori</em>, Hepatitis C, Group A Strep, HIV) cause lasting harm if left unremoved for several of your turns. Some just add extra damage on a fixed schedule; others instead roll a die once a threshold is reached — you'll see that roll flash on screen, with the number rolled and what it needed. Destroying the Pathogen is usually the only way to stop it.</p>
     <h3>Effects</h3>
-    <p>One-shot cards — Vaccination, mutation, targeted treatment, Fever Response, Cytokine Storm. Antibiotics, antivirals, and antifungals only work on their matching Pathogen category.</p>
+    <p>One-shot cards that do something immediately, often needing a target — mutating a Pathogen, treating an infection with a category-specific drug, drawing cards, or pulling something useful back from your discard pile. Antibiotics, antivirals, and antifungals only work on their matching Pathogen category.</p>
     <button class="close-btn" id="howto-close">Got it</button>
   </div>
 </div>
@@ -627,6 +634,7 @@ var ICONS = {
   virus_noro: function(){ return virusIcon(10,'var(--pathogen)',false); },
   virus_flu: function(){ return virusIcon(6,'var(--pathogen-strong)',true,['var(--effect)','var(--blue-strong)']); },
   virus_hiv: function(){ return svg('<circle cx="24" cy="24" r="17" fill="none" stroke="var(--pathogen-strong)" stroke-width="1.4" opacity=".5"/><path d="M24 10 34 20 30 34 18 34 14 20Z" fill="var(--pathogen)" opacity=".9"/><circle cx="21" cy="22" r="2" fill="var(--blue)"/><circle cx="27" cy="24" r="2" fill="var(--blue)"/><circle cx="23" cy="29" r="1.6" fill="var(--effect)"/>'); },
+  virus_hsv: function(){ return svg('<circle cx="24" cy="24" r="13" fill="var(--pathogen)" opacity=".88"/><circle cx="24" cy="24" r="5" fill="var(--blue)" opacity=".85"/><g stroke="var(--pathogen-strong)" stroke-width="1.6" stroke-linecap="round" opacity=".8"><path d="M24 8v6M24 34v6M8 24h6M34 24h6M13 13l4.2 4.2M30.8 30.8l4.2 4.2M35 13l-4.2 4.2M17.2 30.8l-4.2 4.2"/></g><circle cx="24" cy="8" r="1.6" fill="var(--pathogen-strong)"/><circle cx="24" cy="40" r="1.6" fill="var(--pathogen-strong)"/><circle cx="8" cy="24" r="1.6" fill="var(--pathogen-strong)"/><circle cx="40" cy="24" r="1.6" fill="var(--pathogen-strong)"/>'); },
   virus_hpv: function(){ return svg('<circle cx="24" cy="24" r="14" fill="var(--pathogen)" opacity=".88"/><circle cx="24" cy="24" r="6" fill="var(--blue)" opacity=".85"/><g stroke="var(--bg)" stroke-width="1" opacity=".6"><path d="M24 10v10M24 28v10M11 24h7M30 24h7M14 14l7 7M27 27l7 7M34 14l-7 7M21 27l-7 7"/></g>'); },
   virus_ebv: function(){ return virusIcon(9,'var(--pathogen)',true); },
   virus_hepc: function(){ return svg('<circle cx="24" cy="24" r="16" fill="none" stroke="var(--pathogen-strong)" stroke-width="1.6"/><circle cx="24" cy="24" r="10" fill="var(--pathogen)" opacity=".88"/><circle cx="24" cy="24" r="4" fill="var(--blue)" opacity=".85"/><circle cx="24" cy="8" r="1.6" fill="var(--effect)"/><circle cx="38" cy="28" r="1.6" fill="var(--effect)"/><circle cx="12" cy="30" r="1.6" fill="var(--effect)"/>'); },
@@ -638,6 +646,7 @@ var ICONS = {
   parasite: function(){ return svg('<circle cx="24" cy="24" r="15" fill="none" stroke="var(--pathogen-soft)" stroke-width="2"/><path d="M24 12a12 12 0 0 1 0 24 8 8 0 0 0 0-24Z" fill="var(--pathogen)" opacity=".88"/><circle cx="19" cy="19" r="2.2" fill="var(--blue)"/>'); },
   bact_capsule: function(){ return svg('<rect x="12" y="18" width="24" height="12" rx="6" fill="var(--pathogen)" opacity=".85"/><ellipse cx="24" cy="24" rx="7" ry="2.2" fill="var(--blue)" opacity=".8"/>'); },
   ringworm: function(){ return svg('<circle cx="24" cy="24" r="14" fill="none" stroke="var(--pathogen)" stroke-width="3"/><circle cx="24" cy="24" r="8" fill="none" stroke="var(--pathogen)" stroke-width="2.2" opacity=".75"/><circle cx="24" cy="24" r="3" fill="var(--blue)"/>'); },
+  mold: function(){ return svg('<path d="M24 40V22" stroke="var(--pathogen)" stroke-width="3" stroke-linecap="round"/><circle cx="24" cy="16" r="7" fill="var(--pathogen)" opacity=".85"/><circle cx="24" cy="16" r="2" fill="var(--blue)"/><g fill="var(--pathogen-strong)" opacity=".8"><circle cx="12" cy="8" r="1.6"/><circle cx="34" cy="9" r="1.4"/><circle cx="8" cy="18" r="1.3"/><circle cx="38" cy="20" r="1.6"/><circle cx="16" cy="4" r="1.2"/><circle cx="30" cy="3" r="1.3"/></g>'); },
   pinworm: function(){ return svg('<path d="M10 30c4-10 10-14 16-10s4 14-2 12-6-10 0-14 12-6 16 4" stroke="var(--pathogen)" stroke-width="3" fill="none" stroke-linecap="round"/><circle cx="38" cy="22" r="1.8" fill="var(--blue)"/>'); },
   prion: function(){ return svg('<path d="M10 14 22 10 18 22 30 18 26 30 38 26 32 38 20 34 24 22 12 26Z" fill="var(--pathogen)" opacity=".88" stroke="var(--pathogen-strong)" stroke-width="1"/><path d="M18 22 26 30 24 22Z" fill="#8a2e1f" opacity=".9"/>'); },
   neutrophil: function(){ return svg('<circle cx="24" cy="24" r="15" fill="var(--immune-soft)" stroke="var(--immune)" stroke-width="1.6"/><circle cx="18" cy="18" r="4" fill="var(--blue)"/><circle cx="30" cy="17" r="4" fill="var(--blue)"/><circle cx="18" cy="30" r="4" fill="var(--blue)"/><circle cx="30" cy="30" r="4" fill="var(--blue)"/><circle cx="24" cy="24" r="1.3" fill="var(--effect)"/><circle cx="20" cy="26" r="1.1" fill="var(--effect)"/><circle cx="28" cy="22" r="1.1" fill="var(--effect)"/>'); },
@@ -661,7 +670,15 @@ var ICONS = {
   immuneboost: function(){ return svg('<path d="M12 16a14 14 0 0 1 22-3" stroke="var(--effect-strong)" stroke-width="2.4" fill="none" stroke-linecap="round"/><path d="M34 8v7h-7" stroke="var(--effect-strong)" stroke-width="2.4" fill="none" stroke-linecap="round" stroke-linejoin="round"/><path d="M36 32a14 14 0 0 1-22 3" stroke="var(--effect-strong)" stroke-width="2.4" fill="none" stroke-linecap="round"/><path d="M14 40v-7h7" stroke="var(--effect-strong)" stroke-width="2.4" fill="none" stroke-linecap="round" stroke-linejoin="round"/><circle cx="24" cy="24" r="5" fill="var(--immune)"/><circle cx="24" cy="24" r="2" fill="var(--blue)"/>'); },
   goodsleep: function(){ return svg('<path d="M30 8a14 14 0 1 0 10 22 12 12 0 0 1-10-22Z" fill="var(--effect)" opacity=".85"/><path d="M35 12l2 4 4 2-4 2-2 4-2-4-4-2 4-2Z" fill="var(--blue)"/><circle cx="14" cy="14" r="1.4" fill="var(--effect-strong)"/><circle cx="10" cy="24" r="1" fill="var(--effect-strong)"/>'); },
   incinerate: function(){ return svg('<path d="M24 6c6 8 10 13 10 19a10 10 0 0 1-20 0c0-3 1-6 3-9 1 3 3 4 4 3-1-5 0-9 3-13Z" fill="var(--effect)" opacity=".9"/><path d="M24 20c3 4 4 7 4 9a4 4 0 0 1-8 0c0-1 0-3 1-5 1 2 2 2 2 1-1-2-1-4 1-5Z" fill="var(--pathogen)"/>'); },
-  storm: function(){ return svg('<g stroke-width="2.2" stroke-linecap="round"><line x1="24" y1="6" x2="24" y2="16" stroke="var(--effect-strong)"/><line x1="24" y1="32" x2="24" y2="42" stroke="var(--pathogen)"/><line x1="6" y1="24" x2="16" y2="24" stroke="var(--immune)"/><line x1="32" y1="24" x2="42" y2="24" stroke="var(--effect-strong)"/><line x1="12" y1="12" x2="19" y2="19" stroke="var(--pathogen)"/><line x1="29" y1="29" x2="36" y2="36" stroke="var(--immune)"/><line x1="36" y1="12" x2="29" y2="19" stroke="var(--effect-strong)"/><line x1="19" y1="29" x2="12" y2="36" stroke="var(--pathogen)"/></g><circle cx="24" cy="24" r="6" fill="var(--effect)"/>'); }
+  storm: function(){ return svg('<g stroke-width="2.2" stroke-linecap="round"><line x1="24" y1="6" x2="24" y2="16" stroke="var(--effect-strong)"/><line x1="24" y1="32" x2="24" y2="42" stroke="var(--pathogen)"/><line x1="6" y1="24" x2="16" y2="24" stroke="var(--immune)"/><line x1="32" y1="24" x2="42" y2="24" stroke="var(--effect-strong)"/><line x1="12" y1="12" x2="19" y2="19" stroke="var(--pathogen)"/><line x1="29" y1="29" x2="36" y2="36" stroke="var(--immune)"/><line x1="36" y1="12" x2="29" y2="19" stroke="var(--effect-strong)"/><line x1="19" y1="29" x2="12" y2="36" stroke="var(--pathogen)"/></g><circle cx="24" cy="24" r="6" fill="var(--effect)"/>'); },
+  healthydiet: function(){ return svg('<path d="M24 18c5-6 13-4 13 4 0 10-7 18-13 18S11 32 11 22c0-8 8-10 13-4Z" fill="var(--effect)" opacity=".85"/><path d="M24 18c0-3 1-6 4-8" stroke="var(--effect-strong)" stroke-width="2" fill="none" stroke-linecap="round"/><path d="M26 10c3-1 6 0 7 2-3 1-6 0-7-2Z" fill="var(--immune)"/><circle cx="20" cy="24" r="2" fill="var(--blue)" opacity=".8"/>'); },
+  boostershot: function(){ return svg('<g stroke="var(--effect-strong)" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M32 10 38 16 20 34 14 34 14 28Z" fill="var(--blue)" opacity=".85"/><path d="M28 14l4 4M17 31l4-4"/></g><path d="M24 4v8M20 8h8" stroke="var(--immune-strong)" stroke-width="2.2" stroke-linecap="round"/>'); },
+  chemokine: function(){ return svg('<circle cx="24" cy="24" r="4" fill="var(--immune)"/><circle cx="24" cy="24" r="10" fill="none" stroke="var(--effect-strong)" stroke-width="1.6" opacity=".8"/><circle cx="24" cy="24" r="16" fill="none" stroke="var(--effect-strong)" stroke-width="1.4" opacity=".5"/><circle cx="24" cy="24" r="21" fill="none" stroke="var(--effect-strong)" stroke-width="1.2" opacity=".3"/><circle cx="10" cy="10" r="2.4" fill="var(--blue)"/>'); },
+  granule: function(){ return svg('<circle cx="24" cy="24" r="5" fill="var(--immune-strong)"/><g fill="var(--blue)"><circle cx="24" cy="10" r="2.6"/><circle cx="36" cy="18" r="2.6"/><circle cx="36" cy="30" r="2.6"/><circle cx="24" cy="38" r="2.6"/><circle cx="12" cy="30" r="2.6"/><circle cx="12" cy="18" r="2.6"/></g>'); },
+  ifng: function(){ return svg('<circle cx="24" cy="24" r="9" fill="var(--immune)" opacity=".85"/><g stroke="var(--effect-strong)" stroke-width="2" stroke-linecap="round"><path d="M24 6v8M24 34v8M6 24h8M34 24h8M11 11l6 6M31 31l6 6M37 11l-6 6M17 31l-6 6"/></g><circle cx="24" cy="24" r="3" fill="var(--blue)"/>'); },
+  il4: function(){ return svg('<circle cx="24" cy="24" r="9" fill="var(--effect)" opacity=".8"/><g stroke="var(--immune-strong)" stroke-width="2" stroke-linecap="round"><path d="M24 6v8M24 34v8M6 24h8M34 24h8M11 11l6 6M31 31l6 6M37 11l-6 6M17 31l-6 6"/></g><circle cx="24" cy="24" r="3" fill="var(--blue)"/>'); },
+  daycare: function(){ return svg('<path d="M8 24 24 10 40 24" stroke="var(--effect-strong)" stroke-width="2.4" fill="none" stroke-linecap="round" stroke-linejoin="round"/><path d="M12 22v14a2 2 0 0 0 2 2h20a2 2 0 0 0 2-2V22" fill="var(--effect)" opacity=".2" stroke="var(--effect-strong)" stroke-width="2"/><circle cx="18" cy="30" r="2.6" fill="var(--pathogen)"/><circle cx="24" cy="32" r="2.6" fill="var(--pathogen)"/><circle cx="30" cy="30" r="2.6" fill="var(--pathogen)"/>'); },
+  toxin: function(){ return svg('<path d="M18 6h12v9l6 6v17a4 4 0 0 1-4 4H16a4 4 0 0 1-4-4V21Z" fill="none" stroke="var(--pathogen-strong)" stroke-width="1.8"/><rect x="18" y="6" width="12" height="5" fill="var(--pathogen-strong)"/><path d="M14 28h20v13a2 2 0 0 1-2 2H16a2 2 0 0 1-2-2Z" fill="var(--pathogen)" opacity=".85"/><path d="M20 22a1.8 1.8 0 1 1 0 .01ZM26 24a1.6 1.6 0 1 1 0 .01ZM24 33a2 2 0 1 1 0 .01Z" fill="var(--effect)"/>'); }
 };
 
 /* ================= card definitions ================= */
@@ -670,22 +687,30 @@ var DEFS = {
   noro:    {name:'Norovirus', group:'pathogen', category:'Virus', duration:'acute', cost:1, pot:2, res:null, text:'Fast and miserable, over in a day.', icon:'virus_noro', count:2},
   flu:     {name:'Influenza', group:'pathogen', category:'Virus', duration:'acute', cost:2, pot:2, res:null, ability:'replicate', text:'Replicate: if this hits Health, put a copy in your hand.', icon:'virus_flu', count:2},
   salm:    {name:'Salmonella', group:'pathogen', category:'Bacterium', duration:'acute', cost:2, pot:2, res:null, ability:'toxin1', text:'Toxin: if this hits Health, deals 1 more damage on top of its normal attack.', icon:'bact_rod', count:2},
-  staph:   {name:'Staphylococcus aureus', group:'pathogen', category:'Bacterium', duration:'persistent', cost:2, pot:3, res:2, text:'A solid, unspecialized threat.', icon:'bact_cluster', count:2},
-  candida: {name:'Candida albicans', group:'pathogen', category:'Fungus', duration:'persistent', cost:3, pot:1, res:5, text:'Low attack, very hard to fully clear.', icon:'fungus', count:2},
-  plasmo:  {name:'Plasmodium falciparum', group:'pathogen', category:'Parasite', duration:'persistent', cost:3, pot:2, res:3, ability:'drain', text:'Drain: hitting Health also gives its controller 1 ATP.', icon:'parasite', count:2},
-  hiv:     {name:'HIV', group:'pathogen', category:'Virus', duration:'persistent', cost:4, pot:1, res:3, ability:'onplayHelperT', text:'On Play: deal 1 damage directly to an enemy Helper T-cell, ignoring blockers.', icon:'virus_hiv', count:1},
+  staph:   {name:'Staphylococcus aureus', group:'pathogen', category:'Bacterium', duration:'persistent', cost:2, pot:3, res:2, icon:'bact_cluster', count:1,
+            secretesToxin:true, text:'Secretes a Toxin into your hand every turn it survives — one of its many exotoxins at work.'},
+  candida: {name:'Candida albicans', group:'pathogen', category:'Fungus', duration:'persistent', cost:3, pot:1, res:5, icon:'fungus', count:1,
+            regen:1, text:'Regenerates 1 Resistance each of your turns — a biofilm shrugging off damage.'},
+  aspergillus: {name:'Aspergillus', group:'pathogen', category:'Fungus', duration:'persistent', cost:2, pot:1, res:4, icon:'mold', count:1, spawnsCopies:true, set:'expansion',
+            text:'Spreads by releasing spores — spawns a copy of itself into your hand every round after the first it survives.'},
+  plasmo:  {name:'Plasmodium falciparum', group:'pathogen', category:'Parasite', duration:'persistent', cost:3, pot:2, res:3, ability:'drain', spawnsCopies:true, text:'Drain: hitting Health also gives its controller 1 ATP. Also spawns a copy of itself into your hand every round after the first.', icon:'parasite', count:1},
+  hiv:     {name:'HIV', group:'pathogen', category:'Virus', duration:'persistent', cost:4, pot:1, res:5, ability:'onplayHelperT', canHide:true, icon:'virus_hiv', count:1,
+            chronic:{key:'aids', rollAt:3, rollTarget:5}, text:'On Play: deal 1 damage directly to an enemy Helper T-cell, ignoring blockers. Can go dormant (latent) instead of attacking — free to stay dormant, 1 ATP to reactivate. Chronic — AIDS: unremoved 3 turns, roll d6; 5+ recruits a random pathogen from your discard pile into your hand.'},
   prion:   {name:'Prion', group:'pathogen', category:'Prion', duration:'persistent', cost:5, pot:1, res:4, ability:'unkillable', text:'Cannot be destroyed by engaging or blocking — only Incineration works.', icon:'prion', count:1, set:'expansion'},
-  hpv:     {name:'HPV', group:'pathogen', category:'Virus', duration:'persistent', cost:2, pot:1, res:2, icon:'virus_hpv', count:1,
-            chronic:{key:'dysplasia', threshold:3}, text:'Chronic — Dysplasia: unremoved 3 turns → host takes +1 dmg/turn until destroyed.'},
-  ebv:     {name:'Epstein-Barr Virus', group:'pathogen', category:'Virus', duration:'persistent', cost:2, pot:1, res:3, icon:'virus_ebv', count:1,
-            chronic:{key:'lupus', rollAt:2}, text:'Chronic — Molecular Mimicry: end of host\'s 2nd turn, roll d6; 5+ triggers lupus.'},
-  hpylori: {name:'Helicobacter pylori', group:'pathogen', category:'Bacterium', duration:'persistent', cost:2, pot:1, res:3, icon:'bact_spiral', count:1,
-            chronic:{key:'gastritis', threshold:4}, text:'Chronic — Gastritis: unremoved 4 turns → host takes +1 dmg/turn until destroyed.'},
-  hepc:    {name:'Hepatitis C', group:'pathogen', category:'Virus', duration:'persistent', cost:3, pot:2, res:3, icon:'virus_hepc', count:1,
-            chronic:{key:'cirrhosis', threshold1:3, threshold2:6}, text:'Chronic — Cirrhosis→HCC: 3 turns → +1 dmg/turn; 6 turns → +2/turn.'},
-  strep:   {name:'Group A Streptococcus', group:'pathogen', category:'Bacterium', duration:'persistent', cost:2, pot:2, res:2, icon:'bact_chain', count:1,
-            chronic:{key:'rheumatic', rollAt:3}, text:'Chronic — Rheumatic Fever: 3 turns, roll d6; 5+ = permanent -2 max Health.'},
-  ecoli:   {name:'E. coli (mild strain)', group:'pathogen', category:'Bacterium', duration:'acute', cost:1, pot:1, res:null, text:'Usually harmless — this mild strain causes only brief stomach upset.', icon:'bact_capsule', count:2},
+  hpv:     {name:'HPV', group:'pathogen', category:'Virus', duration:'persistent', cost:2, pot:1, res:4, icon:'virus_hpv', count:1, spawnsCopies:true,
+            chronic:{key:'dysplasia', threshold:3}, text:'Chronic — Dysplasia: unremoved 3 turns → host takes +1 dmg/turn until destroyed. Also spawns a copy of itself into your hand every round after the first.'},
+  ebv:     {name:'Epstein-Barr Virus', group:'pathogen', category:'Virus', duration:'persistent', cost:2, pot:1, res:5, icon:'virus_ebv', count:1, spawnsCopies:true,
+            chronic:{key:'lupus', rollAt:2, rollTarget:100, rollSides:100}, text:'Chronic — Molecular Mimicry: end of host\'s 2nd turn, roll d100; only a 100 triggers lupus (1:100 odds). Also spawns a copy of itself into your hand every round after the first.'},
+  hsv:     {name:'Herpes Simplex Virus', group:'pathogen', category:'Virus', duration:'persistent', cost:2, pot:2, res:3, canHide:true, icon:'virus_hsv', count:1,
+            text:'Can go dormant (latent in a nerve ganglion) instead of attacking — free to stay dormant, 1 ATP to reactivate.'},
+  hpylori: {name:'Helicobacter pylori', group:'pathogen', category:'Bacterium', duration:'persistent', cost:2, pot:1, res:4, icon:'bact_spiral', count:1, regen:1,
+            chronic:{key:'gastritis', threshold:4}, text:'Chronic — Gastritis: unremoved 4 turns → host takes +1 dmg/turn until destroyed. Regenerates 1 Resistance each of your turns (biofilm).'},
+  hepc:    {name:'Hepatitis C', group:'pathogen', category:'Virus', duration:'persistent', cost:3, pot:2, res:3, icon:'virus_hepc', count:1, retaliateKillInnate:true,
+            chronic:{key:'cirrhosis', threshold1:3, threshold2:6}, text:'Chronic — Cirrhosis→HCC: 3 turns → +1 dmg/turn; 6 turns → +2/turn. If attacked and not destroyed, exhausts and destroys one attacking Innate cell with 1 Resistance or less.'},
+  strep:   {name:'Group A Streptococcus', group:'pathogen', category:'Bacterium', duration:'persistent', cost:2, pot:2, res:2, icon:'bact_chain', count:1, secretesToxin:true,
+            chronic:{key:'rheumatic', rollAt:3}, text:'Chronic — Rheumatic Fever: 3 turns, roll d6; 5+ = permanent -2 max Health. Also secretes a Toxin into your hand every turn it survives.'},
+  ecoli:   {name:'UTI (E. coli)', group:'pathogen', category:'Bacterium', duration:'persistent', cost:2, pot:1, res:4, icon:'bact_capsule', count:1, spawnsCopies:true,
+            text:'E. coli is the leading cause of urinary tract infections — notorious for lingering and recurring. Spawns a copy of itself into your hand every round after the first it survives.'},
   tinea:   {name:"Athlete's Foot", group:'pathogen', category:'Fungus', duration:'acute', cost:1, pot:1, res:null, text:'A common fungal skin infection — annoying, rarely serious.', icon:'ringworm', count:2},
   pinworm: {name:'Pinworm', group:'pathogen', category:'Parasite', duration:'acute', cost:1, pot:1, res:null, text:'Extremely common, especially in kids — itchy, but mild.', icon:'pinworm', count:2},
 
@@ -695,10 +720,14 @@ var DEFS = {
   dendritic:  {name:'Dendritic Cell', group:'immune', class:'Innate', duration:'acute', cost:2, pot:0, res:2, ability:'prime', text:'On Play: choose a category. The next Naive adaptive cell you play while this is still on the board enters already Specialized against it (one time only).', icon:'dendritic', count:2},
   mast:       {name:'Mast Cell', group:'immune', class:'Innate', duration:'acute', cost:1, pot:1, res:2, ability:'histamine', text:'On Play: deal 1 damage to an enemy Pathogen; your Neutrophils get +1 Potency this turn.', icon:'mast', count:2},
   eosinophil: {name:'Eosinophil', group:'immune', class:'Innate', duration:'acute', cost:2, pot:2, res:1, ability:'antiparasite', text:'Deals double damage against Parasite-category Pathogens.', icon:'eosinophil', count:2},
-  helpert:    {name:'Naive Helper T-cell', group:'immune', class:'Adaptive', duration:'persistent', cost:2, pot:1, res:3, specializes:true, ability:'supportcell', text:'Your other Persistent Immune cells get +0/+1. (HIV\'s specific target.)', icon:'helpert', count:2},
-  cytotoxict: {name:'Naive Cytotoxic T-cell', group:'immune', class:'Adaptive', duration:'persistent', cost:3, pot:3, res:2, specializes:true, ability:'primed', text:'+1 Potency while you control a Helper T-cell or Dendritic Cell.', icon:'cytotoxict', count:2},
-  bcell:      {name:'Naive B-cell', group:'immune', class:'Adaptive', duration:'persistent', cost:2, pot:1, res:2, specializes:true, ability:'makesantibody', text:'On destroyed: create an Antibody token in hand.', icon:'bcell', count:2},
+  helpert:    {name:'Naive Helper T-cell', group:'immune', class:'Adaptive', duration:'persistent', cost:2, pot:1, res:4, specializes:true, ability:'supportcell', text:'Your other Persistent Immune cells get +0/+1. (HIV\'s specific target.)', icon:'helpert', count:3},
+  cytotoxict: {name:'Naive Cytotoxic T-cell', group:'immune', class:'Adaptive', duration:'persistent', cost:3, pot:3, res:3, specializes:true, ability:'primed', text:'+1 Potency while you control a Helper T-cell or Dendritic Cell.', icon:'cytotoxict', count:3},
+  bcell:      {name:'Naive B-cell', group:'immune', class:'Adaptive', duration:'persistent', cost:2, pot:1, res:3, specializes:true, ability:'makesantibody', text:'On destroyed: create an Antibody token in hand.', icon:'bcell', count:3},
   antibody:   {name:'Antibody', group:'immune', class:'Adaptive', duration:'acute', cost:0, pot:null, res:1, text:'May block any attack, fully neutralizing it, then is spent.', icon:'antibody', count:0},
+  granule:    {name:'Granule', group:'immune', class:'Adaptive', duration:'acute', cost:0, pot:1, res:0, text:'Can attack any enemy Pathogen or Immune cell, then is spent.', icon:'granule', count:0},
+  ifng:       {name:'IFN-γ', group:'effect', cost:0, ability:'cytokineboost', boostPool:['dendritic','macrophage','cytotoxict'], text:'Target a Dendritic Cell, Macrophage, or Cytotoxic T-cell you control: permanent +1/+1.', icon:'ifng', count:0},
+  il4:        {name:'IL-4', group:'effect', cost:0, ability:'cytokineboost', boostPool:['eosinophil','mast','bcell'], text:'Target an Eosinophil, Mast Cell, or B-cell you control: permanent +1/+1.', icon:'il4', count:0},
+  toxin:      {name:'Toxin', group:'effect', cost:0, ability:'toxincard', text:'Deal 1 damage to a target enemy Immune cell.', icon:'toxin', count:0},
 
   vaccinate: {name:'Vaccination', group:'effect', cost:3, ability:'vaccinate', text:'Choose a category; a Naive adaptive cell you control becomes Specialized against it immediately.', icon:'vaccine', count:1},
   drift:     {name:'Antigenic Drift', group:'effect', cost:1, ability:'drift', text:'Target your Pathogen: +1 Potency this turn; can\'t be blocked by Acute cells this turn.', icon:'driftmut', count:2},
@@ -709,8 +738,12 @@ var DEFS = {
   antiparasitic:{name:'Antiparasitic', group:'effect', cost:3, ability:'treat', treatCat:'Parasite', dmg:2, text:'Deal 2 damage to a target Parasite. Costs more — these drugs cross into human cells too easily.', icon:'antiparasitic', count:1},
   immuneboost:{name:'Immune Boost', group:'effect', cost:2, ability:'immuneboost', text:'Return a random Immune cell from your discard pile to your hand.', icon:'immuneboost', count:1},
   sleep:     {name:"A Good Night's Sleep", group:'effect', cost:2, ability:'sleep', text:'Draw 2 cards.', icon:'goodsleep', count:1},
-  fever:     {name:'Fever Response', group:'effect', cost:1, ability:'fever', text:'Your Pathogens and Immune cells get +1 Potency until end of turn; you take 1 Health damage.', icon:'fever', count:2},
-  storm:     {name:'Cytokine Storm', group:'effect', cost:5, ability:'storm', text:'Deal 2 damage to every Pathogen and Immune cell in play, both sides; you take 2 Health damage.', icon:'storm', count:1},
+  healthydiet:{name:'Healthy Diet', group:'effect', cost:1, ability:'healthydiet', text:'Draw 1 card.', icon:'healthydiet', count:1},
+  fever:     {name:'Fever Response', group:'effect', cost:1, ability:'fever', text:'Your Pathogens and Immune cells get +1 Potency until end of turn; you take 1 Health damage.', icon:'fever', count:1},
+  boostershot:{name:'Booster Shot', group:'effect', cost:2, ability:'boost', text:'Target an Adaptive Immune cell you control: permanent +1/+1.', icon:'boostershot', count:1},
+  chemokine: {name:'Chemokine', group:'effect', cost:3, ability:'chemokine', text:'Return a random Innate Immune cell from your discard pile directly to the board, ready to act.', icon:'chemokine', count:1},
+  daycare:   {name:'Daycare', group:'effect', cost:3, ability:'daycare', text:'Pull up to 3 random Acute Pathogens from your discard pile into your hand.', icon:'daycare', count:1},
+  storm:     {name:'Cytokine Storm', group:'effect', cost:5, ability:'storm', text:'Deal 2 damage to every Pathogen and Immune cell in play, both sides; you take 2 Health damage.', icon:'storm', count:1, set:'expansion'},
   incinerate:{name:'Incineration', group:'effect', cost:5, ability:'incinerate', text:'Destroy a target enemy Pathogen outright, even a Prion. Extreme heat spares nothing.', icon:'incinerate', count:1, set:'expansion'}
 };
 
@@ -855,7 +888,8 @@ function continueAsGuestSolo(){
   document.getElementById('modeselect').hidden = true;
   document.getElementById('stage').hidden = false;
   document.getElementById('leave-btn').hidden = false;
-  newGame('solo');
+  var shortToggle = document.getElementById('short-game-toggle-guest');
+  newGame('solo', undefined, undefined, shortToggle && shortToggle.checked);
 }
 
 /* ================= tutorial mode =================
@@ -936,75 +970,75 @@ function applyTutorialHighlight(selector){
 function tutorialActionAllowed(action, el){
   if(action==='previewcard' || action==='openhistory') return true;
   switch(tutorialStep){
-    case 4: return action==='playhand' && el.dataset.uid===tutorialUids.neutrophil;
-    case 8: return action==='chooseblocker' && el.dataset.uid===tutorialUids.staph1Blocker;
-    case 10: return action==='playhand' && el.dataset.uid===tutorialUids.antibiotic;
-    case 11: return action==='resolveeffecttarget' && el.dataset.uid===tutorialUids.staph1;
-    case 13: return action==='playhand' && el.dataset.uid===tutorialUids.nk;
-    case 15: return action==='engagestart' && el.dataset.uid===tutorialUids.nkBoard;
-    case 16: return action==='engagetarget' && el.dataset.uid===tutorialUids.staph2;
-    case 18: return action==='playhand' && el.dataset.uid===tutorialUids.helpert;
-    case 20: return action==='engagestart' && el.dataset.uid===tutorialUids.helpertBoard;
-    case 21: return action==='engagetarget' && el.dataset.uid===tutorialUids.rhino;
-    case 22: return action==='pickspecialize';
+    case 5: return action==='playhand' && el.dataset.uid===tutorialUids.neutrophil;
+    case 9: return action==='chooseblocker' && el.dataset.uid===tutorialUids.staph1Blocker;
+    case 11: return action==='playhand' && el.dataset.uid===tutorialUids.antibiotic;
+    case 12: return action==='resolveeffecttarget' && el.dataset.uid===tutorialUids.staph1;
+    case 14: return action==='playhand' && el.dataset.uid===tutorialUids.nk;
+    case 16: return action==='engagestart' && el.dataset.uid===tutorialUids.nkBoard;
+    case 17: return action==='engagetarget' && el.dataset.uid===tutorialUids.staph2;
+    case 19: return action==='playhand' && el.dataset.uid===tutorialUids.helpert;
+    case 21: return action==='engagestart' && el.dataset.uid===tutorialUids.helpertBoard;
+    case 22: return action==='engagetarget' && el.dataset.uid===tutorialUids.rhino;
+    case 23: return action==='pickspecialize';
     default: return false;
   }
 }
 
 function tutorialAfterAction(action, el){
-  if(tutorialStep===4 && action==='playhand'){
+  if(tutorialStep===5 && action==='playhand'){
     var lastP1 = S.players.p1.board[S.players.p1.board.length-1];
     tutorialUids.staph1Blocker = lastP1.uid;
-    tutorialStep = 5;
+    tutorialStep = 6;
     render();
-  } else if(tutorialStep===8 && action==='chooseblocker'){
+  } else if(tutorialStep===9 && action==='chooseblocker'){
     tutorialBlockOutcome = 'blocked';
     tutorialBeginTurn2();
-    tutorialStep = 9;
+    tutorialStep = 10;
     render();
-  } else if(tutorialStep===10 && action==='playhand'){
-    tutorialStep = 11;
-    render();
-  } else if(tutorialStep===11 && action==='resolveeffecttarget'){
-    var s2 = tutorialSpawnCreature('p2', 'staph');
-    tutorialUids.staph2 = s2.uid;
+  } else if(tutorialStep===11 && action==='playhand'){
     tutorialStep = 12;
     render();
-  } else if(tutorialStep===13 && action==='playhand'){
+  } else if(tutorialStep===12 && action==='resolveeffecttarget'){
+    var s2 = tutorialSpawnCreature('p2', 'staph');
+    tutorialUids.staph2 = s2.uid;
+    tutorialStep = 13;
+    render();
+  } else if(tutorialStep===14 && action==='playhand'){
     var lastP1b = S.players.p1.board[S.players.p1.board.length-1];
     tutorialUids.nkBoard = lastP1b.uid;
-    tutorialStep = 14;
+    tutorialStep = 15;
     render();
-  } else if(tutorialStep===15 && action==='engagestart'){
-    tutorialStep = 16;
-    render();
-  } else if(tutorialStep===16 && action==='engagetarget'){
+  } else if(tutorialStep===16 && action==='engagestart'){
     tutorialStep = 17;
     render();
-  } else if(tutorialStep===18 && action==='playhand'){
+  } else if(tutorialStep===17 && action==='engagetarget'){
+    tutorialStep = 18;
+    render();
+  } else if(tutorialStep===19 && action==='playhand'){
     var lastP1c = S.players.p1.board[S.players.p1.board.length-1];
     lastP1c.dormant = false;
     tutorialUids.helpertBoard = lastP1c.uid;
     var rhino = tutorialSpawnCreature('p2', 'rhino');
     tutorialUids.rhino = rhino.uid;
-    tutorialStep = 19;
+    tutorialStep = 20;
     render();
-  } else if(tutorialStep===20 && action==='engagestart'){
-    tutorialStep = 21;
-    render();
-  } else if(tutorialStep===21 && action==='engagetarget'){
+  } else if(tutorialStep===21 && action==='engagestart'){
     tutorialStep = 22;
     render();
-  } else if(tutorialStep===22 && action==='pickspecialize'){
-    tutorialSpecializePath = el.dataset.path;
+  } else if(tutorialStep===22 && action==='engagetarget'){
     tutorialStep = 23;
+    render();
+  } else if(tutorialStep===23 && action==='pickspecialize'){
+    tutorialSpecializePath = el.dataset.path;
+    tutorialStep = 24;
     render();
   }
 }
 
 function tutorialAdvanceOnNext(){
-  if(tutorialStep===24){ tutorialFinish(); return; }
-  if(tutorialStep===17){ tutorialBeginTurn3(); }
+  if(tutorialStep===25){ tutorialFinish(); return; }
+  if(tutorialStep===18){ tutorialBeginTurn3(); }
   tutorialStep += 1;
   render();
 }
@@ -1025,74 +1059,77 @@ function renderTutorialOverlay(){
       text = "This banner shows whose turn it is. Right now, it's yours.";
       highlight = '#turn-indicator'; nextBtn.hidden = false; break;
     case 3:
-      text = "This is your ATP — the energy you spend to play cards. You have 2 out of 2 right now. This cap grows by 1 every one of your turns (up to a max of 8), so you'll have more to work with as the game goes on.";
+      text = "This is your ATP — the energy you spend to play cards. You have 2 out of 2 right now. This cap grows by 1 every one of your turns (up to a max of 8), so you'll have more to work with as the game goes on. One rule bend up front: to keep this lesson short, I'll jump your ATP up faster than that a couple of times — just so there's enough on hand to show you more of the game. A real game only ever climbs by 1 per turn.";
       highlight = '#hud-bottom-stats .stat.atp'; nextBtn.hidden = false; break;
     case 4:
+      text = "And this is your Health — it's how the game is actually won. Reach 0 and you lose; bring your opponent's Health to 0 first and you win. You're starting at 20. A card's own Resistance is a separate number from this — losing that just costs you the card, not the game.";
+      highlight = '#hud-bottom-stats .stat.health'; nextBtn.hidden = false; break;
+    case 5:
       text = 'Let’s play your first card. Tap the Neutrophil in your hand — it costs 1 ATP and joins your board.';
       highlight = '#hand [data-uid="'+tutorialUids.neutrophil+'"]'; break;
-    case 5:
+    case 6:
       text = "Nice — the Neutrophil is now on your board, and your ATP dropped from 2 to 1. The two numbers on a board card are Potency (its attack power) and Resistance (how much damage it can take before being destroyed). A Neutrophil has no special ability — it's a plain 1/1 fighter.";
       nextBtn.hidden = false; break;
-    case 6:
+    case 7:
       text = "The computer already has a Staphylococcus aureus out — a Bacterium with 3 Potency and 2 Resistance. Keep an eye on it. (Rule bend: a real game always starts with both boards empty — I've given the computer a head start so there's something to interact with right away.)";
       highlight = '#board-top [data-uid="'+tutorialUids.staph1+'"]'; nextBtn.hidden = false; break;
-    case 7:
+    case 8:
       text = "You're done for this turn. Tap End Turn to hand things over to the computer and see what it does.";
       highlight = '#end-turn'; break;
-    case 8:
+    case 9:
       text = "The computer attacks directly with that Staph (3 Potency). You can block with your Neutrophil, or tap “Take the hit” to let it through to your Health. Either is a valid choice — try blocking this time.";
       break;
-    case 9:
+    case 10:
       text = tutorialBlockOutcome==='blocked'
         ? "Blocking triggers a trade: your Neutrophil's 1 Potency chipped the Staph's Resistance down to 1, but the Staph's 3 Potency was more than your Neutrophil's 1 Resistance, so your Neutrophil was destroyed. Taking the hit instead would have cost you 3 Health directly but kept the Neutrophil around."
         : "Taking the hit sent 3 damage straight to your Health, but your Neutrophil is still on your board, ready for later. Blocking instead would have traded hits with the Staph — possibly losing the Neutrophil, but also weakening or destroying the attacker.";
       nextBtn.hidden = false; break;
-    case 10:
-      text = "It's your turn again. Rule bend: your ATP jumped from 2 up to 5, not just the usual +1 — I sped that up so we can get to a few more things in this lesson. In a real game it only climbs by 1 each of your turns. Effect cards like Antibiotic don't go on the board — they do something immediately, often against a target. Tap Antibiotic in your hand.";
-      highlight = '#hand [data-uid="'+tutorialUids.antibiotic+'"]'; break;
     case 11:
+      text = "It's your turn again. Effect cards like Antibiotic don't go on the board — they do something immediately, often against a target. Tap Antibiotic in your hand.";
+      highlight = '#hand [data-uid="'+tutorialUids.antibiotic+'"]'; break;
+    case 12:
       text = "Now tap the glowing Staphylococcus aureus to target it with the Antibiotic.";
       break;
-    case 12:
+    case 13:
       text = "Antibiotic dealt 3 damage — more than enough to destroy that Staph's Resistance. Effect cards are used up the moment you play them. The computer has brought out another Staph to defend itself. (Rule bend again: I placed that one directly rather than having the computer actually spend a turn and ATP on it.)";
       nextBtn.hidden = false; break;
-    case 13:
+    case 14:
       text = "So far you've played new cards from your hand. But cards already on your board can also act on their turn — attacking directly (Pathogens) or engaging an enemy creature (Immune cells). Let's get another one out first: tap the Natural Killer Cell in your hand.";
       highlight = '#hand [data-uid="'+tutorialUids.nk+'"]'; break;
-    case 14:
+    case 15:
       text = "Your NK Cell is on the board now. Using a card that's already on the board — instead of playing a new one from your hand — is the other half of a turn's actions.";
       nextBtn.hidden = false; break;
-    case 15:
+    case 16:
       text = "Tap your NK Cell on the board to start an attack with it.";
       highlight = '#board-bottom [data-uid="'+tutorialUids.nkBoard+'"]'; break;
-    case 16:
+    case 17:
       text = "Now tap the new Staph to engage it.";
       break;
-    case 17:
+    case 18:
       text = "Engaging is a two-way fight: both sides deal their Potency to each other at once. Your NK Cell's 2 Potency was enough to destroy the Staph's 2 Resistance — but the Staph's 3 Potency was also enough to destroy your NK Cell's 1 Resistance right back. Both were removed. Choosing what to engage, and when, matters.";
       nextBtn.hidden = false; break;
-    case 18:
-      text = "One more thing worth seeing: your turn again. Rule bend again: your ATP jumped from 0 up to 4, another bigger-than-usual increase just for this lesson. \"Naive\" adaptive cells like your Helper T-cell haven't proven themselves against anything yet. Tap the Naive Helper T-cell in your hand.";
-      highlight = '#hand [data-uid="'+tutorialUids.helpert+'"]'; break;
     case 19:
+      text = "One more thing worth seeing: your turn again. \"Naive\" adaptive cells like your Helper T-cell haven't proven themselves against anything yet. Tap the Naive Helper T-cell in your hand.";
+      highlight = '#hand [data-uid="'+tutorialUids.helpert+'"]'; break;
+    case 20:
       text = "Your Naive Helper T-cell is on the board. Rule bend: a freshly played card like this would normally be \"dormant\" and unable to act until your next turn — I've let yours skip that wait so we can see specialization in this same lesson. The computer has a Rhinovirus out — a mild one, 1 Potency. Let's send your T-cell to engage it and see what happens if your cell survives a fight.";
       nextBtn.hidden = false; break;
-    case 20:
+    case 21:
       text = "Tap your Naive Helper T-cell on the board to start an engagement.";
       highlight = '#board-bottom [data-uid="'+tutorialUids.helpertBoard+'"]'; break;
-    case 21:
+    case 22:
       text = "Now tap the Rhinovirus to engage it.";
       break;
-    case 22:
-      text = "Your Helper T-cell's 1 Potency was enough to finish off the Rhinovirus, and the Rhinovirus's 1 Potency only chipped your cell's Resistance from 3 down to 2 — nowhere near enough to destroy it. Surviving its first fight lets a Naive adaptive cell specialize against whatever category it just fought — here, Virus. Pick a path below.";
-      highlight = '#pick-category'; break;
     case 23:
-      text = tutorialSpecializePath==='effector'
-        ? "It's now an Effector Helper T-cell, Specialized against Virus: +3 Potency, but only until the next time it fights — a big, aggressive, but temporary boost. Picking Memory instead would have given it a smaller, permanent +2 Resistance. Either way, being Specialized against Virus also means a permanent +1 Potency bonus whenever this cell fights a Virus-category pathogen again — it now recognizes that threat."
-        : "It's now a Memory Helper T-cell, Specialized against Virus: a permanent +2 Resistance — smaller than Effector's boost, but it never wears off. Picking Effector instead would have given it a bigger but temporary +3 Potency until its next fight. Either way, being Specialized against Virus also means a permanent +1 Potency bonus whenever this cell fights a Virus-category pathogen again — it now recognizes that threat.";
-      nextBtn.hidden = false; break;
+      text = "Your Helper T-cell's 1 Potency was enough to finish off the Rhinovirus, and the Rhinovirus's 1 Potency only chipped your cell's Resistance from 4 down to 3 — nowhere near enough to destroy it. Surviving its first fight lets a Naive adaptive cell specialize against whatever category it just fought — here, Virus. Pick a path below.";
+      highlight = '#pick-category'; break;
     case 24:
-      text = "That covers the basics: whose turn it is, spending ATP, playing cards onto your board, using effect cards on a target, responding to an attack, using board creatures to act, and specialization. Health is what actually ends the game — reach 0 and you lose, bring the opponent to 0 and you win; a card's Resistance is separate from that. One more thing you'll run into: some pathogens cause ongoing damage if left unremoved too long — Helicobacter pylori, for instance, starts adding +1 damage per turn once it's been on the board 4 turns unremoved. Your hand can also hold up to 10 cards at a time. Ready to play for real?";
+      text = tutorialSpecializePath==='effector'
+        ? "It's now an Effector Helper T-cell, Specialized against Virus. Effector cells trade away attacking or engaging directly — instead, once per turn it can tap to secrete IFN-γ into your hand for 1 ATP, which you can then play to give a permanent +1/+1 to a Dendritic Cell, Macrophage, or Cytotoxic T-cell you control. It still gets a permanent +1 Resistance just from specializing, and it can still block. Picking Memory instead would have kept it able to engage normally and given it a permanent +3 Resistance instead. Either way, being Specialized against Virus means a permanent +1 Potency bonus whenever it fights a Virus-category pathogen again — including while blocking one — since it now recognizes that threat."
+        : "It's now a Memory Helper T-cell, Specialized against Virus: a permanent +3 Resistance, and — unlike an Effector — it can still attack and engage normally. Picking Effector instead would have traded that away for the ability to secrete a Cytokine each turn (a card that permanently boosts another ally's stats), plus a smaller +1 Resistance. Either way, being Specialized against Virus also means a permanent +1 Potency bonus whenever this cell fights a Virus-category pathogen again — it now recognizes that threat.";
+      nextBtn.hidden = false; break;
+    case 25:
+      text = "That covers the basics: whose turn it is, Health and ATP, playing cards onto your board, using effect cards on a target, responding to an attack, using board creatures to act, and specialization. One more thing you'll run into: some pathogens cause ongoing damage if left unremoved too long. A few, like Helicobacter pylori, just start adding +1 damage per turn on a fixed schedule; others, like Epstein-Barr Virus or HIV, instead roll a die once a threshold is reached, risking a worse complication — you'll see that roll flash on screen when it happens, so you always know exactly what was rolled. Tap the small \"i\" on any card, in your hand or on the board, any time to check exactly what it does. Your hand can also hold up to 10 cards at a time. Ready to play for real?";
       nextBtn.hidden = false; nextBtn.textContent = 'Play Solo Now'; break;
   }
   document.getElementById('tutorial-text').innerHTML = text;
@@ -1259,7 +1296,8 @@ async function createOnlineGame(){
   if(notReady){ lobbyMessage(notReady); return; }
   lobbyMessage('Creating your game...');
   var code = generateRoomCode();
-  newGame('online', 'p1', code);
+  var shortToggle = document.getElementById('short-game-toggle');
+  newGame('online', 'p1', code, shortToggle && shortToggle.checked);
   try{
     await firestoreDb.collection('games').doc(code).set({
       status: 'waiting',
@@ -1372,12 +1410,19 @@ function freshPlayer(name){
 }
 function opponentOf(who){ return who==='p1' ? 'p2' : 'p1'; }
 
-function newGame(mode, seat, roomCode){
+function newGame(mode, seat, roomCode, shortGame){
   var keepSeat = (mode==='online' && S) ? S.mySeat : null;
   var keepRoom = (mode==='online' && S) ? S.roomCode : null;
+  // "Play again" calls newGame(S.mode) with no shortGame argument at all — fall back to
+  // whatever the game just finished was, so a rematch keeps the same short/full setting.
+  var keepShort = (shortGame!==undefined) ? !!shortGame : (S ? !!S.shortGame : false);
   S = { mode:mode, turn:null, first:null, over:false, winner:null, selection:null, pendingAttack:null,
-    log:[], anim:{hits:{}, dying:{}, deathKind:{}, healthHits:{}}, locked:false, turnCount:0,
+    log:[], anim:{hits:{}, dying:{}, deathKind:{}, healthHits:{}}, locked:false, turnCount:0, shortGame:keepShort,
     players:{ p1: freshPlayer('Player 1'), p2: freshPlayer('Player 2') } };
+  if(keepShort){
+    S.players.p1.health = 10; S.players.p1.maxHealth = 10;
+    S.players.p2.health = 10; S.players.p2.maxHealth = 10;
+  }
   if(mode==='online'){ S.mySeat = (seat!==undefined ? seat : keepSeat); S.roomCode = (roomCode!==undefined ? roomCode : keepRoom); }
   for(var i=0;i<5;i++){ drawCard('p1'); drawCard('p2'); }
   S.first = Math.random()<0.5 ? 'p1' : 'p2';
@@ -1407,7 +1452,7 @@ function flashMessage(msg, long){
     setTimeout(function(){ el.hidden = true; }, 220);
   }, long ? 4200 : 2200);
 }
-function pushLogFlash(msg){ pushLog(msg); flashMessage(msg); }
+function pushLogFlash(msg, long){ pushLog(msg); flashMessage(msg, long); }
 // Shows an expanded explainer the first time a player (never in the tutorial, which already
 // teaches this explicitly) hits a given situation in a real game; after that, callers fall back
 // to the normal short flash. Persisted per-browser via localStorage, not per-account.
@@ -1434,6 +1479,18 @@ function drawCard(who){
   p.hand.push({uid:nextUid(), defId:id});
 }
 
+// A chronic complication's die roll needs to actually be seen, not just logged — pushLogFlash
+// puts it in the on-screen toast (not just the easy-to-miss scrolling log), and the message
+// spells out the roll and the target together so it's clear what happened and why.
+function rollDiceFlash(hostWho, complicationLabel, target, sides){
+  sides = sides || 6;
+  var roll = 1+Math.floor(Math.random()*sides);
+  var hit = roll>=target;
+  var sidesNote = sides===6 ? '' : (' out of '+sides);
+  pushLogFlash('🎲 '+label(hostWho)+' rolls a '+roll+sidesNote+' (needs '+target+'+) for '+complicationLabel+' — '+(hit?'triggered!':'no complication this time.'), true);
+  return roll;
+}
+
 function tickChronicForHost(hostWho){
   var attackerSide = opponentOf(hostWho);
   var host = S.players[hostWho];
@@ -1451,16 +1508,34 @@ function tickChronicForHost(hostWho){
     } else if(c.key==='lupus'){
       if(p.hostTurns===c.rollAt && !p.rolled){
         p.rolled = true;
-        var roll = 1+Math.floor(Math.random()*6);
-        pushLog(label(hostWho)+' rolls a '+roll+' for molecular mimicry (EBV).');
-        if(roll>=5){ host.autoreactive = true; pushLog('Lupus onset — '+label(hostWho)+"'s B-cells and Antibodies now misfire against their own Health."); }
+        var target = c.rollTarget || 5;
+        var sides = c.rollSides || 6;
+        var roll = rollDiceFlash(hostWho, 'molecular mimicry (EBV)', target, sides);
+        if(roll>=target){ host.autoreactive = true; pushLogFlash('Lupus onset — '+label(hostWho)+"'s B-cells and Antibodies now misfire against their own Health.", true); }
       }
     } else if(c.key==='rheumatic'){
       if(p.hostTurns===c.rollAt && !p.rolled){
         p.rolled = true;
-        var roll2 = 1+Math.floor(Math.random()*6);
-        pushLog(label(hostWho)+' rolls a '+roll2+' for rheumatic fever risk (Strep).');
-        if(roll2>=5){ host.maxHealth -= 2; host.health = Math.min(host.health, host.maxHealth); pushLog('Rheumatic fever — '+label(hostWho)+' permanently loses 2 max Health.'); }
+        var target2 = c.rollTarget || 5;
+        var roll2 = rollDiceFlash(hostWho, 'rheumatic fever risk (Strep)', target2);
+        if(roll2>=target2){ host.maxHealth -= 2; host.health = Math.min(host.health, host.maxHealth); pushLogFlash('Rheumatic fever — '+label(hostWho)+' permanently loses 2 max Health.', true); }
+      }
+    } else if(c.key==='aids'){
+      if(p.hostTurns===c.rollAt && !p.rolled){
+        p.rolled = true;
+        var target3 = c.rollTarget || 5;
+        var roll3 = rollDiceFlash(hostWho, "HIV's opportunistic-infection risk", target3);
+        if(roll3>=target3){
+          var recruitPool = S.players[attackerSide].discard.filter(function(id){ return DEFS[id] && DEFS[id].group==='pathogen'; });
+          if(recruitPool.length && S.players[attackerSide].hand.length<10){
+            var recruitPick = recruitPool[Math.floor(Math.random()*recruitPool.length)];
+            S.players[attackerSide].discard.splice(S.players[attackerSide].discard.indexOf(recruitPick),1);
+            S.players[attackerSide].hand.push({uid:nextUid(), defId:recruitPick});
+            pushLogFlash('Opportunistic infection — '+DEFS[recruitPick].name+' returns to '+label(attackerSide)+"'s hand from the discard pile.", true);
+          } else {
+            pushLogFlash('Opportunistic-infection risk triggers, but '+label(attackerSide)+' has nothing left in the discard pile to recruit.', true);
+          }
+        }
       }
     }
   });
@@ -1471,6 +1546,40 @@ function clearTempBuffs(who){
   S.players[who].board.forEach(function(c){ c.tempPot = 0; c.noBlockAcute = false; });
 }
 
+// Regeneration, Toxin secretion, and self-copying all tick at the start of the pathogen's OWN
+// controller's turn (unlike chronic complications, which tick on the host/victim's turn) —
+// these represent the pathogen's own body doing something, not an effect on its host.
+// spawnsCopies deliberately skips the first tick (its first active turn) per design — a
+// pathogen shouldn't duplicate itself the instant it wakes up, only once it's actually stuck
+// around a full round. Regeneration and Toxin secretion have no such exclusion.
+function tickPathogenPassives(who){
+  var p = S.players[who];
+  p.board.slice().forEach(function(c){
+    if(c.group!=='pathogen' || c.dormant || S.anim.dying[c.uid]) return;
+    c.passiveTurns = (c.passiveTurns||0) + 1;
+    if(c.regen && c.res!==null && c.res<c.maxRes){
+      c.res = Math.min(c.maxRes, c.res + c.regen);
+      pushLog(c.name+' regenerates back to '+c.res+' Resistance.');
+    }
+    if(c.secretesToxin){
+      if(p.hand.length<10){
+        p.hand.push({uid:nextUid(), defId:'toxin'});
+        pushLog(c.name+' secretes a Toxin into '+label(who)+"'s hand.");
+      } else {
+        pushLog(c.name+"'s Toxin breaks down — "+label(who)+"'s hand is full.");
+      }
+    }
+    if(c.spawnsCopies && c.passiveTurns>1){
+      if(p.hand.length<10){
+        p.hand.push({uid:nextUid(), defId:c.defId});
+        pushLog(c.name+' spawns a copy of itself into '+label(who)+"'s hand.");
+      } else {
+        pushLog(c.name+"'s new copy is lost — "+label(who)+"'s hand is full.");
+      }
+    }
+  });
+}
+
 function startTurn(who){
   if(S.over) return;
   S.turn = who;
@@ -1478,7 +1587,8 @@ function startTurn(who){
   var p = S.players[who];
   p.board.forEach(function(c){ c.dormant = false; c.acted = false; });
   clearTempBuffs(who);
-  if(!p.everStarted){ p.atpMax = 2; p.everStarted = true; } else { p.atpMax = Math.min(8, p.atpMax+1); }
+  tickPathogenPassives(who);
+  if(!p.everStarted){ p.atpMax = 2; p.everStarted = true; } else { p.atpMax = Math.min(8, p.atpMax + (S.shortGame ? 2 : 1)); }
   p.atp = p.atpMax;
   tickChronicForHost(who);
   if(S.over) return;
@@ -1497,10 +1607,10 @@ function advanceTurn(){
 }
 function endTurn(){
   if(S.mode==='tutorial'){
-    if(tutorialStep!==7) return;
+    if(tutorialStep!==8) return;
     pushLog("— Computer's turn —");
     pushLog('Computer attacks with its Staph.');
-    tutorialStep = 8;
+    tutorialStep = 9;
     render();
     setTimeout(function(){ declarePathogenAttack('p2', tutorialUids.staph1, function(){}); render(); }, 500);
     return;
@@ -1603,14 +1713,20 @@ function effectivePot(c){
 
 function makeCreatureInstance(def, defId, specCat){
   var name = def.name;
-  if(defId==='antibody' && specCat){ name = specCat+'-Specific Antibody'; }
+  var text = def.text;
+  if(defId==='antibody' && specCat){
+    name = specCat+'-Specific Antibody';
+    text = 'Blocks '+specCat+' pathogens only, fully neutralizing the attack, then is spent.';
+  }
   return {
     uid:nextUid(), defId:defId, name:name, baseName:def.name.replace(/^Naive /,''), group:def.group, category:def.category, class:def.class,
     duration:def.duration, cost:def.cost, pot:def.pot, res:def.res, maxRes:def.res,
-    ability:def.ability, text:def.text, icon:def.icon, specializes:!!def.specializes, specialized:null, specialTag:null,
+    ability:def.ability, text:text, icon:def.icon, specializes:!!def.specializes, specialized:null, specialTag:null,
     specificCategory: specCat||null, plasma:false,
     dormant: def.duration==='persistent', acted:false, tempPot:0, noBlockAcute:false, effectorCharge:0, auraBuffed:false, primeCategory:null,
-    chronicDef: def.chronic ? Object.assign({}, def.chronic) : null, hostTurns:0, rolled:false
+    chronicDef: def.chronic ? Object.assign({}, def.chronic) : null, hostTurns:0, rolled:false,
+    regen: def.regen||0, secretesToxin: !!def.secretesToxin, spawnsCopies: !!def.spawnsCopies,
+    retaliateKillInnate: !!def.retaliateKillInnate, canHide: !!def.canHide, hidden:false, passiveTurns:0
   };
 }
 
@@ -1664,7 +1780,7 @@ function playCreature(who, handUid, defId, def, specCat){
     // never leave `.specialized` set on its own with no specialTag behind it.
     var isHumanControlled = S.mode!=='solo' || who==='p1';
     if(isHumanControlled){
-      var specKind = creature.defId==='bcell' ? 'bcell' : 'tcell';
+      var specKind = creature.defId==='bcell' ? 'bcell' : (creature.defId==='cytotoxict' ? 'cd8' : 'cd4');
       S.selection = {mode:'specializeChoice', uid:creature.uid, owner:who, category:primedCategory, kind:specKind};
     } else {
       aiResolveSpecialize(creature, primedCategory, who);
@@ -1674,13 +1790,16 @@ function playCreature(who, handUid, defId, def, specCat){
 }
 
 function needsManualTarget(def){
-  return def.ability==='drift' || def.ability==='shift' || def.ability==='treat' || def.ability==='incinerate';
+  return def.ability==='drift' || def.ability==='shift' || def.ability==='treat' || def.ability==='incinerate' || def.ability==='boost' || def.ability==='cytokineboost' || def.ability==='toxincard';
 }
 function validTargetsFor(who, def){
   var opp = opponentOf(who);
   if(def.ability==='drift' || def.ability==='shift') return S.players[who].board.filter(function(c){return c.group==='pathogen';}).map(function(c){return c.uid;});
   if(def.ability==='treat') return S.players[opp].board.filter(function(c){return c.group==='pathogen' && c.category===def.treatCat;}).map(function(c){return c.uid;});
   if(def.ability==='incinerate') return S.players[opp].board.filter(function(c){return c.group==='pathogen';}).map(function(c){return c.uid;});
+  if(def.ability==='boost') return S.players[who].board.filter(function(c){return c.group==='immune' && c.class==='Adaptive';}).map(function(c){return c.uid;});
+  if(def.ability==='cytokineboost') return S.players[who].board.filter(function(c){return def.boostPool.indexOf(c.defId)>-1;}).map(function(c){return c.uid;});
+  if(def.ability==='toxincard') return S.players[opp].board.filter(function(c){return c.group==='immune';}).map(function(c){return c.uid;});
   return [];
 }
 
@@ -1696,6 +1815,9 @@ function applyEffect(who, def, targetUid, chosenCategory){
   } else if(def.ability==='treat'){
     var t3 = findCreature(opp, targetUid);
     if(t3) damageCreature(t3, opp, def.dmg, 'card');
+  } else if(def.ability==='toxincard'){
+    var tTox = findCreature(opp, targetUid);
+    if(tTox) damageCreature(tTox, opp, 1, 'card');
   } else if(def.ability==='fever'){
     S.players[who].board.forEach(function(c){ c.tempPot += 1; });
     damageHealth(who, 1);
@@ -1705,6 +1827,38 @@ function applyEffect(who, def, targetUid, chosenCategory){
     damageHealth(who, 2);
   } else if(def.ability==='sleep'){
     drawCard(who); drawCard(who);
+  } else if(def.ability==='healthydiet'){
+    drawCard(who);
+  } else if(def.ability==='boost'){
+    var t4 = findCreature(who, targetUid);
+    if(t4){ t4.pot+=1; t4.res+=1; t4.maxRes+=1; pushLog(t4.name+' gets a permanent +1/+1 boost.'); }
+  } else if(def.ability==='cytokineboost'){
+    var t6 = findCreature(who, targetUid);
+    if(t6){ t6.pot+=1; t6.res+=1; t6.maxRes+=1; pushLog(t6.name+' gets a permanent +1/+1 boost from '+def.name+'.'); }
+  } else if(def.ability==='chemokine'){
+    var innatePool = S.players[who].discard.filter(function(id){ return DEFS[id] && DEFS[id].group==='immune' && DEFS[id].class==='Innate'; });
+    if(innatePool.length){
+      var summonPick = innatePool[Math.floor(Math.random()*innatePool.length)];
+      S.players[who].discard.splice(S.players[who].discard.indexOf(summonPick),1);
+      var summoned = makeCreatureInstance(DEFS[summonPick], summonPick, null);
+      S.players[who].board.push(summoned);
+      recalcHelperAura(who);
+      pushLog('Chemokine signals '+summoned.name+' back onto the board from the discard pile.');
+    } else {
+      pushLog('No Innate immune cells in the discard pile to summon.');
+    }
+  } else if(def.ability==='daycare'){
+    var acutePool = S.players[who].discard.filter(function(id){ return DEFS[id] && DEFS[id].group==='pathogen' && DEFS[id].duration==='acute'; });
+    var pulledNames = [];
+    for(var dcI=0; dcI<3 && acutePool.length && S.players[who].hand.length<10; dcI++){
+      var dcPick = acutePool[Math.floor(Math.random()*acutePool.length)];
+      acutePool.splice(acutePool.indexOf(dcPick),1);
+      S.players[who].discard.splice(S.players[who].discard.indexOf(dcPick),1);
+      S.players[who].hand.push({uid:nextUid(), defId:dcPick});
+      pulledNames.push(DEFS[dcPick].name);
+    }
+    if(pulledNames.length){ pushLog('Daycare pulls '+pulledNames.join(', ')+' from the discard pile into '+label(who)+"'s hand."); }
+    else { pushLog('No Acute Pathogens in the discard pile for Daycare to pull.'); }
   } else if(def.ability==='immuneboost'){
     var pool = S.players[who].discard.filter(function(id){ return id!=='antibody' && DEFS[id] && DEFS[id].group==='immune'; });
     if(pool.length){
@@ -1732,8 +1886,19 @@ function immuneBoostPoolFor(who){
 function applyVaccinate(who, category, targetUid){
   var t = findCreature(who, targetUid);
   if(t && t.specializes && !t.specialized){
-    t.specialized = category; t.pot += 1; t.res += 1; t.maxRes += 1;
-    pushLog(t.name+' is vaccinated — Specialized against '+category+'.');
+    // Vaccination gets a cell to the same "Specialized" state a combat win does — full
+    // path choice included — just without needing to survive a fight first. It used to only
+    // set .specialized and a flat +1/+1 directly, skipping the Effector/Memory (or
+    // Plasma/Memory-B) choice entirely; the card stayed named "Naive X" and never got a
+    // specialTag, which looked exactly like it had silently failed to specialize at all.
+    pushLog(t.name+' is vaccinated against '+category+'.');
+    var isHumanControlled = S.mode!=='solo' || who==='p1';
+    if(isHumanControlled){
+      var kind = t.defId==='bcell' ? 'bcell' : (t.defId==='cytotoxict' ? 'cd8' : 'cd4');
+      S.selection = {mode:'specializeChoice', uid:t.uid, owner:who, category:category, kind:kind};
+    } else {
+      aiResolveSpecialize(t, category, who);
+    }
   }
 }
 
@@ -1745,6 +1910,10 @@ function eligibleBlockers(defWho, attacker){
     // this cycle — only Acute cells are limited to one action total (attack, block, or engage).
     if(c.duration==='acute' && c.acted) return false;
     if(attacker.noBlockAcute && c.duration==='acute') return false;
+    // A category-specific Antibody (from a Plasma Cell) only neutralizes the category it was
+    // raised against. A generic Antibody (left behind when a Naive B-cell dies, no specificCategory)
+    // isn't specific to anything, so it can still block any pathogen.
+    if(c.defId==='antibody' && c.specificCategory && c.specificCategory!==attacker.category) return false;
     return true;
   });
 }
@@ -1769,30 +1938,42 @@ function resolveUnblocked(pathogen, pathOwner, hostWho){
 
 function applySpecializePath(creature, category, path){
   creature.specialized = category;
+  // Every specialization path toughens the cell by +1 Resistance, on top of whatever else
+  // that path grants — a flat counterweight to the chronic pathogens getting harder to kill.
+  creature.res += 1; creature.maxRes += 1;
   if(path==='effector'){
-    creature.effectorCharge = 3;
     creature.name = 'Effector '+creature.baseName;
     creature.specialTag = 'Effector';
-    pushLog(creature.name+' becomes an Effector cell — +3 Potency until it next fights.');
+    if(creature.defId==='cytotoxict'){
+      creature.ability = 'granulesecrete';
+      creature.text = 'Tap to secrete a Granule into your hand for 1 ATP (once per turn). Granules (+1/0) can attack any enemy Pathogen or Immune cell, then are spent.';
+      pushLog(creature.name+' becomes an Effector cell — can secrete a Granule each turn for 1 ATP; +1 Resistance.');
+    } else {
+      var cytokineId = (category==='Virus' || category==='Bacterium') ? 'ifng' : 'il4';
+      creature.ability = 'cytokinesecrete';
+      creature.cytokineId = cytokineId;
+      creature.text = 'Tap to secrete '+DEFS[cytokineId].name+' into your hand for 1 ATP (once per turn).';
+      pushLog(creature.name+' becomes an Effector cell — can secrete '+DEFS[cytokineId].name+' each turn for 1 ATP; +1 Resistance.');
+    }
   } else if(path==='memory'){
     creature.res += 2; creature.maxRes += 2;
     creature.name = 'Memory '+creature.baseName;
     creature.specialTag = 'Memory';
-    pushLog(creature.name+' becomes a Memory cell — permanent +2 Resilience.');
+    pushLog(creature.name+' becomes a Memory cell — permanent +3 Resilience.');
   } else if(path==='memoryb'){
     creature.pot += 2; creature.res += 2; creature.maxRes += 2;
     creature.name = 'Memory B-cell';
     creature.specialTag = 'Memory';
     creature.ability = null;
     creature.text = 'A tougher, faster combatant now — no longer leaves an Antibody on death.';
-    pushLog('Memory B-cell — permanent +2/+2, no longer leaves an Antibody on death.');
+    pushLog('Memory B-cell — permanent +2 Potency, +3 Resistance, no longer leaves an Antibody on death.');
   } else if(path==='plasma'){
     creature.plasma = true;
     creature.ability = 'plasmasecrete';
     creature.name = 'Plasma Cell';
     creature.specialTag = 'Plasma';
     creature.text = 'Tap to secrete a '+category+'-specific Antibody into your hand for 1 ATP (once per turn). No longer engages directly, and no longer leaves an Antibody on death.';
-    pushLog('Plasma Cell — can secrete a '+category+'-specific Antibody each turn for 1 ATP.');
+    pushLog('Plasma Cell — can secrete a '+category+'-specific Antibody each turn for 1 ATP; +1 Resistance.');
   }
 }
 function aiResolveSpecialize(creature, category, owner){
@@ -1801,7 +1982,7 @@ function aiResolveSpecialize(creature, category, owner){
     path = (S.players[owner].board.filter(function(c){return c.group==='immune';}).length>=3) ? 'plasma' : 'memoryb';
   } else {
     var opp = S.players[opponentOf(owner)];
-    path = (opp.health<=8) ? 'effector' : 'memory';
+    path = (opp.health<=opp.maxHealth*0.4) ? 'effector' : 'memory';
   }
   applySpecializePath(creature, category, path);
 }
@@ -1839,19 +2020,44 @@ function resolveCombat(pathogen, pathOwner, immune, immOwner, onDone, context){
     if(specMatch){ pushLog(immune.name+"'s "+immune.specialized+' specialization adds +1 force against '+pathogen.name+'.'); }
     eligibleToSpecialize = immune.specializes && !immune.specialized;
   }
+  var pathogenSurvived = !S.anim.dying[pathogen.uid];
   if(immune.effectorCharge){
     immune.effectorCharge = 0;
     pushLog(immune.name+"'s Effector boost is spent.");
   }
   damageCreature(immune, immOwner, effectivePot(pathogen));
   var immuneSurvived = !S.anim.dying[immune.uid];
+  // Explicit, numbers-included outcome for every fight (block or engage) — otherwise a card
+  // dying in combat was never actually announced anywhere, just silently removed from the
+  // board, which made "why did my cell just die" impossible to verify from the log alone.
+  // An Acute card that wins its fight still only gets the one action — it's removed right
+  // after, same as an Acute pathogen after it attacks — so "survives" alone would read as a
+  // contradiction once the card vanishes a moment later. Spell that out instead of just
+  // saying "survives".
+  var resLabel = function(c){ return c.res===null ? '—' : Math.max(c.res,0); };
+  var fateLabel = function(c, survived){
+    if(!survived) return 'is destroyed';
+    return c.duration==='acute' ? 'survives the fight, but is spent (Acute — one action only)' : 'survives';
+  };
+  pushLog(immune.name+' ('+resLabel(immune)+' Res left) '+fateLabel(immune, immuneSurvived)+'; '+
+          pathogen.name+' ('+resLabel(pathogen)+' Res left) '+fateLabel(pathogen, pathogenSurvived)+'.');
+  if(pathogen.retaliateKillInnate && pathogenSurvived){
+    var retalPool = S.players[immOwner].board.filter(function(c){
+      return c.group==='immune' && c.class==='Innate' && c.res!==null && c.res<=1 && !S.anim.dying[c.uid];
+    });
+    if(retalPool.length){
+      var retalTarget = retalPool[Math.floor(Math.random()*retalPool.length)];
+      pushLog(pathogen.name+' exhausts and destroys '+retalTarget.name+'.');
+      killCreature(immOwner, retalTarget.uid, 'engage');
+    }
+  }
   if(immune.duration==='acute' && immuneSurvived){ removeCreature(immOwner, immune.uid); }
   checkGameOver();
   var willSpecialize = eligibleToSpecialize && immuneSurvived;
   if(willSpecialize && !S.over){
     var isHumanControlled = S.mode!=='solo' || immOwner==='p1';
     if(isHumanControlled){
-      var kind = immune.defId==='bcell' ? 'bcell' : 'tcell';
+      var kind = immune.defId==='bcell' ? 'bcell' : (immune.defId==='cytotoxict' ? 'cd8' : 'cd4');
       S.selection = {mode:'specializeChoice', uid:immune.uid, owner:immOwner, category:pathogen.category, kind:kind, onDoneAfter:onDone};
       render();
       return;
@@ -1864,10 +2070,11 @@ function resolveCombat(pathogen, pathOwner, immune, immOwner, onDone, context){
 
 function declarePathogenAttack(who, sourceUid, onDone){
   var attacker = findCreature(who, sourceUid);
-  if(!attacker || attacker.dormant || attacker.acted){ if(onDone) onDone(); return; }
+  if(!attacker || attacker.dormant || attacker.acted || attacker.hidden){ if(onDone) onDone(); return; }
   if(S.players[who].atp<1){ if(onDone) onDone(); return; }
   S.players[who].atp -= 1;
   attacker.acted = true;
+  pushLog(attacker.name+' attacks with '+effectivePot(attacker)+' Potency.');
   var defWho = opponentOf(who);
   var blockers = eligibleBlockers(defWho, attacker);
   var finish = function(){
@@ -1887,7 +2094,7 @@ function declarePathogenAttack(who, sourceUid, onDone){
     setTimeout(function(){
       var choice = aiChooseBlock(defWho, attacker, blockers);
       if(choice){
-        pushLog(label(defWho)+' blocks with '+choice.name+'.');
+        pushLog(label(defWho)+' blocks '+attacker.name+' with '+choice.name+'.');
         resolveCombat(attacker, who, choice, defWho, function(){ render(); finish(); }, 'block');
       } else {
         resolveUnblocked(attacker, who, defWho);
@@ -1896,11 +2103,16 @@ function declarePathogenAttack(who, sourceUid, onDone){
       }
     }, 500);
   } else {
-    // Note: no callback stored here (unlike `finish` above) — a function can't survive the
-    // round trip to Firestore in online mode, and whichever device actually resolves this
-    // (the defender's, not the attacker's, once a second real device is involved) needs its
-    // own way to finish the attacker's turn anyway. resolveBlockChoice does that inline.
-    S.pendingAttack = { attackerUid: sourceUid, attackerWho: who, defWho: defWho, blockerUids: blockers.map(function(b){return b.uid;}) };
+    // Note: no callback stored in the synced fields (unlike `finish` above) — a function
+    // can't survive the round trip to Firestore in online mode, and whichever device actually
+    // resolves this (the defender's, not the attacker's, once a second real device is
+    // involved) needs its own way to finish the attacker's turn anyway. resolveBlockChoice
+    // does that inline. `aiOnDone` is the one exception: it only exists when the attacker is
+    // the computer (solo mode, never synced), so it's safe to stash a real callback there —
+    // resolveBlockChoice calls it once the human's block choice resolves, so the AI's attack
+    // loop (and eventually the turn handoff) actually continues instead of hanging forever on
+    // "Computer's turn".
+    S.pendingAttack = { attackerUid: sourceUid, attackerWho: who, defWho: defWho, blockerUids: blockers.map(function(b){return b.uid;}), aiOnDone: (who==='p2' && S.mode==='solo') ? finish : null };
     render();
     tipOnce('pathogenesis_tip_attack', "This pathogen is attacking your Health! Tap a glowing Immune cell to block with it, or tap “Take the hit” to let the damage through.");
   }
@@ -1912,16 +2124,17 @@ function resolveBlockChoice(blockerUidOrNull){
   if(S.mode==='online' && pa.defWho!==S.mySeat) return;
   var attacker = findCreature(pa.attackerWho, pa.attackerUid);
   S.pendingAttack = null;
-  if(!attacker){ render(); return; }
+  if(!attacker){ render(); if(pa.aiOnDone) pa.aiOnDone(); return; }
   var finishAttack = function(){
     if(attacker.duration==='acute' && !S.anim.dying[pa.attackerUid] && findCreature(pa.attackerWho, pa.attackerUid)){
       removeCreature(pa.attackerWho, pa.attackerUid);
     }
+    if(pa.aiOnDone) pa.aiOnDone();
   };
   if(blockerUidOrNull){
     var blocker = findCreature(pa.defWho, blockerUidOrNull);
     if(blocker){
-      pushLog(label(pa.defWho)+' blocks with '+blocker.name+'.');
+      pushLog(label(pa.defWho)+' blocks '+attacker.name+' with '+blocker.name+'.');
       resolveCombat(attacker, pa.attackerWho, blocker, pa.defWho, function(){ render(); finishAttack(); }, 'block');
       return;
     }
@@ -1952,7 +2165,7 @@ function aiChooseBlock(defWho, attacker, blockers){
   var lethal = effectivePot(attacker) >= def.health;
   var survivorKiller = blockers.find(function(c){ return effectivePot(c)>=attacker.res && effectivePot(attacker)<c.res; });
   if(survivorKiller) return survivorKiller;
-  if(lethal || def.health - effectivePot(attacker) < 6){
+  if(lethal || def.health - effectivePot(attacker) < def.maxHealth*0.3){
     blockers = blockers.slice().sort(function(a,b){ return (effectivePot(b)>=attacker.res)-(effectivePot(a)>=attacker.res) || b.res-a.res; });
     return blockers[0];
   }
@@ -1974,8 +2187,8 @@ function aiPlayPhase(done){
     var options = hand.filter(function(h){ return affordable('p2', DEFS[h.defId]); });
     if(options.length===0) return done();
 
-    var wantsImmune = ai.health < 14;
-    var wantsPathogen = human.health < 14;
+    var wantsImmune = ai.health < ai.maxHealth*0.7;
+    var wantsPathogen = human.health < human.maxHealth*0.7;
     function score(h){
       var d = DEFS[h.defId]; var s = d.cost;
       if(d.group==='immune' && wantsImmune) s += 3;
@@ -2000,7 +2213,27 @@ function aiPlayPhase(done){
       if(d.ability==='immuneboost'){
         if(immuneBoostPoolFor('p2').length===0) s -= 99;
       }
-      if(d.ability==='sleep'){ s += 1; }
+      if(d.ability==='boost'){
+        var hasAdaptive = ai.board.some(function(c){return c.group==='immune' && c.class==='Adaptive';});
+        if(!hasAdaptive) s -= 99;
+      }
+      if(d.ability==='cytokineboost'){
+        var hasCytokinePool = ai.board.some(function(c){return d.boostPool.indexOf(c.defId)>-1;});
+        if(!hasCytokinePool) s -= 99;
+      }
+      if(d.ability==='chemokine'){
+        var innatePoolScore = ai.discard.filter(function(id){ return DEFS[id] && DEFS[id].group==='immune' && DEFS[id].class==='Innate'; });
+        if(innatePoolScore.length===0) s -= 99; else s += 3;
+      }
+      if(d.ability==='daycare'){
+        var acutePoolScore = ai.discard.filter(function(id){ return DEFS[id] && DEFS[id].group==='pathogen' && DEFS[id].duration==='acute'; });
+        if(acutePoolScore.length===0) s -= 99; else s += 4;
+      }
+      if(d.ability==='sleep' || d.ability==='healthydiet'){ s += 1; }
+      if(d.ability==='toxincard'){
+        var toxinPool = human.board.filter(function(c){return c.group==='immune';});
+        if(toxinPool.length===0) s -= 99; else if(toxinPool.some(function(c){return c.res!==null && c.res<=1;})) s += 4;
+      }
       return s;
     }
     options.sort(function(a,b){ return score(b)-score(a); });
@@ -2022,6 +2255,11 @@ function aiPlayPhase(done){
       } else if(def.ability==='treat'){
         var pool2 = human.board.filter(function(c){return c.group==='pathogen' && c.category===def.treatCat;}).sort(function(a,b){return a.res-b.res;});
         if(pool2.length) applyEffect('p2', def, pool2[0].uid);
+      } else if(def.ability==='toxincard'){
+        var toxinTargets = human.board.filter(function(c){return c.group==='immune';}).sort(function(a,b){
+          var ar = a.res===null?99:a.res, br = b.res===null?99:b.res; return ar-br;
+        });
+        if(toxinTargets.length) applyEffect('p2', def, toxinTargets[0].uid);
       } else if(def.ability==='drift' || def.ability==='shift'){
         var mine = ai.board.filter(function(c){return c.group==='pathogen';}).sort(function(a,b){return b.pot-a.pot;});
         if(mine.length) applyEffect('p2', def, mine[0].uid, def.ability==='shift' ? 'Virus' : null);
@@ -2031,6 +2269,12 @@ function aiPlayPhase(done){
           return bp-ap || b.cost-a.cost;
         });
         if(pool3.length) applyEffect('p2', def, pool3[0].uid);
+      } else if(def.ability==='boost'){
+        var adaptivePool = ai.board.filter(function(c){return c.group==='immune' && c.class==='Adaptive';}).sort(function(a,b){return b.pot-a.pot;});
+        if(adaptivePool.length) applyEffect('p2', def, adaptivePool[0].uid);
+      } else if(def.ability==='cytokineboost'){
+        var cytokinePool = ai.board.filter(function(c){return def.boostPool.indexOf(c.defId)>-1;}).sort(function(a,b){return b.pot-a.pot;});
+        if(cytokinePool.length) applyEffect('p2', def, cytokinePool[0].uid);
       } else {
         applyEffect('p2', def, null, null);
       }
@@ -2057,15 +2301,40 @@ function aiAttackPhase(i, done){
   if(!findCreature('p2', c.uid) || c.acted){ return setTimeout(function(){ aiAttackPhase(i+1, done); }, 10); }
   if(c.group==='pathogen'){
     declarePathogenAttack('p2', c.uid, function(){ setTimeout(function(){ aiAttackPhase(i+1, done); }, 600); });
-  } else if(c.ability==='plasmasecrete'){
+  } else if(c.ability==='plasmasecrete' || c.ability==='granulesecrete' || c.ability==='cytokinesecrete'){
     if(S.players.p2.atp>=1 && S.players.p2.hand.length<10){
       S.players.p2.atp -= 1;
       c.acted = true;
-      S.players.p2.hand.push({uid:nextUid(), defId:'antibody', specCat:c.specialized});
-      pushLog(c.name+' secretes a '+c.specialized+'-specific antibody.');
+      if(c.ability==='plasmasecrete'){
+        S.players.p2.hand.push({uid:nextUid(), defId:'antibody', specCat:c.specialized});
+        pushLog(c.name+' secretes a '+c.specialized+'-specific antibody.');
+      } else if(c.ability==='granulesecrete'){
+        S.players.p2.hand.push({uid:nextUid(), defId:'granule'});
+        pushLog(c.name+' secretes a Granule.');
+      } else {
+        S.players.p2.hand.push({uid:nextUid(), defId:c.cytokineId});
+        pushLog(c.name+' secretes '+DEFS[c.cytokineId].name+'.');
+      }
       render();
     }
     setTimeout(function(){ aiAttackPhase(i+1, done); }, 60);
+  } else if(c.defId==='granule'){
+    // Granules can only hit an enemy Pathogen or Immune cell now (no more Health option) —
+    // prefer a free kill (1 Potency one-shots anything with 1 Resistance or less), otherwise
+    // just throw it at whatever's most valuable since the Granule is spent either way. Skip
+    // entirely if the opponent's board is empty.
+    var human2 = S.players.p1;
+    var granuleTargets = human2.board.filter(function(t){ return t.group==='pathogen' || (t.group==='immune' && t.defId!=='antibody'); });
+    if(granuleTargets.length){
+      granuleTargets.sort(function(a,b){
+        var aKill = (a.res!==null && a.res<=effectivePot(c)) ? 1 : 0;
+        var bKill = (b.res!==null && b.res<=effectivePot(c)) ? 1 : 0;
+        return bKill-aKill || b.cost-a.cost;
+      });
+      declareEngage('p2', c.uid, granuleTargets[0].uid, function(){ render(); setTimeout(function(){ aiAttackPhase(i+1, done); }, 600); });
+    } else {
+      setTimeout(function(){ aiAttackPhase(i+1, done); }, 60);
+    }
   } else {
     var human = S.players.p1;
     var targets = human.board.filter(function(p){ return p.group==='pathogen'; });
@@ -2110,7 +2379,7 @@ function peekBadgeHTML(kind, uid){ return '<span class="peek-badge" data-action=
 function creatureCardHTML(c, opts){
   opts = opts||{};
   var cls = ['card','on-board',barClass(c.group)];
-  if(c.dormant) cls.push('dormant'); else if(c.acted && !opts.selectable) cls.push('spent');
+  if(c.dormant) cls.push('dormant'); else if(c.hidden) cls.push('hidden-latent'); else if(c.acted && !opts.selectable) cls.push('spent');
   if(opts.selectable) cls.push('selectable');
   if(opts.pathtarget) cls.push('pathtarget');
   if(opts.chosen) cls.push('chosen');
@@ -2143,6 +2412,11 @@ function creatureCardHTML(c, opts){
   var catTag = c.category ? '<span class="tag cat-'+c.category+'">'+c.category.slice(0,4)+'</span>' : '<span class="tag cls-'+c.class+'">'+c.class.slice(0,4)+'</span>';
   var specBadge = c.specialized ? '<span class="specbadge">'+(c.specialTag||'Spec')+' • '+c.specialized+'</span>'
     : (c.primeCategory ? '<span class="specbadge">Priming • '+c.primeCategory+'</span>' : '');
+  var chronicBadge = '';
+  if(c.chronicDef){
+    var chronicNeed = c.chronicDef.threshold || c.chronicDef.threshold1 || c.chronicDef.rollAt;
+    chronicBadge = '<span class="chronicbadge">Incubating • '+c.hostTurns+'/'+chronicNeed+'</span>';
+  }
   var potVal = c.pot===null ? '–' : effectivePot(c);
   var header = cardHeaderHTML(c.group, '<div class="toprow">'+catTag+'</div><div class="name">'+c.name+'</div>');
   return '<div class="'+cls.join(' ')+'"'+attrs+'>'+
@@ -2151,7 +2425,7 @@ function creatureCardHTML(c, opts){
     header+
     '<div class="icon">'+(ICONS[c.icon]?ICONS[c.icon]():'')+'</div>'+
     '<div class="statrow"><span class="pot">'+microPot()+potVal+'</span>'+(c.res!==null&&c.ability!=='unkillable'?'<span class="res">'+microRes()+c.res+'</span>':'')+'</div>'+
-    specBadge+
+    specBadge+chronicBadge+
     '<div class="text">'+(c.text||'')+'</div>'+
   '</div>';
 }
@@ -2170,12 +2444,14 @@ function handCardHTML(h){
     : '<div class="icon">'+(ICONS[def.icon]?ICONS[def.icon]():'')+'</div>'+
       '<div class="statrow"><span class="pot">'+microPot()+(def.pot!==null&&def.pot!==undefined?def.pot:'–')+'</span>'+(def.res!==null&&def.res!==undefined&&def.ability!=='unkillable'?'<span class="res">'+microRes()+def.res+'</span>':'')+'</div>';
   var displayName = (h.defId==='antibody' && h.specCat) ? (h.specCat+'-Specific Antibody') : def.name;
+  var displayText = (h.defId==='antibody' && h.specCat) ? ('Blocks '+h.specCat+' pathogens only, fully neutralizing the attack, then is spent.') : def.text;
+  var chronicBadge = def.chronic ? '<span class="chronicbadge">Incubation</span>' : '';
   var handHeader = cardHeaderHTML(def.group, '<div class="toprow">'+catTag+costHTML+'</div><div class="name">'+displayName+'</div>');
   return '<div class="'+cls.join(' ')+'" data-action="playhand" data-uid="'+h.uid+'">'+
     peekBadgeHTML('hand', h.uid)+
     handHeader+
-    body+
-    '<div class="text">'+(def.text||'')+'</div>'+
+    body+chronicBadge+
+    '<div class="text">'+(displayText||'')+'</div>'+
   '</div>';
 }
 
@@ -2190,10 +2466,11 @@ function guideCardHTML(defId, overrides, extraClass){
   var body = '<div class="icon">'+(ICONS[d.icon]?ICONS[d.icon]():'')+'</div>'+
     (hasStats ? '<div class="statrow"><span class="pot">'+microPot()+(d.pot!==null&&d.pot!==undefined?d.pot:'–')+'</span>'+(d.res!==null&&d.res!==undefined&&d.ability!=='unkillable'?'<span class="res">'+microRes()+d.res+'</span>':'')+'</div>' : '');
   var specBadge = overrides && overrides.specialized ? '<span class="specbadge">spec: '+overrides.specialized+'</span>' : '';
+  var chronicBadge = d.chronic ? '<span class="chronicbadge">Incubation</span>' : '';
   var gHeader = cardHeaderHTML(d.group, '<div class="toprow">'+catTag+'<div class="cost">'+d.cost+'</div></div><div class="name">'+d.name+'</div>');
   return '<div class="card '+barClass(d.group)+(extraClass?(' '+extraClass):'')+'">'+
     gHeader+
-    body+specBadge+
+    body+specBadge+chronicBadge+
     '<div class="text">'+(d.text||'')+'</div>'+
   '</div>';
 }
@@ -2212,7 +2489,9 @@ function openHistory(){
   document.getElementById('history-overlay').hidden = false;
 }
 function previewHandHTML(hEntry){
-  var overrides = (hEntry.defId==='antibody' && hEntry.specCat) ? {name: hEntry.specCat+'-Specific Antibody'} : {};
+  var overrides = (hEntry.defId==='antibody' && hEntry.specCat)
+    ? {name: hEntry.specCat+'-Specific Antibody', text: 'Blocks '+hEntry.specCat+' pathogens only, fully neutralizing the attack, then is spent.'}
+    : {};
   return guideCardHTML(hEntry.defId, overrides, 'preview-size');
 }
 function previewBoardHTML(c){
@@ -2225,7 +2504,9 @@ function previewBoardHTML(c){
     chronicHTML = '<div class="preview-chronic">Unremoved for '+c.hostTurns+' of '+need+' of its host\'s turns before its complication can trigger.</div>';
   }
   var restWord = c.group==='pathogen' ? 'Incubating' : 'Resting';
-  var stateHTML = c.dormant ? '<div class="preview-state">'+restWord+' — can\'t act this turn.</div>' : (c.acted ? '<div class="preview-state">Already acted this turn.</div>' : '');
+  var stateHTML = c.dormant ? '<div class="preview-state">'+restWord+' — can\'t act this turn.</div>'
+    : (c.hidden ? '<div class="preview-state">Dormant — latent, costs 1 ATP to reactivate.</div>'
+    : (c.acted ? '<div class="preview-state">Already acted this turn.</div>' : ''));
   var potVal = c.pot===null ? '–' : effectivePot(c);
   var pHeader = cardHeaderHTML(c.group, '<div class="toprow">'+catTag+'</div><div class="name">'+c.name+'</div>');
   return '<div class="card preview-size on-board '+barClass(c.group)+'">'+
@@ -2246,7 +2527,7 @@ function renderHowtoGuide(){
   var statsLegend = document.getElementById('guide-stats-legend');
   if(statsLegend){
     statsLegend.innerHTML = [
-      ['var(--pathogen)','<strong>Health</strong> — life total. Reaches 0 and that side loses. A second number (17/20) means a complication has permanently lowered max Health.'],
+      ['var(--pathogen)','<strong>Health</strong> — life total. Reaches 0 and that side loses. A second number (17/20) means either a complication has permanently lowered max Health, or this is a Short Game (10 max).'],
       ['var(--blue)','<strong>ATP</strong> — what you have to spend this turn, out of your current capacity.'],
       ['var(--ink-faint)','<strong>Deck</strong> — cards left to draw.'],
       ['var(--effect)','<strong>Autoimmune</strong> badge — appears only once a chronic complication has made that side\'s B-cells/Antibodies misfire.']
@@ -2356,14 +2637,33 @@ function render(){
         selectable = true; onclick = 'chooseblocker';
       } else if(S.selection && S.selection.mode==='engageTarget' && who===opponentOf(S.selection.who) && S.selection.validTargets.indexOf(c.uid)>-1){
         selectable = true; pathtarget = true; onclick = 'engagetarget';
+      } else if(S.selection && S.selection.mode==='granuleTarget' && who===opponentOf(S.selection.who) && S.selection.validTargets.indexOf(c.uid)>-1){
+        selectable = true; pathtarget = true; onclick = 'granuletarget';
       } else if(S.selection && S.selection.mode==='effectTarget' && S.selection.validTargets.indexOf(c.uid)>-1 && ownerOf(c.uid)===S.selection.targetSide){
         selectable = true; pathtarget = (c.group==='pathogen'); onclick = 'resolveeffecttarget';
       } else if(!S.selection && !S.pendingAttack && !S.locked && who===S.turn && localSeatFor(who) && !c.dormant && !c.acted){
-        if(c.group==='pathogen'){
+        if(c.canHide && c.hidden){
+          // Latent — no upkeep needed to stay hidden, but reactivating (the only thing you can
+          // do with it right now) costs 1 ATP, same as any other action.
+          if(S.players[who].atp>=1){ selectable = true; onclick = 'reactivate'; }
+        }
+        else if(c.canHide){
+          // Active and capable of going dormant — offer a choice instead of jumping straight
+          // into an attack, since going dormant is free and always on the table.
+          selectable = true; onclick = 'pathogenchoice';
+        }
+        else if(c.group==='pathogen'){
           if(S.players[who].atp>=1){ selectable = true; onclick = 'attackstart'; }
         }
-        else if(c.ability==='plasmasecrete'){
+        else if(c.ability==='plasmasecrete' || c.ability==='granulesecrete' || c.ability==='cytokinesecrete'){
           if(S.players[who].atp>=1){ selectable = true; onclick = 'secrete'; }
+        }
+        else if(c.defId==='granule'){
+          // Granules can strike an enemy Pathogen OR an enemy Immune cell — wider than a
+          // normal engage (pathogen-only), so it gets its own target-picker mode, but like a
+          // normal engage it needs at least one legal target to even offer the action.
+          var hasGranuleTargets = S.players[opponentOf(who)].board.some(function(x){return x.group==='pathogen' || (x.group==='immune' && x.defId!=='antibody');});
+          if(hasGranuleTargets && S.players[who].atp>=1){ selectable = true; onclick = 'granuleattack'; }
         }
         else if(c.group==='immune' && c.defId!=='antibody'){
           var hasTargets = S.players[opponentOf(who)].board.some(function(x){return x.group==='pathogen';});
@@ -2398,6 +2698,9 @@ function render(){
   } else if(S.selection && S.selection.mode==='primeChooseCategory'){
     ti.classList.add('choosemode');
     ti.textContent = waitingOnOpponent ? 'Waiting for Opponent to choose...' : 'Choose a category to prime!';
+  } else if(S.selection && S.selection.mode==='dormancyChoice'){
+    ti.classList.add('choosemode');
+    ti.textContent = waitingOnOpponent ? 'Waiting for Opponent to choose...' : 'Attack, or go dormant?';
   } else if(S.mode==='solo' && S.turn==='p2'){
     ti.classList.add('waiting');
     ti.textContent = "Computer's turn — please wait";
@@ -2420,7 +2723,7 @@ function render(){
     var recent = S.log.slice(-3);
     root.log.innerHTML = recent.map(function(l){return '<div>'+escapeHTML(l)+'</div>';}).join('');
   }
-  var pickerMode = iCanAct && S.selection && (S.selection.mode==='vaccinateChooseCategory' || S.selection.mode==='specializeChoice' || S.selection.mode==='shiftChooseCategory' || S.selection.mode==='primeChooseCategory');
+  var pickerMode = iCanAct && S.selection && (S.selection.mode==='vaccinateChooseCategory' || S.selection.mode==='specializeChoice' || S.selection.mode==='shiftChooseCategory' || S.selection.mode==='primeChooseCategory' || S.selection.mode==='dormancyChoice');
   root.log.hidden = pickerMode;
   if(!document.getElementById('history-overlay').hidden) renderHistory();
 
@@ -2435,8 +2738,10 @@ function render(){
     }).join('');
   } else if(S.selection && S.selection.mode==='specializeChoice'){
     var pathOpts = S.selection.kind==='bcell'
-      ? [['memoryb','Memory +2/+2'],['plasma','Plasma: makes Ab']]
-      : [['effector','Effector +3 ATK'],['memory','Memory +2 DEF']];
+      ? [['memoryb','Memory +2/+3'],['plasma','Plasma: makes Ab']]
+      : S.selection.kind==='cd8'
+        ? [['effector','Effector: Granules'],['memory','Memory +3 DEF']]
+        : [['effector','Effector: Cytokines'],['memory','Memory +3 DEF']];
     root.pickCategory.innerHTML = pathOpts.map(function(o){
       return '<button data-action="pickspecialize" data-path="'+o[0]+'">'+o[1]+'</button>';
     }).join('');
@@ -2448,6 +2753,8 @@ function render(){
     root.pickCategory.innerHTML = ['Virus','Bacterium','Fungus','Parasite'].map(function(cat){
       return '<button data-action="pickprimecategory" data-cat="'+cat+'">'+cat+'</button>';
     }).join('');
+  } else if(S.selection && S.selection.mode==='dormancyChoice'){
+    root.pickCategory.innerHTML = '<button data-action="choiceattack">Attack</button><button data-action="choicedormant">Go Dormant</button>';
   }
 
   if(S.over){
@@ -2501,7 +2808,7 @@ document.addEventListener('DOMContentLoaded', function(){
       document.getElementById('modeselect').hidden = true;
       document.getElementById('stage').hidden = false;
       document.getElementById('leave-btn').hidden = false;
-      newGame(btn.dataset.mode);
+      newGame(btn.dataset.mode, undefined, undefined, document.getElementById('short-game-toggle').checked);
     });
   });
 
@@ -2576,7 +2883,7 @@ document.addEventListener('DOMContentLoaded', function(){
           render();
           return;
         }
-        var opponentTargeted = (def.ability==='treat' || def.ability==='incinerate');
+        var opponentTargeted = (def.ability==='treat' || def.ability==='incinerate' || def.ability==='toxincard');
         S.selection = {mode:'effectTarget', handUid:uid, def:def, validTargets:targets, targetSide: opponentTargeted?opponentOf(S.turn):S.turn};
         render();
         return;
@@ -2598,6 +2905,38 @@ document.addEventListener('DOMContentLoaded', function(){
       var srcUid = el.dataset.uid;
       declarePathogenAttack(S.turn, srcUid, function(){ render(); });
       render();
+    } else if(action==='pathogenchoice'){
+      var pcUid = el.dataset.uid;
+      if(S.selection && S.selection.mode==='dormancyChoice' && S.selection.sourceUid===pcUid){ S.selection = null; }
+      else { S.selection = {mode:'dormancyChoice', who:S.turn, sourceUid:pcUid}; }
+      render();
+    } else if(action==='choiceattack'){
+      if(!S.selection || S.selection.mode!=='dormancyChoice') return;
+      var caWho = S.selection.who, caSrc = S.selection.sourceUid;
+      S.selection = null;
+      declarePathogenAttack(caWho, caSrc, function(){ render(); });
+      render();
+    } else if(action==='choicedormant'){
+      if(!S.selection || S.selection.mode!=='dormancyChoice') return;
+      var cdCreature = findCreature(S.selection.who, S.selection.sourceUid);
+      var cdWho = S.selection.who;
+      S.selection = null;
+      if(cdCreature){
+        cdCreature.hidden = true;
+        cdCreature.acted = true;
+        pushLog(cdCreature.name+' goes dormant.');
+      }
+      render();
+    } else if(action==='reactivate'){
+      var raUid = el.dataset.uid;
+      var raCreature = findCreature(S.turn, raUid);
+      if(!raCreature || !raCreature.hidden || raCreature.acted || raCreature.dormant) return;
+      if(S.players[S.turn].atp<1) return;
+      S.players[S.turn].atp -= 1;
+      raCreature.hidden = false;
+      raCreature.acted = true;
+      pushLog(raCreature.name+' reactivates.');
+      render();
     } else if(action==='engagestart'){
       var srcUid2 = el.dataset.uid;
       if(S.selection && S.selection.mode==='engageTarget' && S.selection.sourceUid===srcUid2){ S.selection=null; }
@@ -2613,6 +2952,21 @@ document.addEventListener('DOMContentLoaded', function(){
       S.selection = null;
       declareEngage(engSrcWho, engSrcUid, tUid, function(){ render(); });
       render();
+    } else if(action==='granuleattack'){
+      var gSrcUid = el.dataset.uid;
+      if(S.selection && S.selection.mode==='granuleTarget' && S.selection.sourceUid===gSrcUid){ S.selection=null; }
+      else {
+        var gValidT = S.players[opponentOf(S.turn)].board.filter(function(c){return c.group==='pathogen' || (c.group==='immune' && c.defId!=='antibody');}).map(function(c){return c.uid;});
+        S.selection = {mode:'granuleTarget', who:S.turn, sourceUid:gSrcUid, validTargets:gValidT};
+      }
+      render();
+    } else if(action==='granuletarget'){
+      if(!S.selection || S.selection.mode!=='granuleTarget') return;
+      var gTUid = el.dataset.uid;
+      var gWho = S.selection.who, gSrc = S.selection.sourceUid;
+      S.selection = null;
+      declareEngage(gWho, gSrc, gTUid, function(){ render(); });
+      render();
     } else if(action==='chooseblocker'){
       if(!S.pendingAttack) return;
       resolveBlockChoice(el.dataset.uid);
@@ -2627,13 +2981,22 @@ document.addEventListener('DOMContentLoaded', function(){
     } else if(action==='secrete'){
       var secUid = el.dataset.uid;
       var secC = findCreature(S.turn, secUid);
-      if(!secC || secC.dormant || secC.acted || secC.ability!=='plasmasecrete') return;
+      var secretable = secC && !secC.dormant && !secC.acted && (secC.ability==='plasmasecrete' || secC.ability==='granulesecrete' || secC.ability==='cytokinesecrete');
+      if(!secretable) return;
       if(S.players[S.turn].atp<1) return;
-      if(S.players[S.turn].hand.length>=10){ pushLogFlash('Hand full — the antibody is lost.'); render(); return; }
+      if(S.players[S.turn].hand.length>=10){ pushLogFlash('Hand full — the secretion is lost.'); render(); return; }
       S.players[S.turn].atp -= 1;
       secC.acted = true;
-      S.players[S.turn].hand.push({uid:nextUid(), defId:'antibody', specCat:secC.specialized});
-      pushLog(secC.name+' secretes a '+secC.specialized+'-specific antibody.');
+      if(secC.ability==='plasmasecrete'){
+        S.players[S.turn].hand.push({uid:nextUid(), defId:'antibody', specCat:secC.specialized});
+        pushLog(secC.name+' secretes a '+secC.specialized+'-specific antibody.');
+      } else if(secC.ability==='granulesecrete'){
+        S.players[S.turn].hand.push({uid:nextUid(), defId:'granule'});
+        pushLog(secC.name+' secretes a Granule.');
+      } else {
+        S.players[S.turn].hand.push({uid:nextUid(), defId:secC.cytokineId});
+        pushLog(secC.name+' secretes '+DEFS[secC.cytokineId].name+'.');
+      }
       render();
     } else if(action==='resolveeffecttarget'){
       if(!S.selection || S.selection.mode!=='effectTarget') return;
@@ -2649,9 +3012,14 @@ document.addEventListener('DOMContentLoaded', function(){
       if(idx2===-1){ S.selection=null; render(); return; }
       S.players[S.turn].hand.splice(idx2,1);
       S.players[S.turn].atp -= def2.cost;
-      if(def2.ability==='vaccinate'){ applyVaccinate(S.turn, cat2, tgt); }
-      else { applyEffect(S.turn, def2, tgt, null); }
-      S.selection = null;
+      if(def2.ability==='vaccinate'){
+        // applyVaccinate sets S.selection itself (to the Effector/Memory-style path choice
+        // for a human-controlled cell) — don't stomp on it the way the generic case below does.
+        applyVaccinate(S.turn, cat2, tgt);
+      } else {
+        applyEffect(S.turn, def2, tgt, null);
+        S.selection = null;
+      }
       render();
     } else if(action==='pickshiftcategory'){
       if(!S.selection || S.selection.mode!=='shiftChooseCategory') return;
@@ -2680,10 +3048,10 @@ document.addEventListener('DOMContentLoaded', function(){
   document.getElementById('cancel-btn').addEventListener('click', clearSelection);
   document.getElementById('take-hit-btn').addEventListener('click', function(){
     resolveBlockChoice(null);
-    if(S && S.mode==='tutorial' && tutorialStep===8){
+    if(S && S.mode==='tutorial' && tutorialStep===9){
       tutorialBlockOutcome = 'tookhit';
       tutorialBeginTurn2();
-      tutorialStep = 9;
+      tutorialStep = 10;
       render();
     }
   });
