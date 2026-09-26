@@ -2415,16 +2415,16 @@ function creatureCardHTML(c, opts){
     }
   }
   var attrs = opts.onclick ? ' data-action="'+opts.onclick+'" data-uid="'+c.uid+'"' : '';
-  var catTag = c.category ? '<span class="tag cat-'+c.category+'">'+c.category.slice(0,4)+'</span>' : '<span class="tag cls-'+c.class+'">'+c.class.slice(0,4)+'</span>';
-  var specBadge = c.specialized ? '<span class="specbadge">'+(c.specialTag||'Spec')+' • '+c.specialized+'</span>'
-    : (c.primeCategory ? '<span class="specbadge">Priming • '+c.primeCategory+'</span>' : '');
+  var catTag = c.category ? '<span class="tag cat-'+escapeHTML(c.category)+'">'+escapeHTML(c.category.slice(0,4))+'</span>' : '<span class="tag cls-'+escapeHTML(c.class)+'">'+escapeHTML(c.class.slice(0,4))+'</span>';
+  var specBadge = c.specialized ? '<span class="specbadge">'+escapeHTML(c.specialTag||'Spec')+' • '+escapeHTML(c.specialized)+'</span>'
+    : (c.primeCategory ? '<span class="specbadge">Priming • '+escapeHTML(c.primeCategory)+'</span>' : '');
   var chronicBadge = '';
   if(c.chronicDef){
     var chronicNeed = c.chronicDef.threshold || c.chronicDef.threshold1 || c.chronicDef.rollAt;
     chronicBadge = '<span class="chronicbadge">Incubating • '+c.hostTurns+'/'+chronicNeed+'</span>';
   }
   var potVal = c.pot===null ? '–' : effectivePot(c);
-  var header = cardHeaderHTML(c.group, '<div class="toprow">'+catTag+'</div><div class="name">'+c.name+'</div>');
+  var header = cardHeaderHTML(c.group, '<div class="toprow">'+catTag+'</div><div class="name">'+escapeHTML(c.name)+'</div>');
   return '<div class="'+cls.join(' ')+'"'+attrs+'>'+
     deathFxHTML+
     peekBadgeHTML('board', c.uid)+
@@ -2432,7 +2432,7 @@ function creatureCardHTML(c, opts){
     '<div class="icon">'+(ICONS[c.icon]?ICONS[c.icon]():'')+'</div>'+
     '<div class="statrow"><span class="pot">'+microPot()+potVal+'</span>'+(c.res!==null&&c.ability!=='unkillable'?'<span class="res">'+microRes()+c.res+'</span>':'')+'</div>'+
     specBadge+chronicBadge+
-    '<div class="text">'+(c.text||'')+'</div>'+
+    '<div class="text">'+escapeHTML(c.text||'')+'</div>'+
   '</div>';
 }
 
@@ -2444,7 +2444,7 @@ function handCardHTML(h){
   var cls = ['card', barClass(def.group)];
   if(!canPlay) cls.push('dim'); else cls.push('playable');
   var costHTML = def.cost>0 || def.group!=='immune' ? '<div class="cost">'+def.cost+'</div>' : '<div class="cost">0</div>';
-  var catTag = def.category ? '<span class="tag cat-'+def.category+'">'+def.category.slice(0,4)+'</span>' : (def.class?'<span class="tag cls-'+def.class+'">'+def.class.slice(0,4)+'</span>':'');
+  var catTag = def.category ? '<span class="tag cat-'+escapeHTML(def.category)+'">'+escapeHTML(def.category.slice(0,4))+'</span>' : (def.class?'<span class="tag cls-'+escapeHTML(def.class)+'">'+escapeHTML(def.class.slice(0,4))+'</span>':'');
   var body = def.group==='effect'
     ? '<div class="icon">'+(ICONS[def.icon]?ICONS[def.icon]():'')+'</div>'
     : '<div class="icon">'+(ICONS[def.icon]?ICONS[def.icon]():'')+'</div>'+
@@ -2452,12 +2452,12 @@ function handCardHTML(h){
   var displayName = (h.defId==='antibody' && h.specCat) ? (h.specCat+'-Specific Antibody') : def.name;
   var displayText = (h.defId==='antibody' && h.specCat) ? ('Blocks '+h.specCat+' pathogens only, fully neutralizing the attack, then is spent.') : def.text;
   var chronicBadge = def.chronic ? '<span class="chronicbadge">Incubation</span>' : '';
-  var handHeader = cardHeaderHTML(def.group, '<div class="toprow">'+catTag+costHTML+'</div><div class="name">'+displayName+'</div>');
+  var handHeader = cardHeaderHTML(def.group, '<div class="toprow">'+catTag+costHTML+'</div><div class="name">'+escapeHTML(displayName)+'</div>');
   return '<div class="'+cls.join(' ')+'" data-action="playhand" data-uid="'+h.uid+'">'+
     peekBadgeHTML('hand', h.uid)+
     handHeader+
     body+chronicBadge+
-    '<div class="text">'+(displayText||'')+'</div>'+
+    '<div class="text">'+escapeHTML(displayText||'')+'</div>'+
   '</div>';
 }
 
@@ -2467,17 +2467,17 @@ function guideCardHTML(defId, overrides, extraClass){
   var def = DEFS[defId];
   var d = Object.assign({}, def, overrides||{});
   var isPreview = extraClass && extraClass.indexOf('preview-size')>-1;
-  var catTag = d.category ? '<span class="tag cat-'+d.category+'">'+(isPreview?d.category:d.category.slice(0,4))+'</span>' : (d.class?'<span class="tag cls-'+d.class+'">'+(isPreview?d.class:d.class.slice(0,4))+'</span>':'');
+  var catTag = d.category ? '<span class="tag cat-'+escapeHTML(d.category)+'">'+escapeHTML(isPreview?d.category:d.category.slice(0,4))+'</span>' : (d.class?'<span class="tag cls-'+escapeHTML(d.class)+'">'+escapeHTML(isPreview?d.class:d.class.slice(0,4))+'</span>':'');
   var hasStats = (d.pot!==null && d.pot!==undefined) || (d.res!==null && d.res!==undefined);
   var body = '<div class="icon">'+(ICONS[d.icon]?ICONS[d.icon]():'')+'</div>'+
     (hasStats ? '<div class="statrow"><span class="pot">'+microPot()+(d.pot!==null&&d.pot!==undefined?d.pot:'–')+'</span>'+(d.res!==null&&d.res!==undefined&&d.ability!=='unkillable'?'<span class="res">'+microRes()+d.res+'</span>':'')+'</div>' : '');
-  var specBadge = overrides && overrides.specialized ? '<span class="specbadge">spec: '+overrides.specialized+'</span>' : '';
+  var specBadge = overrides && overrides.specialized ? '<span class="specbadge">spec: '+escapeHTML(overrides.specialized)+'</span>' : '';
   var chronicBadge = d.chronic ? '<span class="chronicbadge">Incubation</span>' : '';
-  var gHeader = cardHeaderHTML(d.group, '<div class="toprow">'+catTag+'<div class="cost">'+d.cost+'</div></div><div class="name">'+d.name+'</div>');
+  var gHeader = cardHeaderHTML(d.group, '<div class="toprow">'+catTag+'<div class="cost">'+d.cost+'</div></div><div class="name">'+escapeHTML(d.name)+'</div>');
   return '<div class="card '+barClass(d.group)+(extraClass?(' '+extraClass):'')+'">'+
     gHeader+
     body+specBadge+chronicBadge+
-    '<div class="text">'+(d.text||'')+'</div>'+
+    '<div class="text">'+escapeHTML(d.text||'')+'</div>'+
   '</div>';
 }
 
@@ -2501,9 +2501,9 @@ function previewHandHTML(hEntry){
   return guideCardHTML(hEntry.defId, overrides, 'preview-size');
 }
 function previewBoardHTML(c){
-  var catTag = c.category ? '<span class="tag cat-'+c.category+'">'+c.category+'</span>' : '<span class="tag cls-'+c.class+'">'+c.class+'</span>';
-  var specHTML = c.specialized ? '<span class="specbadge">'+(c.specialTag||'Specialized')+' • '+c.specialized+'</span>'
-    : (c.primeCategory ? '<span class="specbadge">Priming • '+c.primeCategory+'</span>' : '');
+  var catTag = c.category ? '<span class="tag cat-'+escapeHTML(c.category)+'">'+escapeHTML(c.category)+'</span>' : '<span class="tag cls-'+escapeHTML(c.class)+'">'+escapeHTML(c.class)+'</span>';
+  var specHTML = c.specialized ? '<span class="specbadge">'+escapeHTML(c.specialTag||'Specialized')+' • '+escapeHTML(c.specialized)+'</span>'
+    : (c.primeCategory ? '<span class="specbadge">Priming • '+escapeHTML(c.primeCategory)+'</span>' : '');
   var chronicHTML = '';
   if(c.chronicDef){
     var need = c.chronicDef.threshold || c.chronicDef.threshold1 || c.chronicDef.rollAt;
@@ -2514,13 +2514,13 @@ function previewBoardHTML(c){
     : (c.hidden ? '<div class="preview-state">Dormant — latent, costs 1 ATP to reactivate.</div>'
     : (c.acted ? '<div class="preview-state">Already acted this turn.</div>' : ''));
   var potVal = c.pot===null ? '–' : effectivePot(c);
-  var pHeader = cardHeaderHTML(c.group, '<div class="toprow">'+catTag+'</div><div class="name">'+c.name+'</div>');
+  var pHeader = cardHeaderHTML(c.group, '<div class="toprow">'+catTag+'</div><div class="name">'+escapeHTML(c.name)+'</div>');
   return '<div class="card preview-size on-board '+barClass(c.group)+'">'+
     pHeader+
     '<div class="icon">'+(ICONS[c.icon]?ICONS[c.icon]():'')+'</div>'+
     '<div class="statrow"><span class="pot">'+microPot()+potVal+'</span>'+(c.res!==null&&c.ability!=='unkillable'?'<span class="res">'+microRes()+c.res+(c.maxRes&&c.maxRes!==c.res?(' / '+c.maxRes):'')+'</span>':'')+'</div>'+
     specHTML+
-    '<div class="text">'+(c.text||'')+'</div>'+
+    '<div class="text">'+escapeHTML(c.text||'')+'</div>'+
     chronicHTML+stateHTML+
   '</div>';
 }
@@ -2796,7 +2796,14 @@ function render(){
   if(S.mode==='tutorial') renderTutorialOverlay();
 }
 
-function escapeHTML(s){ return s.replace(/[&<>]/g, function(c){ return {'&':'&amp;','<':'&lt;','>':'&gt;'}[c]; }); }
+// Escapes &, <, >, " and ' — safe to use both inside an HTML text node and inside a
+// double-quoted attribute value. Online mode syncs game state through Firestore, and Firestore's
+// security rules can't validate the *shape* of what gets written to a game document (see
+// firestore.rules) — a write made outside this page entirely could put arbitrary strings into
+// fields like a card's name or category that several render functions below drop straight into
+// innerHTML. Escaping every such field, not just the ones that looked risky, is what actually
+// closes that off.
+function escapeHTML(s){ return String(s).replace(/[&<>"']/g, function(c){ return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]; }); }
 
 /* ================= interaction ================= */
 function clearSelection(){ S.selection = null; render(); }
