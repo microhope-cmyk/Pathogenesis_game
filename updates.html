@@ -50,6 +50,19 @@
   .update p{font-size:13.5px;line-height:1.6;color:var(--ink-dim);margin:0;}
   .update.launch{border-color:rgba(82,227,184,0.35);}
   .update.launch .update-date{color:var(--immune-strong);}
+  .signup{background:var(--surface-2);border:1px solid var(--effect-strong);border-radius:12px;padding:22px 20px;margin-bottom:36px;text-align:center;}
+  .signup h2{font-family:var(--font-display);font-size:15px;font-weight:700;text-transform:uppercase;letter-spacing:.04em;margin:0 0 6px;color:var(--effect-strong);}
+  .signup p{font-size:12.5px;color:var(--ink-dim);margin:0 0 16px;line-height:1.5;max-width:38ch;margin-inline:auto;}
+  .signup-row{display:flex;gap:8px;max-width:360px;margin:0 auto;}
+  .signup input[type="email"]{flex:1;min-width:0;background:var(--bg);border:1px solid var(--rule);border-radius:8px;padding:10px 12px;color:var(--ink);font-family:var(--font-body);font-size:13px;}
+  .signup input[type="email"]::placeholder{color:var(--ink-faint);}
+  .signup input[type="email"]:focus{outline:2px solid var(--effect-strong);outline-offset:1px;}
+  .signup button{flex:0 0 auto;background:var(--effect);color:#2a1d02;border:none;border-radius:8px;padding:0 18px;font-family:var(--font-display);font-weight:700;text-transform:uppercase;font-size:12px;letter-spacing:.02em;cursor:pointer;}
+  .signup button:disabled{opacity:.6;cursor:default;}
+  .signup-message{font-size:11.5px;color:var(--ink-faint);margin-top:10px;min-height:14px;}
+  @media (max-width:420px){
+    .signup-row{flex-direction:column;}
+  }
   footer{text-align:center;margin-top:44px;font-family:var(--font-mono);font-size:10.5px;color:var(--ink-faint);}
   footer a{color:var(--ink-faint);}
 </style>
@@ -62,6 +75,16 @@
       <div class="tag">updates</div>
       <p class="lede">A running, plain-language record of what's changed in the game — newest first.</p>
     </header>
+
+    <div class="signup">
+      <h2>Get updates by email</h2>
+      <p>An occasional email whenever something meaningful changes — nothing frequent, and nothing else.</p>
+      <div class="signup-row">
+        <input type="email" id="signup-email" placeholder="you@example.com" autocomplete="email">
+        <button type="button" id="signup-btn">Sign up</button>
+      </div>
+      <div class="signup-message" id="signup-message"></div>
+    </div>
 
     <div class="updates">
 
@@ -105,5 +128,51 @@
 
     <footer>Pathogenesis &middot; <a href="index.html">Back to the game</a></footer>
   </div>
+
+<!-- Same Firebase project as the main game (index.html) — this form writes into the same
+     'interest_signups' collection the in-game "Want Real Cards?" panel uses, tagged with
+     list:'updates' so the two can be told apart. See the TODO next to that collection in
+     firestore.rules if this ever needs its own collection. -->
+<script src="https://www.gstatic.com/firebasejs/12.18.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/12.18.0/firebase-firestore-compat.js"></script>
+<script>
+  var FIREBASE_CONFIG = {
+    apiKey: "AIzaSyAMzRY-MaCk-_A2cIV4BygAnfs2s2xn4PA",
+    authDomain: "pathogenesis-game.firebaseapp.com",
+    projectId: "pathogenesis-game",
+    storageBucket: "pathogenesis-game.firebasestorage.app",
+    messagingSenderId: "1040938811280",
+    appId: "1:1040938811280:web:40f01cbc3ddee327217d15"
+  };
+  var firestoreDb = null;
+  try{
+    if(typeof firebase!=='undefined'){
+      firebase.initializeApp(FIREBASE_CONFIG);
+      firestoreDb = firebase.firestore();
+    }
+  }catch(e){ firestoreDb = null; }
+
+  function submitSignup(){
+    var msg = document.getElementById('signup-message');
+    var btn = document.getElementById('signup-btn');
+    var emailInput = document.getElementById('signup-email');
+    var email = emailInput.value.trim();
+    if(!email || email.indexOf('@')===-1){ msg.textContent = 'Enter a valid email address.'; return; }
+    if(!firestoreDb){ msg.textContent = "This isn't connected yet — try again shortly."; return; }
+    btn.disabled = true;
+    firestoreDb.collection('interest_signups').add({ email: email, list: 'updates', surveyAnswers: [], createdAt: new Date().toISOString() })
+      .then(function(){
+        msg.textContent = "Thanks! We'll be in touch.";
+        emailInput.value = '';
+        btn.disabled = false;
+      })
+      .catch(function(){
+        msg.textContent = 'Something went wrong — try again.';
+        btn.disabled = false;
+      });
+  }
+  document.getElementById('signup-btn').addEventListener('click', submitSignup);
+  document.getElementById('signup-email').addEventListener('keydown', function(e){ if(e.key==='Enter') submitSignup(); });
+</script>
 </body>
 </html>

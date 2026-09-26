@@ -547,7 +547,7 @@
 <div class="panel-overlay" id="interest-panel" hidden>
   <div class="panel">
     <h2>Want Real Cards?</h2>
-    <p class="sub">Maybe I'm old school, but there's something special about playing a game with real cards in front of real people. If you would love to see this game printed and hold it in your hands, please register your interest, and help us gauge the most realistic path forward by answering a few questions:</p>
+    <p>Maybe I'm old school, but there's something special about playing a game with real cards in front of real people. If you would love to see this game printed and hold it in your hands, please register your interest, and help us gauge the most realistic path forward by answering a few questions:</p>
     <div class="survey-question" id="survey-question"></div>
     <div class="survey-options" id="survey-options"></div>
     <input type="email" class="interest-email-input" id="interest-email" placeholder="you@example.com" autocomplete="email">
@@ -1161,7 +1161,11 @@ function submitInterestSignup(){
   if(!firestoreDb){ interestMessage("This isn't connected yet — try again once Firebase is set up."); return; }
   var checked = Array.prototype.slice.call(document.querySelectorAll('#survey-options input[type="checkbox"]:checked'))
     .map(function(el){ return SURVEY_OPTIONS[Number(el.dataset.surveyOption)]; });
-  firestoreDb.collection('interest_signups').add({ email: email, surveyAnswers: checked, createdAt: new Date().toISOString() })
+  // 'list' tags which signup form this came from — updates.html's email-updates form writes to
+  // this same collection with list:'updates'. TODO: split into separate Firestore collections
+  // (with a matching security-rules change) next time the rules file needs touching anyway;
+  // not worth a standalone deploy just for this.
+  firestoreDb.collection('interest_signups').add({ email: email, list: 'cards', surveyAnswers: checked, createdAt: new Date().toISOString() })
     .then(function(){
       interestMessage("Thanks! We'll be in touch.");
       document.getElementById('interest-email').value = '';
