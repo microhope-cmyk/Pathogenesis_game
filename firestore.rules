@@ -17,7 +17,11 @@ service cloud.firestore {
 
     // Anyone can submit an interest-signup email — nobody can read the list back except
     // the admin account(s) above, so the game's "View Card Interest Signups" screen works
-    // for you but nobody else can see who signed up.
+    // for you but nobody else can see who signed up. Two different forms write here right
+    // now (the in-game "Want Real Cards?" panel, and the email-updates signup on
+    // updates.html), told apart by a 'list' field ('cards' vs 'updates') on each document.
+    // TODO: split these into their own collection once this rules file needs touching for
+    // another reason anyway.
     match /interest_signups/{id} {
       allow create: if true;
       allow read: if isAdmin();
