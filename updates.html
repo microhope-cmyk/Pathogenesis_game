@@ -1,0 +1,184 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Updates — Pathogenesis</title>
+<style>
+  :root{
+    --bg:#070a0d;
+    --surface:#10161c;
+    --surface-2:#161e26;
+    --ink:#eef4f2;
+    --ink-dim:#9db0ac;
+    --ink-faint:#647572;
+    --immune:#52e3b8;
+    --immune-strong:#82f4d4;
+    --pathogen:#ff6a52;
+    --pathogen-strong:#ff9682;
+    --effect:#f0b429;
+    --effect-strong:#ffd166;
+    --rule:rgba(238,244,242,0.14);
+    --font-display:'IBM Plex Sans Condensed','Arial Narrow',sans-serif;
+    --font-body:'IBM Plex Sans','Segoe UI',sans-serif;
+    --font-mono:'IBM Plex Mono','SFMono-Regular',Consolas,monospace;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    background:
+      radial-gradient(ellipse 60% 40% at 20% 0%, rgba(82,227,184,0.05), transparent 60%),
+      radial-gradient(ellipse 60% 40% at 80% 100%, rgba(255,106,82,0.05), transparent 60%),
+      var(--bg);
+    color:var(--ink);
+    font-family:var(--font-body);
+    min-height:100dvh;
+  }
+  .wrap{max-width:640px;margin:0 auto;padding:40px 20px 64px;}
+  .back-link{display:inline-flex;align-items:center;gap:6px;font-family:var(--font-mono);font-size:11px;color:var(--ink-faint);text-decoration:none;letter-spacing:.02em;}
+  .back-link:hover{color:var(--ink-dim);}
+  header{text-align:center;margin:26px 0 40px;}
+  h1{font-family:var(--font-display);font-size:38px;font-weight:700;text-transform:uppercase;letter-spacing:.03em;margin:0 0 2px;color:var(--ink);}
+  h1 span{color:var(--pathogen);}
+  .tag{font-family:var(--font-mono);font-size:11px;color:var(--ink-faint);margin:0;letter-spacing:.02em;text-transform:uppercase;}
+  .lede{font-size:14px;color:var(--ink-dim);max-width:460px;margin:18px auto 0;line-height:1.5;}
+  .updates{display:flex;flex-direction:column;gap:4px;}
+  .update{background:var(--surface);border:1px solid var(--rule);border-radius:12px;padding:18px 20px;position:relative;}
+  .update + .update{margin-top:14px;}
+  .update-date{font-family:var(--font-mono);font-size:10.5px;letter-spacing:.05em;text-transform:uppercase;color:var(--effect-strong);margin:0 0 6px;}
+  .update h2{font-family:var(--font-display);font-size:19px;font-weight:700;letter-spacing:.01em;margin:0 0 8px;color:var(--ink);text-wrap:balance;}
+  .update p{font-size:13.5px;line-height:1.6;color:var(--ink-dim);margin:0;}
+  .update.launch{border-color:rgba(82,227,184,0.35);}
+  .update.launch .update-date{color:var(--immune-strong);}
+  .signup{background:var(--surface-2);border:1px solid var(--effect-strong);border-radius:12px;padding:22px 20px;margin-bottom:36px;text-align:center;}
+  .signup h2{font-family:var(--font-display);font-size:15px;font-weight:700;text-transform:uppercase;letter-spacing:.04em;margin:0 0 6px;color:var(--effect-strong);}
+  .signup p{font-size:12.5px;color:var(--ink-dim);margin:0 0 16px;line-height:1.5;max-width:38ch;margin-inline:auto;}
+  .signup-row{display:flex;gap:8px;max-width:360px;margin:0 auto;}
+  .signup input[type="email"]{flex:1;min-width:0;background:var(--bg);border:1px solid var(--rule);border-radius:8px;padding:10px 12px;color:var(--ink);font-family:var(--font-body);font-size:13px;}
+  .signup input[type="email"]::placeholder{color:var(--ink-faint);}
+  .signup input[type="email"]:focus{outline:2px solid var(--effect-strong);outline-offset:1px;}
+  .signup button{flex:0 0 auto;background:var(--effect);color:#2a1d02;border:none;border-radius:8px;padding:0 18px;font-family:var(--font-display);font-weight:700;text-transform:uppercase;font-size:12px;letter-spacing:.02em;cursor:pointer;}
+  .signup button:disabled{opacity:.6;cursor:default;}
+  .signup-message{font-size:11.5px;color:var(--ink-faint);margin-top:10px;min-height:14px;}
+  @media (max-width:420px){
+    .signup-row{flex-direction:column;}
+  }
+  footer{text-align:center;margin-top:44px;font-family:var(--font-mono);font-size:10.5px;color:var(--ink-faint);}
+  footer a{color:var(--ink-faint);}
+</style>
+</head>
+<body>
+  <div class="wrap">
+    <a class="back-link" href="index.html">&larr; Back to Pathogenesis</a>
+    <header>
+      <h1>PATHOGEN<span>ESIS</span></h1>
+      <div class="tag">updates</div>
+      <p class="lede">A running, plain-language record of what's changed in the game — newest first.</p>
+    </header>
+
+    <div class="signup">
+      <h2>Get updates by email</h2>
+      <p>An occasional email whenever something meaningful changes — nothing frequent, and nothing else.</p>
+      <div class="signup-row">
+        <input type="email" id="signup-email" placeholder="you@example.com" autocomplete="email">
+        <button type="button" id="signup-btn">Sign up</button>
+      </div>
+      <div class="signup-message" id="signup-message"></div>
+    </div>
+
+    <div class="updates">
+
+      <div class="update">
+        <div class="update-date">September 27, 2026</div>
+        <h2>This page (and a way to get notified) just went live</h2>
+        <p>You're looking at it: this Updates page just went live, along with the email signup above, so you don't have to keep checking back — sign up once and you'll hear about it here instead. The About panel also picked up a way to show the developer some support, if you'd like to. A couple of smaller things got cleaned up too: some panel text that was harder to read than the rest of the game, and a line describing what the Vaccination card actually does that had gone stale.</p>
+      </div>
+
+      <div class="update">
+        <div class="update-date">September 24, 2026</div>
+        <h2>Pathogens get sneakier, plus a faster way to play</h2>
+        <p>Several pathogen cards now act more like their real-world counterparts: some heal themselves back up over time, some release toxins each turn that they stick around, one can go dormant and hide before striking later, one strikes back if you attack it and don't finish it off, and a few spread copies of themselves the longer they're left alone. There's also a new "Short Game" option when starting a match — energy builds up faster and starting health is lower, so a full game can wrap up in just a few minutes. The in-game tutorial now explains Health — how you actually win or lose — right up front, and a couple of small mistakes in the game's own instructions were cleaned up.</p>
+      </div>
+
+      <div class="update">
+        <div class="update-date">September 21, 2026</div>
+        <h2>A new logo</h2>
+        <p>Pathogenesis has a new logo: a bolder, more graphic icon of an immune cell engulfing a pathogen, replacing the earlier watercolor artwork. Simpler shapes and thicker outlines make it easier to recognize at a glance — including at the small sizes it actually shows up at, like the sign-in screen and the corner badge in the game itself.</p>
+      </div>
+
+      <div class="update">
+        <div class="update-date">September 10, 2026</div>
+        <h2>A big balance pass</h2>
+        <p>Several cards were reworked to feel fairer and more interesting to play, a handful of new ones were added, and the turn-by-turn history now spells out exactly what happened in every fight — who hit whom, and for how much. Dice rolls for certain long-term complications now flash on screen so you can see exactly what was rolled, not just the outcome.</p>
+      </div>
+
+      <div class="update">
+        <div class="update-date">September 9, 2026</div>
+        <h2>Online play, fixed</h2>
+        <p>Two-player games where each person is on their own device were badly broken — a move made by one player often never reached the other. That's fixed now, along with a separate bug that could freeze the game during the computer's turn in solo mode.</p>
+      </div>
+
+      <div class="update">
+        <div class="update-date">September 8, 2026</div>
+        <h2>More feedback on what's happening</h2>
+        <p>Pathogenesis got its first bit of animation! The game now shows a flash and a floating number whenever either side's Health takes a hit, and pathogen cards animate differently depending on how they were destroyed.</p>
+      </div>
+
+      <div class="update launch">
+        <div class="update-date">September 7, 2026 — Launch</div>
+        <h2>Pathogenesis goes live</h2>
+        <p>Pathogenesis is a card game about the immune system fighting off infection — play the body's defenses against invading pathogens in quick head-to-head matches, either against a friend or against the computer. This first version includes a guided tutorial for learning the rules, a solo mode against the computer, and simple sign-in so a guest can jump straight into a game with no account needed.</p>
+      </div>
+
+    </div>
+
+    <footer>Pathogenesis &middot; <a href="index.html">Back to the game</a></footer>
+  </div>
+
+<!-- Same Firebase project as the main game (index.html) — this form writes into the same
+     'interest_signups' collection the in-game "Want Real Cards?" panel uses, tagged with
+     list:'updates' so the two can be told apart. See the TODO next to that collection in
+     firestore.rules if this ever needs its own collection. -->
+<script src="https://www.gstatic.com/firebasejs/12.18.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/12.18.0/firebase-firestore-compat.js"></script>
+<script>
+  var FIREBASE_CONFIG = {
+    apiKey: "AIzaSyAMzRY-MaCk-_A2cIV4BygAnfs2s2xn4PA",
+    authDomain: "pathogenesis-game.firebaseapp.com",
+    projectId: "pathogenesis-game",
+    storageBucket: "pathogenesis-game.firebasestorage.app",
+    messagingSenderId: "1040938811280",
+    appId: "1:1040938811280:web:40f01cbc3ddee327217d15"
+  };
+  var firestoreDb = null;
+  try{
+    if(typeof firebase!=='undefined'){
+      firebase.initializeApp(FIREBASE_CONFIG);
+      firestoreDb = firebase.firestore();
+    }
+  }catch(e){ firestoreDb = null; }
+
+  function submitSignup(){
+    var msg = document.getElementById('signup-message');
+    var btn = document.getElementById('signup-btn');
+    var emailInput = document.getElementById('signup-email');
+    var email = emailInput.value.trim();
+    if(!email || email.indexOf('@')===-1){ msg.textContent = 'Enter a valid email address.'; return; }
+    if(!firestoreDb){ msg.textContent = "This isn't connected yet — try again shortly."; return; }
+    btn.disabled = true;
+    firestoreDb.collection('interest_signups').add({ email: email, list: 'updates', surveyAnswers: [], createdAt: new Date().toISOString() })
+      .then(function(){
+        msg.textContent = "Thanks! We'll be in touch.";
+        emailInput.value = '';
+        btn.disabled = false;
+      })
+      .catch(function(){
+        msg.textContent = 'Something went wrong — try again.';
+        btn.disabled = false;
+      });
+  }
+  document.getElementById('signup-btn').addEventListener('click', submitSignup);
+  document.getElementById('signup-email').addEventListener('keydown', function(e){ if(e.key==='Enter') submitSignup(); });
+</script>
+</body>
+</html>
