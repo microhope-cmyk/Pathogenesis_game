@@ -589,8 +589,9 @@
     <p>Tap a ready <strong class="pth">Pathogen</strong> to send it at the opponent's Health — this costs 1 ATP, so it's grayed out if you're out. They may block with a ready <strong class="imm">Immune cell</strong> — both take damage from each other — or take the hit. Blocking is free.</p>
     <h3>Engaging</h3>
     <p>Tap a ready <strong class="imm">Immune cell</strong> to proactively attack an enemy Pathogen already on the board — no blocking involved. This costs 1 ATP too. This is the only way to actually clear a chronic infection; blocking just absorbs one turn's damage.</p>
+    <p>Every Innate cell (Neutrophil, Macrophage, Natural Killer Cell, Dendritic Cell, Mast Cell, Eosinophil) only gets the one action, win or lose — Acute cells are spent after a single block or engage, same as an Acute Pathogen after it attacks. When one goes, it leaves something behind based on how it actually works: the granulocytes (Neutrophil, NK Cell, Mast Cell, Eosinophil) leave a Granule, while the antigen-presenting cytokine producers (Macrophage, Dendritic Cell) leave an IFN-&gamma; cytokine. A Neutrophil that's actually destroyed — rather than just spent after winning — also gets replaced by a fresh one in hand, as long as the Pathogen it fought is still standing.</p>
     <h3>Specialization</h3>
-    <p>A Naive Helper T-cell or Cytotoxic T-cell permanently upgrades the first time it fights a Pathogen, becoming Specialized against that category and choosing one of two paths — both also grant a flat +1 Resistance just for specializing, on top of whatever else the path gives. <strong>Memory</strong> gives +3 Resistance total, and the cell keeps attacking and engaging normally. <strong>Effector</strong> trades away attacking and engaging directly (it can still block) for a once-per-turn secrete instead: a Helper T-cell secretes a Cytokine — IFN-&gamma; or IL-4, depending on the category it specialized against — which permanently gives one eligible ally +1/+1; a Cytotoxic T-cell secretes a Granule, a one-shot token that can strike any enemy Pathogen or Immune cell. A Naive B-cell instead becomes a Memory B-cell (+2 Potency, +3 Resistance, forever) or a Plasma Cell (secretes two category-specific Antibodies each turn — unlike the generic Antibody a B-cell leaves behind when it dies, a category-specific one only blocks that one Pathogen category). <strong class="eff">Vaccination</strong> can Specialize a cell early, before it ever meets the real thing — pick a category and it goes through the same path choice a combat win would (Memory or Effector, or Memory B-cell or Plasma for a B-cell), just without needing to survive a fight first. Afterward, a Specialized cell deals +1 Potency any time it fights or blocks a Pathogen of its own category.</p>
+    <p>A Naive Helper T-cell or Cytotoxic T-cell permanently upgrades the first time it fights a Pathogen, becoming Specialized against that category and choosing one of two paths — both also grant a flat +1 Resistance just for specializing, on top of whatever else the path gives. <strong>Memory</strong> gives +3 Resistance total, and the cell keeps attacking and engaging normally; it also regains 1 Resistance immediately any time it survives a block — immunological memory getting "boosted" by re-exposure. <strong>Effector</strong> trades away attacking and engaging directly (it can still block) for a once-per-turn secrete instead: a Helper T-cell secretes a Cytokine — IFN-&gamma; or IL-4, depending on the category it specialized against — which permanently gives one eligible ally +1/+1; a Cytotoxic T-cell secretes a Granule, a one-shot token that can strike any enemy Pathogen or Immune cell. A Naive B-cell instead becomes a Memory B-cell (+2 Potency, +3 Resistance, forever) or a Plasma Cell (secretes two category-specific Antibodies each turn — unlike the generic Antibody a B-cell leaves behind when it dies, a category-specific one only blocks that one Pathogen category). <strong class="eff">Vaccination</strong> can Specialize a cell early, before it ever meets the real thing — pick a category and it goes through the same path choice a combat win would (Memory or Effector, or Memory B-cell or Plasma for a B-cell), just without needing to survive a fight first. Afterward, a Specialized cell deals +1 Potency any time it fights or blocks a Pathogen of its own category.</p>
     <h3>Chronic complications</h3>
     <p>Several Pathogens (HPV, EBV, <em>H. pylori</em>, Hepatitis C, Group A Strep, HIV) cause lasting harm if left unremoved for several of your turns. Some just add extra damage on a fixed schedule; others instead roll a die once a threshold is reached — you'll see that roll flash on screen, with the number rolled and what it needed. Destroying the Pathogen is usually the only way to stop it.</p>
     <h3>Effects</h3>
@@ -707,8 +708,8 @@ var DEFS = {
   hiv:     {name:'HIV', group:'pathogen', category:'Virus', duration:'persistent', cost:4, pot:1, res:5, ability:'onplayHelperT', canHide:true, icon:'virus_hiv', count:1,
             chronic:{key:'aids', rollAt:3, rollTarget:5}, text:'On Play: deal 1 damage directly to an enemy Helper T-cell, ignoring blockers. Can go dormant (latent) instead of attacking — free to stay dormant, 1 ATP to reactivate. Chronic — AIDS: unremoved 3 turns, roll d6; 5+ recruits a random pathogen from your discard pile into your hand.'},
   prion:   {name:'Prion', group:'pathogen', category:'Prion', duration:'persistent', cost:5, pot:1, res:4, ability:'unkillable', text:'Cannot be destroyed by engaging or blocking — only Incineration works.', icon:'prion', count:1, set:'expansion'},
-  hpv:     {name:'HPV', group:'pathogen', category:'Virus', duration:'persistent', cost:2, pot:1, res:4, icon:'virus_hpv', count:1, spawnsCopies:true, spawnDelay:2,
-            chronic:{key:'dysplasia', rollAt:3, rollTarget:6}, text:'Chronic — Dysplasia: unremoved 3 turns, roll d6; only a 6 sets it in — host then takes +1 dmg/turn until destroyed. Also spawns a copy of itself into your hand every round starting its third turn on the board.'},
+  hpv:     {name:'HPV', group:'pathogen', category:'Virus', duration:'persistent', cost:2, pot:1, res:4, icon:'virus_hpv', count:1, spawnsCopies:true, spawnDelay:2, spawnRollTarget:5,
+            chronic:{key:'dysplasia', rollAt:3, rollTarget:6}, text:'Chronic — Dysplasia: unremoved 3 turns, roll d6; only a 6 sets it in — host then takes +1 dmg/turn until destroyed. Starting its third turn on the board, also rolls d6 each turn (5+ succeeds, 1-in-3 odds) to spawn a copy of itself into your hand.'},
   ebv:     {name:'Epstein-Barr Virus', group:'pathogen', category:'Virus', duration:'persistent', cost:2, pot:1, res:5, icon:'virus_ebv', count:1, spawnsCopies:true,
             chronic:{key:'lupus', rollAt:2, rollTarget:100, rollSides:100}, text:'Chronic — Molecular Mimicry: end of host\'s 2nd turn, roll d100; only a 100 triggers lupus (1:100 odds). Also spawns a copy of itself into your hand every round after the first.'},
   hsv:     {name:'Herpes Simplex Virus', group:'pathogen', category:'Virus', duration:'persistent', cost:2, pot:2, res:3, canHide:true, icon:'virus_hsv', count:1,
@@ -724,12 +725,12 @@ var DEFS = {
   tinea:   {name:"Athlete's Foot", group:'pathogen', category:'Fungus', duration:'acute', cost:1, pot:1, res:null, text:'A common fungal skin infection — annoying, rarely serious.', icon:'ringworm', count:2},
   pinworm: {name:'Pinworm', group:'pathogen', category:'Parasite', duration:'acute', cost:1, pot:1, res:null, text:'Extremely common, especially in kids — itchy, but mild.', icon:'pinworm', count:2},
 
-  neutrophil: {name:'Neutrophil', group:'immune', class:'Innate', duration:'acute', cost:1, pot:1, res:1, text:'First responder. No special ability.', icon:'neutrophil', count:3},
-  macrophage: {name:'Macrophage', group:'immune', class:'Innate', duration:'acute', cost:2, pot:2, res:2, ability:'phagocytose', text:'Phagocytose — On Play: destroy an enemy Acute Pathogen.', icon:'macrophage', count:2},
-  nk:         {name:'Natural Killer Cell', group:'immune', class:'Innate', duration:'acute', cost:2, pot:2, res:1, text:'Acts without needing priming.', icon:'nk', count:2},
-  dendritic:  {name:'Dendritic Cell', group:'immune', class:'Innate', duration:'acute', cost:2, pot:0, res:2, ability:'prime', text:'On Play: choose a category. The next Naive adaptive cell you play while this is still on the board enters already Specialized against it (one time only).', icon:'dendritic', count:2},
-  mast:       {name:'Mast Cell', group:'immune', class:'Innate', duration:'acute', cost:1, pot:1, res:2, ability:'histamine', text:'On Play: deal 1 damage to an enemy Pathogen; your Neutrophils get +1 Potency this turn.', icon:'mast', count:2},
-  eosinophil: {name:'Eosinophil', group:'immune', class:'Innate', duration:'acute', cost:2, pot:2, res:1, ability:'antiparasite', text:'Deals double damage against Parasite-category Pathogens.', icon:'eosinophil', count:2},
+  neutrophil: {name:'Neutrophil', group:'immune', class:'Innate', duration:'acute', cost:1, pot:1, res:1, leavesToken:'granule', text:'First responder — no special ability, but leaves behind a Granule when spent, and a fresh Neutrophil rushes in to replace it if it dies without finishing off the Pathogen it fought.', icon:'neutrophil', count:3},
+  macrophage: {name:'Macrophage', group:'immune', class:'Innate', duration:'acute', cost:2, pot:2, res:2, ability:'phagocytose', leavesToken:'ifng', text:'Phagocytose — On Play: destroy an enemy Acute Pathogen. Leaves behind an IFN-γ cytokine when spent.', icon:'macrophage', count:2},
+  nk:         {name:'Natural Killer Cell', group:'immune', class:'Innate', duration:'acute', cost:2, pot:2, res:1, leavesToken:'granule', text:'Acts without needing priming. Leaves behind a Granule when spent.', icon:'nk', count:2},
+  dendritic:  {name:'Dendritic Cell', group:'immune', class:'Innate', duration:'acute', cost:2, pot:0, res:2, ability:'prime', leavesToken:'ifng', text:'On Play: choose a category. The next Naive adaptive cell you play while this is still on the board enters already Specialized against it (one time only). Leaves behind an IFN-γ cytokine when spent.', icon:'dendritic', count:2},
+  mast:       {name:'Mast Cell', group:'immune', class:'Innate', duration:'acute', cost:1, pot:1, res:2, ability:'histamine', leavesToken:'granule', text:'On Play: deal 1 damage to an enemy Pathogen; your Neutrophils get +1 Potency this turn. Leaves behind a Granule when spent.', icon:'mast', count:2},
+  eosinophil: {name:'Eosinophil', group:'immune', class:'Innate', duration:'acute', cost:2, pot:2, res:1, ability:'antiparasite', leavesToken:'granule', text:'Deals double damage against Parasite-category Pathogens. Leaves behind a Granule when spent.', icon:'eosinophil', count:2},
   helpert:    {name:'Naive Helper T-cell', group:'immune', class:'Adaptive', duration:'persistent', cost:2, pot:1, res:4, specializes:true, ability:'supportcell', text:'Your other Persistent Immune cells get +0/+1. (HIV\'s specific target.)', icon:'helpert', count:4},
   cytotoxict: {name:'Naive Cytotoxic T-cell', group:'immune', class:'Adaptive', duration:'persistent', cost:3, pot:3, res:3, specializes:true, ability:'primed', text:'+1 Potency while you control a Helper T-cell or Dendritic Cell.', icon:'cytotoxict', count:4},
   bcell:      {name:'Naive B-cell', group:'immune', class:'Adaptive', duration:'persistent', cost:2, pot:1, res:3, specializes:true, ability:'makesantibody', text:'On destroyed: create an Antibody token in hand.', icon:'bcell', count:4},
@@ -751,7 +752,7 @@ var DEFS = {
   healthydiet:{name:'Healthy Diet', group:'effect', cost:1, ability:'healthydiet', text:'Draw 1 card.', icon:'healthydiet', count:1},
   fever:     {name:'Fever Response', group:'effect', cost:1, ability:'fever', text:'Your Pathogens and Immune cells get +1 Potency until end of turn; you take 1 Health damage.', icon:'fever', count:1},
   boostershot:{name:'Booster Shot', group:'effect', cost:2, ability:'boost', text:'Target an Adaptive Immune cell you control: permanent +1/+1.', icon:'boostershot', count:1},
-  chemokine: {name:'Chemokine', group:'effect', cost:3, ability:'chemokine', text:'Return a random Innate Immune cell from your discard pile directly to the board, ready to act.', icon:'chemokine', count:1},
+  chemokine: {name:'Chemokine', group:'effect', cost:2, ability:'chemokine', text:'Return up to 2 random Innate Immune cells from your discard pile directly to the board, ready to act.', icon:'chemokine', count:1},
   daycare:   {name:'Daycare', group:'effect', cost:3, ability:'daycare', text:'Pull up to 3 random Acute Pathogens from your discard pile into your hand.', icon:'daycare', count:1},
   storm:     {name:'Cytokine Storm', group:'effect', cost:5, ability:'storm', text:'Deal 2 damage to every Pathogen and Immune cell in play, both sides; you take 2 Health damage.', icon:'storm', count:1, set:'expansion'},
   incinerate:{name:'Incineration', group:'effect', cost:5, ability:'incinerate', text:'Destroy a target enemy Pathogen outright, even a Prion. Extreme heat spares nothing.', icon:'incinerate', count:1, set:'expansion'}
@@ -1579,7 +1580,10 @@ function clearTempBuffs(who){
 // spawnsCopies deliberately skips its first `spawnDelay` ticks (1 by default, so just its first
 // active turn) per design — a pathogen shouldn't duplicate itself the instant it wakes up, only
 // once it's actually stuck around; HPV overrides spawnDelay to 2 to spread copies out further.
-// Regeneration and Toxin secretion have no such exclusion.
+// spawnRollTarget makes the spawn itself a per-turn coin flip instead of a certainty once the
+// delay has passed — HPV sets it to 5, needing a 5 or 6 each eligible turn (1-in-3 odds), rather
+// than guaranteeing a new copy every single turn. Regeneration and Toxin secretion have neither
+// exclusion.
 function tickPathogenPassives(who){
   var p = S.players[who];
   p.board.slice().forEach(function(c){
@@ -1594,8 +1598,11 @@ function tickPathogenPassives(who){
       pushLog(c.name+' secretes a Toxin into '+label(who)+"'s hand.");
     }
     if(c.spawnsCopies && c.passiveTurns>c.spawnDelay){
-      p.hand.push({uid:nextUid(), defId:c.defId});
-      pushLog(c.name+' spawns a copy of itself into '+label(who)+"'s hand.");
+      var spawnRoll = c.spawnRollTarget ? (1+Math.floor(Math.random()*6)) : null;
+      if(!c.spawnRollTarget || spawnRoll>=c.spawnRollTarget){
+        p.hand.push({uid:nextUid(), defId:c.defId});
+        pushLog(c.name+' spawns a copy of itself into '+label(who)+"'s hand.");
+      }
     }
   });
 }
@@ -1697,6 +1704,9 @@ function killCreature(who, uid, kind){
   if(c.ability==='makesantibody'){
     if(p.hand.length<10){ p.hand.push({uid:nextUid(), defId:'antibody'}); pushLog(c.name+' leaves behind an Antibody.'); }
   }
+  if(c.leavesToken){
+    if(p.hand.length<10){ p.hand.push({uid:nextUid(), defId:c.leavesToken}); pushLog(c.name+' leaves behind '+DEFS[c.leavesToken].name+'.'); }
+  }
   recalcHelperAura(who);
   // Longer animations need more time on the board before the card is actually removed, or
   // they'd be cut off mid-play.
@@ -1770,6 +1780,7 @@ function makeCreatureInstance(def, defId, specCat){
     dormant: def.duration==='persistent', acted:false, tempPot:0, noBlockAcute:false, effectorCharge:0, auraBuffed:false, primeCategory:null,
     chronicDef: def.chronic ? Object.assign({}, def.chronic) : null, hostTurns:0, rolled:false,
     regen: def.regen||0, secretesToxin: !!def.secretesToxin, spawnsCopies: !!def.spawnsCopies, spawnDelay: def.spawnDelay||1,
+    spawnRollTarget: def.spawnRollTarget||null, leavesToken: def.leavesToken||null,
     retaliateKillInnate: !!def.retaliateKillInnate, canHide: !!def.canHide, hidden:false, passiveTurns:0
   };
 }
@@ -1881,16 +1892,18 @@ function applyEffect(who, def, targetUid, chosenCategory){
     if(t6){ t6.pot+=1; t6.res+=1; t6.maxRes+=1; pushLog(t6.name+' gets a permanent +1/+1 boost from '+def.name+'.'); }
   } else if(def.ability==='chemokine'){
     var innatePool = S.players[who].discard.filter(function(id){ return id!=='granule' && DEFS[id] && DEFS[id].group==='immune' && DEFS[id].class==='Innate'; });
-    if(innatePool.length){
+    var summonedNames = [];
+    for(var ckI=0; ckI<2 && innatePool.length; ckI++){
       var summonPick = innatePool[Math.floor(Math.random()*innatePool.length)];
+      innatePool.splice(innatePool.indexOf(summonPick),1);
       S.players[who].discard.splice(S.players[who].discard.indexOf(summonPick),1);
       var summoned = makeCreatureInstance(DEFS[summonPick], summonPick, null);
       S.players[who].board.push(summoned);
-      recalcHelperAura(who);
-      pushLog('Chemokine signals '+summoned.name+' back onto the board from the discard pile.');
-    } else {
-      pushLog('No Innate immune cells in the discard pile to summon.');
+      summonedNames.push(summoned.name);
     }
+    recalcHelperAura(who);
+    if(summonedNames.length){ pushLog('Chemokine signals '+summonedNames.join(', ')+' back onto the board from the discard pile.'); }
+    else { pushLog('No Innate immune cells in the discard pile to summon.'); }
   } else if(def.ability==='daycare'){
     var acutePool = S.players[who].discard.filter(function(id){ return DEFS[id] && DEFS[id].group==='pathogen' && DEFS[id].duration==='acute'; });
     var pulledNames = [];
@@ -2088,6 +2101,22 @@ function resolveCombat(pathogen, pathOwner, immune, immOwner, onDone, context){
   };
   pushLog(immune.name+' ('+resLabel(immune)+' Res left) '+fateLabel(immune, immuneSurvived)+'; '+
           pathogen.name+' ('+resLabel(pathogen)+' Res left) '+fateLabel(pathogen, pathogenSurvived)+'.');
+  // Immunological memory getting "boosted" on re-exposure — a Memory cell that survives a
+  // block regains 1 Resistance immediately. Block-only: engaging is the immune system going on
+  // offense, not the re-exposure to a Pathogen's attack this models.
+  if(context==='block' && immune.specialTag==='Memory' && immuneSurvived && immune.res<immune.maxRes){
+    immune.res = Math.min(immune.maxRes, immune.res+1);
+    pushLog(immune.name+' is boosted by re-exposure — regains 1 Resistance ('+immune.res+'/'+immune.maxRes+').');
+  }
+  // Neutrophils are the fastest-replenished immune cell in the body — if one is actually
+  // destroyed (not just spent after winning) and the Pathogen it fought lives to fight another
+  // turn, a fresh one gets rushed in as a replacement.
+  if(immune.defId==='neutrophil' && !immuneSurvived && pathogenSurvived){
+    if(S.players[immOwner].hand.length<10){
+      S.players[immOwner].hand.push({uid:nextUid(), defId:'neutrophil'});
+      pushLog('A fresh Neutrophil rushes in to replace the one lost fighting '+pathogen.name+'.');
+    }
+  }
   if(pathogen.retaliateKillInnate && pathogenSurvived){
     var retalPool = S.players[immOwner].board.filter(function(c){
       return c.group==='immune' && c.class==='Innate' && c.res!==null && c.res<=1 && !S.anim.dying[c.uid];
@@ -2098,7 +2127,13 @@ function resolveCombat(pathogen, pathOwner, immune, immOwner, onDone, context){
       killCreature(immOwner, retalTarget.uid, 'engage');
     }
   }
-  if(immune.duration==='acute' && immuneSurvived){ removeCreature(immOwner, immune.uid); }
+  if(immune.duration==='acute' && immuneSurvived){
+    if(immune.leavesToken && S.players[immOwner].hand.length<10){
+      S.players[immOwner].hand.push({uid:nextUid(), defId:immune.leavesToken});
+      pushLog(immune.name+' leaves behind '+DEFS[immune.leavesToken].name+'.');
+    }
+    removeCreature(immOwner, immune.uid);
+  }
   checkGameOver();
   var willSpecialize = eligibleToSpecialize && immuneSurvived;
   if(willSpecialize && !S.over){
