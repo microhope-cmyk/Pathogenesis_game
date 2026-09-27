@@ -153,6 +153,8 @@
   .card.playable:not(.dim){cursor:pointer;box-shadow:0 0 0 2px var(--blue-strong), var(--shadow-card);animation:glowPulse 1.15s ease-in-out infinite;}
   .card.playable:not(.dim):active{transform:translateY(-2px) scale(0.98);}
   .card.selectable{cursor:pointer;box-shadow:0 0 0 2px var(--blue-strong), var(--shadow-card);animation:cardIn .2s ease both, glowPulse 1.15s ease-in-out infinite;}
+  .card.discardable{cursor:pointer;box-shadow:0 0 0 2px var(--pathogen-strong), var(--shadow-card);animation:glowPulse 1.15s ease-in-out infinite;}
+  .card.discardable:active{transform:translateY(-2px) scale(0.98);}
   @keyframes glowPulse{0%,100%{filter:brightness(1);}50%{filter:brightness(1.2);}}
   .card.chosen{box-shadow:0 0 0 2px var(--effect), var(--shadow-pop);transform:translateY(-4px);}
   .card.attacking{box-shadow:0 0 0 2px var(--pathogen-strong), var(--shadow-pop);animation:attackPulse 0.9s ease-in-out infinite;}
@@ -1495,7 +1497,6 @@ function drawCard(who){
     return;
   }
   var id = p.deck.shift();
-  if(p.hand.length>=10){ pushLog(DEFS[id].name+' rots away — '+label(who)+"'s hand is full."); return; }
   p.hand.push({uid:nextUid(), defId:id});
 }
 
@@ -1582,22 +1583,37 @@ function tickPathogenPassives(who){
       pushLog(c.name+' regenerates back to '+c.res+' Resistance.');
     }
     if(c.secretesToxin){
-      if(p.hand.length<10){
-        p.hand.push({uid:nextUid(), defId:'toxin'});
-        pushLog(c.name+' secretes a Toxin into '+label(who)+"'s hand.");
-      } else {
-        pushLog(c.name+"'s Toxin breaks down — "+label(who)+"'s hand is full.");
-      }
+      p.hand.push({uid:nextUid(), defId:'toxin'});
+      pushLog(c.name+' secretes a Toxin into '+label(who)+"'s hand.");
     }
     if(c.spawnsCopies && c.passiveTurns>1){
-      if(p.hand.length<10){
-        p.hand.push({uid:nextUid(), defId:c.defId});
-        pushLog(c.name+' spawns a copy of itself into '+label(who)+"'s hand.");
-      } else {
-        pushLog(c.name+"'s new copy is lost — "+label(who)+"'s hand is full.");
-      }
+      p.hand.push({uid:nextUid(), defId:c.defId});
+      pushLog(c.name+' spawns a copy of itself into '+label(who)+"'s hand.");
     }
   });
+}
+
+// A hand that just grew past the 10-card cap needs resolving right away. A human gets an
+// interactive choice of what to let go of (S.selection stays in 'handDiscardChoice' — and the
+// discard click-handler keeps re-entering it — until the hand is back down to 10, since a
+// single overflow like Daycare's 3-card pull can put a hand several cards past the limit at
+// once). The AI has nobody to ask, so it just discards immediately and moves on.
+function enforceHandLimit(who){
+  if(S.over) return;
+  var p = S.players[who];
+  if(p.hand.length<=10) return;
+  if(S.mode==='solo' && who==='p2'){ aiDiscardToLimit(who); return; }
+  S.selection = {mode:'handDiscardChoice', who:who};
+}
+
+function aiDiscardToLimit(who){
+  var p = S.players[who];
+  while(p.hand.length>10){
+    var idx = Math.floor(Math.random()*p.hand.length);
+    var discarded = p.hand.splice(idx,1)[0];
+    p.discard.push(discarded.defId);
+    pushLog(label(who)+' discards '+DEFS[discarded.defId].name+' — hand over the 10-card limit.');
+  }
 }
 
 function startTurn(who){
@@ -1613,6 +1629,7 @@ function startTurn(who){
   tickChronicForHost(who);
   if(S.over) return;
   if(S.turnCount>0){ drawCard(who); drawCard(who); }
+  enforceHandLimit(who);
   S.turnCount += 1;
   pushLog('— '+label(who)+"'s turn —");
   if(S.mode==='solo' && who==='p2'){
@@ -1870,7 +1887,7 @@ function applyEffect(who, def, targetUid, chosenCategory){
   } else if(def.ability==='daycare'){
     var acutePool = S.players[who].discard.filter(function(id){ return DEFS[id] && DEFS[id].group==='pathogen' && DEFS[id].duration==='acute'; });
     var pulledNames = [];
-    for(var dcI=0; dcI<3 && acutePool.length && S.players[who].hand.length<10; dcI++){
+    for(var dcI=0; dcI<3 && acutePool.length; dcI++){
       var dcPick = acutePool[Math.floor(Math.random()*acutePool.length)];
       acutePool.splice(acutePool.indexOf(dcPick),1);
       S.players[who].discard.splice(S.players[who].discard.indexOf(dcPick),1);
@@ -1879,17 +1896,15 @@ function applyEffect(who, def, targetUid, chosenCategory){
     }
     if(pulledNames.length){ pushLog('Daycare pulls '+pulledNames.join(', ')+' from the discard pile into '+label(who)+"'s hand."); }
     else { pushLog('No Acute Pathogens in the discard pile for Daycare to pull.'); }
+    enforceHandLimit(who);
   } else if(def.ability==='immuneboost'){
     var pool = immuneBoostPoolFor(who);
     if(pool.length){
       var pick = pool[Math.floor(Math.random()*pool.length)];
       S.players[who].discard.splice(S.players[who].discard.indexOf(pick),1);
-      if(S.players[who].hand.length<10){
-        S.players[who].hand.push({uid:nextUid(), defId:pick});
-        pushLog('Immune Boost recalls '+DEFS[pick].name+' from the discard pile.');
-      } else {
-        pushLog(DEFS[pick].name+' crumbles on the way back — '+label(who)+"'s hand is full.");
-      }
+      S.players[who].hand.push({uid:nextUid(), defId:pick});
+      pushLog('Immune Boost recalls '+DEFS[pick].name+' from the discard pile.');
+      enforceHandLimit(who);
     } else {
       pushLog('No immune cells in the discard pile to recall.');
     }
@@ -1954,7 +1969,9 @@ function resolveUnblocked(pathogen, pathOwner, hostWho){
     pushLog(pathogen.name+' drains 1 ATP for '+label(pathOwner)+'.');
   }
   if(pathogen.ability==='replicate'){
-    if(S.players[pathOwner].hand.length<10){ S.players[pathOwner].hand.push({uid:nextUid(), defId:pathogen.defId}); pushLog(pathogen.name+' replicates into '+label(pathOwner)+"'s hand."); }
+    S.players[pathOwner].hand.push({uid:nextUid(), defId:pathogen.defId});
+    pushLog(pathogen.name+' replicates into '+label(pathOwner)+"'s hand.");
+    enforceHandLimit(pathOwner);
   }
   checkGameOver();
 }
@@ -2456,10 +2473,12 @@ function creatureCardHTML(c, opts){
 function handCardHTML(h){
   var def = DEFS[h.defId];
   var activeSide = S.turn;
+  var discardMode = !!(S.selection && S.selection.mode==='handDiscardChoice' && localSeatFor(S.selection.who));
   var canAct = !S.pendingAttack && !S.locked;
   var canPlay = canAct && !S.selection && affordable(activeSide, def) && localSeatFor(activeSide);
   var cls = ['card', barClass(def.group)];
-  if(!canPlay) cls.push('dim'); else cls.push('playable');
+  if(discardMode) cls.push('discardable');
+  else if(!canPlay) cls.push('dim'); else cls.push('playable');
   var costHTML = def.cost>0 || def.group!=='immune' ? '<div class="cost">'+def.cost+'</div>' : '<div class="cost">0</div>';
   var catTag = def.category ? '<span class="tag cat-'+escapeHTML(def.category)+'">'+escapeHTML(def.category.slice(0,4))+'</span>' : (def.class?'<span class="tag cls-'+escapeHTML(def.class)+'">'+escapeHTML(def.class.slice(0,4))+'</span>':'');
   var body = def.group==='effect'
@@ -2470,7 +2489,8 @@ function handCardHTML(h){
   var displayText = (h.defId==='antibody' && h.specCat) ? ('Blocks '+h.specCat+' pathogens only, fully neutralizing the attack, then is spent.') : def.text;
   var chronicBadge = def.chronic ? '<span class="chronicbadge">Incubation</span>' : '';
   var handHeader = cardHeaderHTML(def.group, '<div class="toprow">'+catTag+costHTML+'</div><div class="name">'+escapeHTML(displayName)+'</div>');
-  return '<div class="'+cls.join(' ')+'" data-action="playhand" data-uid="'+h.uid+'">'+
+  var handAction = discardMode ? 'discardhandcard' : 'playhand';
+  return '<div class="'+cls.join(' ')+'" data-action="'+handAction+'" data-uid="'+h.uid+'">'+
     peekBadgeHTML('hand', h.uid)+
     handHeader+
     body+chronicBadge+
@@ -2724,6 +2744,9 @@ function render(){
   } else if(S.selection && S.selection.mode==='dormancyChoice'){
     ti.classList.add('choosemode');
     ti.textContent = waitingOnOpponent ? 'Waiting for Opponent to choose...' : 'Attack, or go dormant?';
+  } else if(S.selection && S.selection.mode==='handDiscardChoice'){
+    ti.classList.add('choosemode');
+    ti.textContent = waitingOnOpponent ? 'Waiting for Opponent to discard...' : 'Hand full — choose a card to discard!';
   } else if(S.mode==='solo' && S.turn==='p2'){
     ti.classList.add('waiting');
     ti.textContent = "Computer's turn — please wait";
@@ -2750,7 +2773,7 @@ function render(){
   root.log.hidden = pickerMode;
   if(!document.getElementById('history-overlay').hidden) renderHistory();
 
-  root.cancelBtn.hidden = !(S.selection && !S.pendingAttack && iCanAct) || (S.selection && (S.selection.mode==='specializeChoice' || S.selection.mode==='primeChooseCategory'));
+  root.cancelBtn.hidden = !(S.selection && !S.pendingAttack && iCanAct) || (S.selection && (S.selection.mode==='specializeChoice' || S.selection.mode==='primeChooseCategory' || S.selection.mode==='handDiscardChoice'));
   root.takeHitBtn.hidden = !S.pendingAttack || !iCanAct;
   root.endTurn.hidden = !!S.selection || !!S.pendingAttack;
   root.endTurn.disabled = S.over || S.locked || (S.mode==='solo' && S.turn!=='p1') || (S.mode==='online' && S.turn!==S.mySeat);
@@ -2926,6 +2949,17 @@ document.addEventListener('DOMContentLoaded', function(){
       if(def.group==='effect'){ applyEffect(S.turn, def, null, null); }
       else { playCreature(S.turn, uid, h.defId, def, h.specCat); }
       render();
+    } else if(action==='discardhandcard'){
+      if(!S.selection || S.selection.mode!=='handDiscardChoice') return;
+      var dhWho = S.selection.who;
+      var dhUid = el.dataset.uid;
+      var dhIdx = S.players[dhWho].hand.findIndex(function(x){return x.uid===dhUid;});
+      if(dhIdx===-1) return;
+      var dhCard = S.players[dhWho].hand.splice(dhIdx,1)[0];
+      S.players[dhWho].discard.push(dhCard.defId);
+      pushLog(label(dhWho)+' discards '+DEFS[dhCard.defId].name+' to stay at the 10-card hand limit.');
+      if(S.players[dhWho].hand.length<=10){ S.selection = null; }
+      render();
     } else if(action==='pickcategory'){
       if(!S.selection || S.selection.mode!=='vaccinateChooseCategory') return;
       var cat = el.dataset.cat;
@@ -3015,7 +3049,6 @@ document.addEventListener('DOMContentLoaded', function(){
       var secretable = secC && !secC.dormant && !secC.acted && (secC.ability==='plasmasecrete' || secC.ability==='granulesecrete' || secC.ability==='cytokinesecrete');
       if(!secretable) return;
       if(S.players[S.turn].atp<1) return;
-      if(S.players[S.turn].hand.length>=10){ pushLogFlash('Hand full — the secretion is lost.'); render(); return; }
       S.players[S.turn].atp -= 1;
       secC.acted = true;
       if(secC.ability==='plasmasecrete'){
@@ -3028,6 +3061,7 @@ document.addEventListener('DOMContentLoaded', function(){
         S.players[S.turn].hand.push({uid:nextUid(), defId:secC.cytokineId});
         pushLog(secC.name+' secretes '+DEFS[secC.cytokineId].name+'.');
       }
+      enforceHandLimit(S.turn);
       render();
     } else if(action==='resolveeffecttarget'){
       if(!S.selection || S.selection.mode!=='effectTarget') return;
