@@ -159,12 +159,18 @@
   @keyframes attackPulse{0%,100%{filter:brightness(1);transform:none;}50%{filter:brightness(1.35);transform:translateY(-2px);}}
   .peek-badge{
     position:absolute;bottom:3px;right:3px;z-index:3;
-    width:16px;height:16px;border-radius:50%;
+    width:20px;height:20px;border-radius:50%;
     background:rgba(4,6,8,0.6);border:1px solid var(--rule);color:var(--ink-dim);
     display:flex;align-items:center;justify-content:center;
-    font-family:var(--font-mono);font-size:9px;font-weight:700;font-style:italic;
+    font-family:var(--font-mono);font-size:10.5px;font-weight:700;font-style:italic;
     cursor:pointer;
   }
+  /* The visible circle stays small so it doesn't dominate a 76px-wide card, but on a phone a
+     real fingertip is much wider than 20px — this invisible pseudo-element pads the actual
+     tappable area out to roughly touch-target size, without changing how the badge looks. A
+     tap that lands here is still attributed to .peek-badge itself (pseudo-elements can't be an
+     event's own target), so it still opens the preview instead of playing the card underneath. */
+  .peek-badge::before{content:'';position:absolute;inset:-7px;}
   .peek-badge:active{background:rgba(4,6,8,0.85);}
   .card-preview-wrap{display:flex;flex-direction:column;align-items:center;gap:14px;}
   .card.preview-size{width:210px !important;padding:14px 14px 16px;gap:6px;}
@@ -726,7 +732,7 @@ var DEFS = {
   cytotoxict: {name:'Naive Cytotoxic T-cell', group:'immune', class:'Adaptive', duration:'persistent', cost:3, pot:3, res:3, specializes:true, ability:'primed', text:'+1 Potency while you control a Helper T-cell or Dendritic Cell.', icon:'cytotoxict', count:3},
   bcell:      {name:'Naive B-cell', group:'immune', class:'Adaptive', duration:'persistent', cost:2, pot:1, res:3, specializes:true, ability:'makesantibody', text:'On destroyed: create an Antibody token in hand.', icon:'bcell', count:3},
   antibody:   {name:'Antibody', group:'immune', class:'Adaptive', duration:'acute', cost:0, pot:null, res:1, text:'May block any attack, fully neutralizing it, then is spent.', icon:'antibody', count:0},
-  granule:    {name:'Granule', group:'immune', class:'Adaptive', duration:'acute', cost:0, pot:1, res:0, text:'Can attack any enemy Pathogen or Immune cell, then is spent.', icon:'granule', count:0},
+  granule:    {name:'Granule', group:'immune', class:'Innate', duration:'acute', cost:0, pot:1, res:0, text:'Can attack any enemy Pathogen or Immune cell, then is spent.', icon:'granule', count:0},
   ifng:       {name:'IFN-γ', group:'effect', cost:0, ability:'cytokineboost', boostPool:['dendritic','macrophage','cytotoxict'], text:'Target a Dendritic Cell, Macrophage, or Cytotoxic T-cell you control: permanent +1/+1.', icon:'ifng', count:0},
   il4:        {name:'IL-4', group:'effect', cost:0, ability:'cytokineboost', boostPool:['eosinophil','mast','bcell'], text:'Target an Eosinophil, Mast Cell, or B-cell you control: permanent +1/+1.', icon:'il4', count:0},
   toxin:      {name:'Toxin', group:'effect', cost:0, ability:'toxincard', text:'Deal 1 damage to a target enemy Immune cell.', icon:'toxin', count:0},
@@ -2768,7 +2774,8 @@ function render(){
       return '<button data-action="pickprimecategory" data-cat="'+cat+'">'+cat+'</button>';
     }).join('');
   } else if(S.selection && S.selection.mode==='dormancyChoice'){
-    root.pickCategory.innerHTML = '<button data-action="choiceattack">Attack</button><button data-action="choicedormant">Go Dormant</button>';
+    var canAffordAttack = S.players[S.selection.who].atp>=1;
+    root.pickCategory.innerHTML = (canAffordAttack ? '<button data-action="choiceattack">Attack</button>' : '')+'<button data-action="choicedormant">Go Dormant</button>';
   }
 
   if(S.over){
