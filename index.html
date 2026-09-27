@@ -732,7 +732,7 @@ var DEFS = {
   cytotoxict: {name:'Naive Cytotoxic T-cell', group:'immune', class:'Adaptive', duration:'persistent', cost:3, pot:3, res:3, specializes:true, ability:'primed', text:'+1 Potency while you control a Helper T-cell or Dendritic Cell.', icon:'cytotoxict', count:3},
   bcell:      {name:'Naive B-cell', group:'immune', class:'Adaptive', duration:'persistent', cost:2, pot:1, res:3, specializes:true, ability:'makesantibody', text:'On destroyed: create an Antibody token in hand.', icon:'bcell', count:3},
   antibody:   {name:'Antibody', group:'immune', class:'Adaptive', duration:'acute', cost:0, pot:null, res:1, text:'May block any attack, fully neutralizing it, then is spent.', icon:'antibody', count:0},
-  granule:    {name:'Granule', group:'immune', class:'Innate', duration:'acute', cost:0, pot:1, res:0, text:'Can attack any enemy Pathogen or Immune cell, then is spent.', icon:'granule', count:0},
+  granule:    {name:'Granule', group:'immune', class:'Adaptive', duration:'acute', cost:0, pot:1, res:0, text:'Can attack any enemy Pathogen or Immune cell, then is spent.', icon:'granule', count:0},
   ifng:       {name:'IFN-γ', group:'effect', cost:0, ability:'cytokineboost', boostPool:['dendritic','macrophage','cytotoxict'], text:'Target a Dendritic Cell, Macrophage, or Cytotoxic T-cell you control: permanent +1/+1.', icon:'ifng', count:0},
   il4:        {name:'IL-4', group:'effect', cost:0, ability:'cytokineboost', boostPool:['eosinophil','mast','bcell'], text:'Target an Eosinophil, Mast Cell, or B-cell you control: permanent +1/+1.', icon:'il4', count:0},
   toxin:      {name:'Toxin', group:'effect', cost:0, ability:'toxincard', text:'Deal 1 damage to a target enemy Immune cell.', icon:'toxin', count:0},
@@ -1856,7 +1856,7 @@ function applyEffect(who, def, targetUid, chosenCategory){
     var t6 = findCreature(who, targetUid);
     if(t6){ t6.pot+=1; t6.res+=1; t6.maxRes+=1; pushLog(t6.name+' gets a permanent +1/+1 boost from '+def.name+'.'); }
   } else if(def.ability==='chemokine'){
-    var innatePool = S.players[who].discard.filter(function(id){ return DEFS[id] && DEFS[id].group==='immune' && DEFS[id].class==='Innate'; });
+    var innatePool = S.players[who].discard.filter(function(id){ return id!=='granule' && DEFS[id] && DEFS[id].group==='immune' && DEFS[id].class==='Innate'; });
     if(innatePool.length){
       var summonPick = innatePool[Math.floor(Math.random()*innatePool.length)];
       S.players[who].discard.splice(S.players[who].discard.indexOf(summonPick),1);
@@ -1880,7 +1880,7 @@ function applyEffect(who, def, targetUid, chosenCategory){
     if(pulledNames.length){ pushLog('Daycare pulls '+pulledNames.join(', ')+' from the discard pile into '+label(who)+"'s hand."); }
     else { pushLog('No Acute Pathogens in the discard pile for Daycare to pull.'); }
   } else if(def.ability==='immuneboost'){
-    var pool = S.players[who].discard.filter(function(id){ return id!=='antibody' && DEFS[id] && DEFS[id].group==='immune'; });
+    var pool = immuneBoostPoolFor(who);
     if(pool.length){
       var pick = pool[Math.floor(Math.random()*pool.length)];
       S.players[who].discard.splice(S.players[who].discard.indexOf(pick),1);
@@ -1899,8 +1899,11 @@ function applyEffect(who, def, targetUid, chosenCategory){
   }
   checkGameOver();
 }
+// Antibody and Granule are secreted tokens, not living cells recruited back from the discard
+// pile — every "recall an immune cell from discard" effect excludes both by id (checking class
+// or group alone isn't enough, since both are still tagged group:'immune' for other purposes).
 function immuneBoostPoolFor(who){
-  return S.players[who].discard.filter(function(id){ return id!=='antibody' && DEFS[id] && DEFS[id].group==='immune'; });
+  return S.players[who].discard.filter(function(id){ return id!=='antibody' && id!=='granule' && DEFS[id] && DEFS[id].group==='immune'; });
 }
 
 function applyVaccinate(who, category, targetUid){
@@ -2242,7 +2245,7 @@ function aiPlayPhase(done){
         if(!hasCytokinePool) s -= 99;
       }
       if(d.ability==='chemokine'){
-        var innatePoolScore = ai.discard.filter(function(id){ return DEFS[id] && DEFS[id].group==='immune' && DEFS[id].class==='Innate'; });
+        var innatePoolScore = ai.discard.filter(function(id){ return id!=='granule' && DEFS[id] && DEFS[id].group==='immune' && DEFS[id].class==='Innate'; });
         if(innatePoolScore.length===0) s -= 99; else s += 3;
       }
       if(d.ability==='daycare'){
