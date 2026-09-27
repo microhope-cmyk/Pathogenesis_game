@@ -590,7 +590,7 @@
     <h3>Engaging</h3>
     <p>Tap a ready <strong class="imm">Immune cell</strong> to proactively attack an enemy Pathogen already on the board — no blocking involved. This costs 1 ATP too. This is the only way to actually clear a chronic infection; blocking just absorbs one turn's damage.</p>
     <h3>Specialization</h3>
-    <p>A Naive Helper T-cell or Cytotoxic T-cell permanently upgrades the first time it fights a Pathogen, becoming Specialized against that category and choosing one of two paths — both also grant a flat +1 Resistance just for specializing, on top of whatever else the path gives. <strong>Memory</strong> gives +3 Resistance total, and the cell keeps attacking and engaging normally. <strong>Effector</strong> trades away attacking and engaging directly (it can still block) for a once-per-turn secrete instead: a Helper T-cell secretes a Cytokine — IFN-&gamma; or IL-4, depending on the category it specialized against — which permanently gives one eligible ally +1/+1; a Cytotoxic T-cell secretes a Granule, a one-shot token that can strike any enemy Pathogen or Immune cell. A Naive B-cell instead becomes a Memory B-cell (+2 Potency, +3 Resistance, forever) or a Plasma Cell (secretes a category-specific Antibody each turn — unlike the generic Antibody a B-cell leaves behind when it dies, a category-specific one only blocks that one Pathogen category). <strong class="eff">Vaccination</strong> can Specialize a cell early, before it ever meets the real thing — pick a category and it goes through the same path choice a combat win would (Memory or Effector, or Memory B-cell or Plasma for a B-cell), just without needing to survive a fight first. Afterward, a Specialized cell deals +1 Potency any time it fights or blocks a Pathogen of its own category.</p>
+    <p>A Naive Helper T-cell or Cytotoxic T-cell permanently upgrades the first time it fights a Pathogen, becoming Specialized against that category and choosing one of two paths — both also grant a flat +1 Resistance just for specializing, on top of whatever else the path gives. <strong>Memory</strong> gives +3 Resistance total, and the cell keeps attacking and engaging normally. <strong>Effector</strong> trades away attacking and engaging directly (it can still block) for a once-per-turn secrete instead: a Helper T-cell secretes a Cytokine — IFN-&gamma; or IL-4, depending on the category it specialized against — which permanently gives one eligible ally +1/+1; a Cytotoxic T-cell secretes a Granule, a one-shot token that can strike any enemy Pathogen or Immune cell. A Naive B-cell instead becomes a Memory B-cell (+2 Potency, +3 Resistance, forever) or a Plasma Cell (secretes two category-specific Antibodies each turn — unlike the generic Antibody a B-cell leaves behind when it dies, a category-specific one only blocks that one Pathogen category). <strong class="eff">Vaccination</strong> can Specialize a cell early, before it ever meets the real thing — pick a category and it goes through the same path choice a combat win would (Memory or Effector, or Memory B-cell or Plasma for a B-cell), just without needing to survive a fight first. Afterward, a Specialized cell deals +1 Potency any time it fights or blocks a Pathogen of its own category.</p>
     <h3>Chronic complications</h3>
     <p>Several Pathogens (HPV, EBV, <em>H. pylori</em>, Hepatitis C, Group A Strep, HIV) cause lasting harm if left unremoved for several of your turns. Some just add extra damage on a fixed schedule; others instead roll a die once a threshold is reached — you'll see that roll flash on screen, with the number rolled and what it needed. Destroying the Pathogen is usually the only way to stop it.</p>
     <h3>Effects</h3>
@@ -707,8 +707,8 @@ var DEFS = {
   hiv:     {name:'HIV', group:'pathogen', category:'Virus', duration:'persistent', cost:4, pot:1, res:5, ability:'onplayHelperT', canHide:true, icon:'virus_hiv', count:1,
             chronic:{key:'aids', rollAt:3, rollTarget:5}, text:'On Play: deal 1 damage directly to an enemy Helper T-cell, ignoring blockers. Can go dormant (latent) instead of attacking — free to stay dormant, 1 ATP to reactivate. Chronic — AIDS: unremoved 3 turns, roll d6; 5+ recruits a random pathogen from your discard pile into your hand.'},
   prion:   {name:'Prion', group:'pathogen', category:'Prion', duration:'persistent', cost:5, pot:1, res:4, ability:'unkillable', text:'Cannot be destroyed by engaging or blocking — only Incineration works.', icon:'prion', count:1, set:'expansion'},
-  hpv:     {name:'HPV', group:'pathogen', category:'Virus', duration:'persistent', cost:2, pot:1, res:4, icon:'virus_hpv', count:1, spawnsCopies:true,
-            chronic:{key:'dysplasia', threshold:3}, text:'Chronic — Dysplasia: unremoved 3 turns → host takes +1 dmg/turn until destroyed. Also spawns a copy of itself into your hand every round after the first.'},
+  hpv:     {name:'HPV', group:'pathogen', category:'Virus', duration:'persistent', cost:2, pot:1, res:4, icon:'virus_hpv', count:1, spawnsCopies:true, spawnDelay:2,
+            chronic:{key:'dysplasia', rollAt:3, rollTarget:6}, text:'Chronic — Dysplasia: unremoved 3 turns, roll d6; only a 6 sets it in — host then takes +1 dmg/turn until destroyed. Also spawns a copy of itself into your hand every round starting its third turn on the board.'},
   ebv:     {name:'Epstein-Barr Virus', group:'pathogen', category:'Virus', duration:'persistent', cost:2, pot:1, res:5, icon:'virus_ebv', count:1, spawnsCopies:true,
             chronic:{key:'lupus', rollAt:2, rollTarget:100, rollSides:100}, text:'Chronic — Molecular Mimicry: end of host\'s 2nd turn, roll d100; only a 100 triggers lupus (1:100 odds). Also spawns a copy of itself into your hand every round after the first.'},
   hsv:     {name:'Herpes Simplex Virus', group:'pathogen', category:'Virus', duration:'persistent', cost:2, pot:2, res:3, canHide:true, icon:'virus_hsv', count:1,
@@ -730,9 +730,9 @@ var DEFS = {
   dendritic:  {name:'Dendritic Cell', group:'immune', class:'Innate', duration:'acute', cost:2, pot:0, res:2, ability:'prime', text:'On Play: choose a category. The next Naive adaptive cell you play while this is still on the board enters already Specialized against it (one time only).', icon:'dendritic', count:2},
   mast:       {name:'Mast Cell', group:'immune', class:'Innate', duration:'acute', cost:1, pot:1, res:2, ability:'histamine', text:'On Play: deal 1 damage to an enemy Pathogen; your Neutrophils get +1 Potency this turn.', icon:'mast', count:2},
   eosinophil: {name:'Eosinophil', group:'immune', class:'Innate', duration:'acute', cost:2, pot:2, res:1, ability:'antiparasite', text:'Deals double damage against Parasite-category Pathogens.', icon:'eosinophil', count:2},
-  helpert:    {name:'Naive Helper T-cell', group:'immune', class:'Adaptive', duration:'persistent', cost:2, pot:1, res:4, specializes:true, ability:'supportcell', text:'Your other Persistent Immune cells get +0/+1. (HIV\'s specific target.)', icon:'helpert', count:3},
-  cytotoxict: {name:'Naive Cytotoxic T-cell', group:'immune', class:'Adaptive', duration:'persistent', cost:3, pot:3, res:3, specializes:true, ability:'primed', text:'+1 Potency while you control a Helper T-cell or Dendritic Cell.', icon:'cytotoxict', count:3},
-  bcell:      {name:'Naive B-cell', group:'immune', class:'Adaptive', duration:'persistent', cost:2, pot:1, res:3, specializes:true, ability:'makesantibody', text:'On destroyed: create an Antibody token in hand.', icon:'bcell', count:3},
+  helpert:    {name:'Naive Helper T-cell', group:'immune', class:'Adaptive', duration:'persistent', cost:2, pot:1, res:4, specializes:true, ability:'supportcell', text:'Your other Persistent Immune cells get +0/+1. (HIV\'s specific target.)', icon:'helpert', count:4},
+  cytotoxict: {name:'Naive Cytotoxic T-cell', group:'immune', class:'Adaptive', duration:'persistent', cost:3, pot:3, res:3, specializes:true, ability:'primed', text:'+1 Potency while you control a Helper T-cell or Dendritic Cell.', icon:'cytotoxict', count:4},
+  bcell:      {name:'Naive B-cell', group:'immune', class:'Adaptive', duration:'persistent', cost:2, pot:1, res:3, specializes:true, ability:'makesantibody', text:'On destroyed: create an Antibody token in hand.', icon:'bcell', count:4},
   antibody:   {name:'Antibody', group:'immune', class:'Adaptive', duration:'acute', cost:0, pot:null, res:1, text:'May block any attack, fully neutralizing it, then is spent.', icon:'antibody', count:0},
   granule:    {name:'Granule', group:'immune', class:'Adaptive', duration:'acute', cost:0, pot:1, res:0, text:'Can attack any enemy Pathogen or Immune cell, then is spent.', icon:'granule', count:0},
   ifng:       {name:'IFN-γ', group:'effect', cost:0, ability:'cytokineboost', boostPool:['dendritic','macrophage','cytotoxict'], text:'Target a Dendritic Cell, Macrophage, or Cytotoxic T-cell you control: permanent +1/+1.', icon:'ifng', count:0},
@@ -1520,7 +1520,13 @@ function tickChronicForHost(hostWho){
     p.hostTurns = (p.hostTurns||0) + 1;
     var c = p.chronicDef;
     if(c.key==='dysplasia'){
-      if(p.hostTurns>=c.threshold){ damageHealth(hostWho, 1); pushLog('Dysplasia progresses — '+label(hostWho)+' takes 1 damage from unremoved HPV.'); }
+      if(p.hostTurns===c.rollAt && !p.rolled){
+        p.rolled = true;
+        var targetDys = c.rollTarget || 6;
+        var rollDys = rollDiceFlash(hostWho, 'cervical dysplasia (HPV)', targetDys);
+        if(rollDys>=targetDys){ p.dysplasiaOnset = true; pushLogFlash('Dysplasia sets in — '+label(hostWho)+' will take 1 damage per turn from unremoved HPV.', true); }
+      }
+      if(p.dysplasiaOnset){ damageHealth(hostWho, 1); pushLog('Dysplasia progresses — '+label(hostWho)+' takes 1 damage from unremoved HPV.'); }
     } else if(c.key==='gastritis'){
       if(p.hostTurns>=c.threshold){ damageHealth(hostWho, 1); pushLog('Gastritis worsens — '+label(hostWho)+' takes 1 damage from unremoved H. pylori.'); }
     } else if(c.key==='cirrhosis'){
@@ -1570,9 +1576,10 @@ function clearTempBuffs(who){
 // Regeneration, Toxin secretion, and self-copying all tick at the start of the pathogen's OWN
 // controller's turn (unlike chronic complications, which tick on the host/victim's turn) —
 // these represent the pathogen's own body doing something, not an effect on its host.
-// spawnsCopies deliberately skips the first tick (its first active turn) per design — a
-// pathogen shouldn't duplicate itself the instant it wakes up, only once it's actually stuck
-// around a full round. Regeneration and Toxin secretion have no such exclusion.
+// spawnsCopies deliberately skips its first `spawnDelay` ticks (1 by default, so just its first
+// active turn) per design — a pathogen shouldn't duplicate itself the instant it wakes up, only
+// once it's actually stuck around; HPV overrides spawnDelay to 2 to spread copies out further.
+// Regeneration and Toxin secretion have no such exclusion.
 function tickPathogenPassives(who){
   var p = S.players[who];
   p.board.slice().forEach(function(c){
@@ -1586,7 +1593,7 @@ function tickPathogenPassives(who){
       p.hand.push({uid:nextUid(), defId:'toxin'});
       pushLog(c.name+' secretes a Toxin into '+label(who)+"'s hand.");
     }
-    if(c.spawnsCopies && c.passiveTurns>1){
+    if(c.spawnsCopies && c.passiveTurns>c.spawnDelay){
       p.hand.push({uid:nextUid(), defId:c.defId});
       pushLog(c.name+' spawns a copy of itself into '+label(who)+"'s hand.");
     }
@@ -1762,7 +1769,7 @@ function makeCreatureInstance(def, defId, specCat){
     specificCategory: specCat||null, plasma:false,
     dormant: def.duration==='persistent', acted:false, tempPot:0, noBlockAcute:false, effectorCharge:0, auraBuffed:false, primeCategory:null,
     chronicDef: def.chronic ? Object.assign({}, def.chronic) : null, hostTurns:0, rolled:false,
-    regen: def.regen||0, secretesToxin: !!def.secretesToxin, spawnsCopies: !!def.spawnsCopies,
+    regen: def.regen||0, secretesToxin: !!def.secretesToxin, spawnsCopies: !!def.spawnsCopies, spawnDelay: def.spawnDelay||1,
     retaliateKillInnate: !!def.retaliateKillInnate, canHide: !!def.canHide, hidden:false, passiveTurns:0
   };
 }
@@ -2012,8 +2019,8 @@ function applySpecializePath(creature, category, path){
     creature.ability = 'plasmasecrete';
     creature.name = 'Plasma Cell';
     creature.specialTag = 'Plasma';
-    creature.text = 'Tap to secrete a '+category+'-specific Antibody into your hand for 1 ATP (once per turn). No longer engages directly, and no longer leaves an Antibody on death.';
-    pushLog('Plasma Cell — can secrete a '+category+'-specific Antibody each turn for 1 ATP; +1 Resistance.');
+    creature.text = 'Tap to secrete two '+category+'-specific Antibodies into your hand for 1 ATP (once per turn). No longer engages directly, and no longer leaves an Antibody on death.';
+    pushLog('Plasma Cell — can secrete two '+category+'-specific Antibodies each turn for 1 ATP; +1 Resistance.');
   }
 }
 function aiResolveSpecialize(creature, category, owner){
@@ -2347,7 +2354,8 @@ function aiAttackPhase(i, done){
       c.acted = true;
       if(c.ability==='plasmasecrete'){
         S.players.p2.hand.push({uid:nextUid(), defId:'antibody', specCat:c.specialized});
-        pushLog(c.name+' secretes a '+c.specialized+'-specific antibody.');
+        S.players.p2.hand.push({uid:nextUid(), defId:'antibody', specCat:c.specialized});
+        pushLog(c.name+' secretes two '+c.specialized+'-specific antibodies.');
       } else if(c.ability==='granulesecrete'){
         S.players.p2.hand.push({uid:nextUid(), defId:'granule'});
         pushLog(c.name+' secretes a Granule.');
@@ -2355,6 +2363,7 @@ function aiAttackPhase(i, done){
         S.players.p2.hand.push({uid:nextUid(), defId:c.cytokineId});
         pushLog(c.name+' secretes '+DEFS[c.cytokineId].name+'.');
       }
+      enforceHandLimit('p2');
       render();
     }
     setTimeout(function(){ aiAttackPhase(i+1, done); }, 60);
@@ -2784,7 +2793,7 @@ function render(){
     }).join('');
   } else if(S.selection && S.selection.mode==='specializeChoice'){
     var pathOpts = S.selection.kind==='bcell'
-      ? [['memoryb','Memory +2/+3'],['plasma','Plasma: makes Ab']]
+      ? [['memoryb','Memory +2/+3'],['plasma','Plasma: makes 2 Ab']]
       : S.selection.kind==='cd8'
         ? [['effector','Effector: Granules'],['memory','Memory +3 DEF']]
         : [['effector','Effector: Cytokines'],['memory','Memory +3 DEF']];
@@ -3053,7 +3062,8 @@ document.addEventListener('DOMContentLoaded', function(){
       secC.acted = true;
       if(secC.ability==='plasmasecrete'){
         S.players[S.turn].hand.push({uid:nextUid(), defId:'antibody', specCat:secC.specialized});
-        pushLog(secC.name+' secretes a '+secC.specialized+'-specific antibody.');
+        S.players[S.turn].hand.push({uid:nextUid(), defId:'antibody', specCat:secC.specialized});
+        pushLog(secC.name+' secretes two '+secC.specialized+'-specific antibodies.');
       } else if(secC.ability==='granulesecrete'){
         S.players[S.turn].hand.push({uid:nextUid(), defId:'granule'});
         pushLog(secC.name+' secretes a Granule.');
