@@ -763,8 +763,16 @@ function shuffle(arr){
 }
 
 /* ================= state ================= */
+// In Online mode, both devices run this same code independently and sync the *result* of their
+// own actions through Firestore — there's no shared server handing out ids. Two browser tabs
+// that both started this counter at 1 will independently mint identical uids (Player 1's 5th
+// card and Player 2's 5th card can both end up 'u5'). Once that happens, a card lookup by uid
+// (e.g. finding which hand card was tapped) silently matches whichever entry comes first in the
+// array — consistently the wrong card, not an occasional glitch. A short random per-tab prefix
+// gives every session its own id namespace, so two tabs can no longer collide.
+var uidPrefix = Math.random().toString(36).slice(2,8);
 var uidCounter = 1;
-function nextUid(){ return 'u'+(uidCounter++); }
+function nextUid(){ return 'u'+uidPrefix+(uidCounter++); }
 var S = null;
 
 /* ================= online multiplayer (Firebase) ================= */
