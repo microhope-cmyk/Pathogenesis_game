@@ -10,9 +10,62 @@ service cloud.firestore {
     }
     // ======================================================
 
-    // Anyone with a game's 5-character code can read or write that one game's document.
+    // ---- games/{code} ----
+    // The game has no login, so anyone with a 5-character room code can read or write that
+    // one game's document — that's by design (see index.html's online-play flow), not
+    // something these rules try to change. What they DO enforce is *shape*: every field the
+    // app actually writes is checked for type and given a size cap, and a document with
+    // unexpected extra fields is rejected outright. This is a guard against a script hammering
+    // this collection with junk data to run up Firestore usage, not an ownership check.
+    //
+    // Note on `request.resource.data`: for both create AND update, this is the FULL document
+    // as it will exist right after the write (Firestore merges an update() into the existing
+    // doc before rules see it) — so the same shape check below is correct for the partial
+    // updates the app actually sends (createOnlineGame's join-update only touches
+    // seats/seatTokens/updatedAt; syncOnlineState's update only touches state/updatedAt).
+    function validSeats(v) {
+      return v is map && v.keys().hasOnly(['p1','p2'])
+        && (!('p1' in v) || v.p1 is bool) && (!('p2' in v) || v.p2 is bool);
+    }
+    function validSeatToken(v) {
+      return v == null || (v is string && v.size() <= 100);
+    }
+    function validSeatTokens(v) {
+      return v is map && v.keys().hasOnly(['p1','p2'])
+        && (!('p1' in v) || validSeatToken(v.p1)) && (!('p2' in v) || validSeatToken(v.p2));
+    }
+    function validTimestamp(v) {
+      return v is string && v.size() <= 40;
+    }
+    // `state` is the entire serialized game (board, hands, log, players, ...) and its exact
+    // inner shape changes whenever a card or feature is added — validating that in full here
+    // would mean this file needs a redeploy every time index.html does. Require it's an object
+    // with a sane number of top-level keys instead (the real game state has about a dozen;
+    // 25 leaves headroom for new fields without inviting someone to stuff in hundreds of
+    // made-up ones). Firestore's own 1 MiB per-document ceiling is the backstop underneath
+    // this for total payload size.
+    function validState(v) {
+      return v is map && v.size() <= 25;
+    }
+    function validGameWrite(d) {
+      return d.keys().hasOnly(['status','seats','seatTokens','state','createdAt','updatedAt'])
+        && (!('status' in d) || (d.status is string && d.status.size() <= 30))
+        && (!('seats' in d) || validSeats(d.seats))
+        && (!('seatTokens' in d) || validSeatTokens(d.seatTokens))
+        && (!('state' in d) || validState(d.state))
+        && (!('createdAt' in d) || validTimestamp(d.createdAt))
+        && (!('updatedAt' in d) || validTimestamp(d.updatedAt));
+    }
+
     match /games/{code} {
-      allow read, write: if true;
+      allow read: if true;
+      // 5 characters from the exact charset generateRoomCode() in index.html draws from —
+      // rejects a flood of arbitrarily-named documents before it even gets to shape checks.
+      allow create: if code.matches('^[ABCDEFGHJKMNPQRSTUVWXYZ23456789]{5}$')
+        && request.resource.data.keys().hasAll(['status','seats','seatTokens','state','createdAt','updatedAt'])
+        && validGameWrite(request.resource.data);
+      allow update: if validGameWrite(request.resource.data);
+      allow delete: if false;
     }
 
     // Anyone can submit an interest-signup email — nobody can read the list back except
@@ -22,8 +75,15 @@ service cloud.firestore {
     // updates.html), told apart by a 'list' field ('cards' vs 'updates') on each document.
     // TODO: split these into their own collection once this rules file needs touching for
     // another reason anyway.
+    function validSignup(d) {
+      return d.keys().hasOnly(['email','list','surveyAnswers','createdAt'])
+        && d.email is string && d.email.size() > 0 && d.email.size() <= 320 && d.email.matches('.+@.+[.].+')
+        && d.list is string && d.list in ['cards','updates']
+        && d.surveyAnswers is list && d.surveyAnswers.size() <= 10
+        && d.createdAt is string && d.createdAt.size() <= 40;
+    }
     match /interest_signups/{id} {
-      allow create: if true;
+      allow create: if validSignup(request.resource.data);
       allow read: if isAdmin();
       allow update, delete: if false;
     }
